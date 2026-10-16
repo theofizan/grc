@@ -1,0 +1,35 @@
+                      profile: 'legacy_nonht_ofdm_20mhz'
+    configurationChecksPassed: 1
+        wlanToolboxCrossCheck: 'passed'
+            waveformValidated: 0
+
+                            status: 'passed'
+                              kind: 'simulation_and_theory_not_antenna_measurement'
+                          seedBase: 20261016
+                   symbolsPerPoint: 100000
+    maxRelativeErrorAgainstBerawgn: [9.6588e-15 9.6588e-15 … ] (1×4 double)
+                     matlabVersion: '26.1.0.3276743 (R2026a) Update 3'
+                        confidence: 'two-sided 95% Clopper-Pearson; zero-error markers use one-sided 95%'
+                           sources: {1×4 cell}
+
+                         files: 4
+                        status: 'passed'
+    worstEvmAbsoluteDifference: 2.5535e-15
+
+                   status: 'passed'
+                    rates: 8
+           packetsPerRate: 16
+            matlabVersion: '26.1.0.3276743 (R2026a) Update 3'
+            commonTxScale: 0.1432
+                   source: 'wlanWaveformGenerator'
+    noiselessPsduRecovery: 'passed_all_8_rates'
+
+               kind: 'coded_WLAN_simulation_not_measurement'
+             timing: 'known_boundary_and_rate'
+    packetsPerPoint: 12
+           seedBase: 20261016
+              rates: [0 2 4 6]
+             points: 28
+           receiver: 'noisy L-LTF unsmoothed estimate; ZF; no CFO or pilot tracking in AWGN'
+        uncertainty: 'post-FEC errors are correlated; bit-binomial bounds are nominal only'
+

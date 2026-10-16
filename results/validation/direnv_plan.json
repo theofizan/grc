@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "actions": {
+    "FETCH": [
+      {
+        "name": "direnv",
+        "version": "2.38.2",
+        "build": "ha5a11a4_0",
+        "build_number": 0,
+        "channel": "https://conda.anaconda.org/conda-forge/osx-arm64",
+        "subdir": "osx-arm64",
+        "fn": "direnv-2.38.2-ha5a11a4_0.conda",
+        "md5": "b78cc59574051889b17b7fe6b79e744f",
+        "url": "https://conda.anaconda.org/conda-forge/osx-arm64/direnv-2.38.2-ha5a11a4_0.conda",
+        "sha256": "a3c3416731045191a6fc8d862a6f3bc6f21f1a723d4b4843833322186b4dd008",
+        "depends": [],
+        "constrains": [],
+        "license": "MIT",
+        "timestamp": 1791636991068,
+        "size": 6887244
+      }
+    ],
+    "PREFIX": "/Users/ofi/radioconda",
+    "LINK": [
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 0,
+        "build_string": "ha5a11a4_0",
+        "channel": "conda-forge",
+        "dist_name": "direnv-2.38.2-ha5a11a4_0",
+        "name": "direnv",
+        "platform": "osx-arm64",
+        "version": "2.38.2"
+      }
+    ]
+  },
+  "prefix": "/Users/ofi/radioconda",
+  "dry_run": true
+}

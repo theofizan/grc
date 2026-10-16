@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "rate_index": 5,
+  "order": 16,
+  "phy_rate_mbps": 36,
+  "sample_rate_hz": 2.0E+7,
+  "psdu_length_bytes": 1000,
+  "packets": 16,
+  "packet_samples": 4880,
+  "leading_samples": 512,
+  "idle_samples": 2000,
+  "active_time_power": 0.020378385370035206,
+  "common_tx_scale": 0.14322522172656077,
+  "peak_amplitude": 0.36798232156859578,
+  "window_transition_s": 0,
+  "scrambler_initial_state": 93,
+  "payload_kind": "synthetic PSDU, no MAC/FCS",
+  "source": "MATLAB WLAN Toolbox",
+  "timing_scope": "schedule-assisted finite reference, not a tested autonomous receiver"
+}

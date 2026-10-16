@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "kind": "simulation_and_theory_not_antenna_measurement",
+  "seedBase": 2.0261016E+7,
+  "symbolsPerPoint": 100000,
+  "maxRelativeErrorAgainstBerawgn": [
+    9.6588256224988021E-15,
+    9.6588256224988021E-15,
+    1.1731011300532554E-14,
+    3.6546922148646021E-15
+  ],
+  "matlabVersion": "26.1.0.3276743 (R2026a) Update 3",
+  "confidence": "two-sided 95% Clopper-Pearson; zero-error markers use one-sided 95%",
+  "sources": [
+    "MW-BER",
+    "MW-ANALYTIC",
+    "MW-SNR",
+    "MW-CI"
+  ]
+}

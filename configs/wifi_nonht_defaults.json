@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "profile": "legacy_nonht_ofdm_20mhz",
+  "implementation_status": "software_validated_siso_known_burst_phy",
+  "execution_mode": "simulation",
+  "standards_reference": "IEEE Std 802.11-2020, Clause 17 (legacy OFDM); verify normative requirements before compliance claims",
+  "phy": {
+    "sample_rate_hz": 20000000,
+    "channel_bandwidth_hz": 20000000,
+    "fft_length": 64,
+    "cyclic_prefix_samples": 16,
+    "active_subcarrier_ranges": [
+      [
+        -26,
+        -1
+      ],
+      [
+        1,
+        26
+      ]
+    ],
+    "pilot_subcarrier_indices": [
+      -21,
+      -7,
+      7,
+      21
+    ],
+    "data_subcarriers": 48,
+    "pilot_subcarriers": 4,
+    "subcarrier_spacing_hz": 312500,
+    "useful_symbol_duration_s": 3.2e-06,
+    "guard_interval_s": 8e-07,
+    "ofdm_symbol_duration_s": 4e-06,
+    "spatial_streams": 1,
+    "psdu_length_bytes": 1000,
+    "scrambler_initial_state": 93,
+    "coding": "BCC constraint length 7; generators 133 and 171 octal; rate-specific puncturing",
+    "mapping": "IEEE legacy OFDM mapping; verify bit significance and axis conventions with golden vectors",
+    "packet_fields": [
+      "L-STF",
+      "L-LTF",
+      "L-SIG",
+      "DATA"
+    ],
+    "initial_rate_indices": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "rate_index_convention": "Local 0..7 labels matching MATLAB wlanNonHTConfig.MCS; not over-the-air RATE bits or HT/VHT MCS labels",
+    "rates": [
+      {
+        "rate_index": 0,
+        "modulation": "BPSK",
+        "code_rate": "1/2",
+        "data_bits_per_ofdm_symbol": 24,
+        "phy_rate_mbps": 6
+      },
+      {
+        "rate_index": 1,
+        "modulation": "BPSK",
+        "code_rate": "3/4",
+        "data_bits_per_ofdm_symbol": 36,
+        "phy_rate_mbps": 9
+      },
+      {
+        "rate_index": 2,
+        "modulation": "QPSK",
+        "code_rate": "1/2",
+        "data_bits_per_ofdm_symbol": 48,
+        "phy_rate_mbps": 12
+      },
+      {
+        "rate_index": 3,
+        "modulation": "QPSK",
+        "code_rate": "3/4",
+        "data_bits_per_ofdm_symbol": 72,
+        "phy_rate_mbps": 18
+      },
+      {
+        "rate_index": 4,
+        "modulation": "16-QAM",
+        "code_rate": "1/2",
+        "data_bits_per_ofdm_symbol": 96,
+        "phy_rate_mbps": 24
+      },
+      {
+        "rate_index": 5,
+        "modulation": "16-QAM",
+        "code_rate": "3/4",
+        "data_bits_per_ofdm_symbol": 144,
+        "phy_rate_mbps": 36
+      },
+      {
+        "rate_index": 6,
+        "modulation": "64-QAM",
+        "code_rate": "2/3",
+        "data_bits_per_ofdm_symbol": 192,
+        "phy_rate_mbps": 48
+      },
+      {
+        "rate_index": 7,
+        "modulation": "64-QAM",
+        "code_rate": "3/4",
+        "data_bits_per_ofdm_symbol": 216,
+        "phy_rate_mbps": 54
+      }
+    ],
+    "tx_rf_channels": 1,
+    "rx_rf_channels": 1
+  },
+  "radio": {
+    "device_family": "X310",
+    "daughterboard": null,
+    "center_frequency_hz": 5180000000,
+    "frequency_note": "Placeholder: 5 GHz channel 36 center; replace for the actual antenna band",
+    "tx_gain_db": 0,
+    "rx_gain_db": 20,
+    "tx_peak_amplitude_limit": 0.5,
+    "gain_control": "fixed",
+    "clock_source": "internal",
+    "time_source": "internal",
+    "host_link_preference": "10GbE",
+    "wire_format": "sc16",
+    "conducted_tx_power_dbm": null,
+    "geometry_distance_m": null,
+    "geometry_note": "Choose measured geometry from antenna dimensions, wavelength, and test range"
+  },
+  "steering": {
+    "backend": "mock",
+    "coordinate_frame": "antenna_local_x_boresight_y_positive_azimuth_z_positive_elevation",
+    "azimuth_limits_deg": [
+      -90,
+      90
+    ],
+    "elevation_limits_deg": [
+      -45,
+      45
+    ],
+    "pointing_tolerance_deg": 0.5,
+    "settle_seconds": 0.25,
+    "timeout_seconds": 5.0,
+    "azimuth_sweep_deg": [
+      -60,
+      -50,
+      -40,
+      -30,
+      -20,
+      -10,
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "elevation_sweep_deg": [
+      0
+    ],
+    "physical_rotation_azimuth_deg": 0,
+    "physical_rotation_elevation_deg": 0,
+    "selection_policy": "fixed commanded scan; optimize only on a separate training capture",
+    "calibration_id": null
+  },
+  "measurement": {
+    "packets_per_point": 1000,
+    "repetitions": 3,
+    "payload_seed": 20261016,
+    "confidence_level": 0.95,
+    "ber_outputs": [
+      "pre_fec_transmitted_coded_bits",
+      "post_fec_descrambled_payload_bits"
+    ],
+    "evm_scoring": "known references on DATA data subcarriers after L-LTF channel correction and pilot phase tracking",
+    "evm_normalization": "average_reference_signal_power",
+    "evm_aggregation": "sum squared errors and reference energies; retain per-packet and per-subcarrier results",
+    "packet_errors_include": [
+      "missed_packet",
+      "invalid_signal_field",
+      "failed_psdu",
+      "bad_fcs_when_present"
+    ],
+    "inter_packet_idle_s": 0.001,
+    "idle_note": "Laboratory scheduling gap, not an implementation of 802.11 MAC contention or acknowledgements",
+    "save_raw_iq": true,
+    "save_reference_bits_and_symbols": true,
+    "primary_metrics": [
+      "pre_fec_mapped_bit_ber",
+      "reference_rms_evm",
+      "received_power"
+    ],
+    "comparison_mode": "fixed_average_conducted_tx_power_and_fixed_rx_gain",
+    "post_fec_and_per_scope": "optional validation extensions; not prerequisites for initial antenna comparison"
+  },
+  "sources": [
+    "https://www.mathworks.com/help/wlan/ref/wlannonhtconfig.html",
+    "https://www.mathworks.com/help/wlan/ref/wlannonhtofdminfo.html",
+    "https://labs.ece.uw.edu/funlab/802/802.11a-1999.pdf"
+  ]
+}

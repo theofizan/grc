@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "actions": {
+    "FETCH": [],
+    "PREFIX": "/Users/ofi/radioconda",
+    "UNLINK": [
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 7,
+        "build_string": "ha4eeaca_7",
+        "channel": "conda-forge",
+        "dist_name": "qwt-6.3.0-ha4eeaca_7",
+        "name": "qwt",
+        "platform": "osx-arm64",
+        "version": "6.3.0"
+      }
+    ],
+    "LINK": [
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 0,
+        "build_string": "h4ff56cd_0",
+        "channel": "conda-forge",
+        "dist_name": "qwt-6.3.0-h4ff56cd_0",
+        "name": "qwt",
+        "platform": "osx-arm64",
+        "version": "6.3.0"
+      }
+    ]
+  },
+  "prefix": "/Users/ofi/radioconda",
+  "dry_run": true
+}

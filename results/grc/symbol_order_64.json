@@ -1,0 +1,19 @@
+{
+  "order": 64,
+  "symbols": 100000,
+  "bits": 600000,
+  "errors": 31087,
+  "ber": 0.051811666666666666,
+  "ci95_lower": 0.05125216524521705,
+  "ci95_upper": 0.05237550057875849,
+  "evm_rms": 0.1621782741767011,
+  "evm_percent": 16.21782741767011,
+  "evm_db": -15.800146508926478,
+  "error_energy": 2631.81740684908,
+  "reference_energy": 100062.28265045426,
+  "ebno_db": 8,
+  "theory_ber": 0.05233386284889217,
+  "expected_noise_power": 0.026414886541018555,
+  "measured_noise_power": 0.0263181740684908,
+  "status": "passed"
+}

@@ -1,0 +1,18 @@
+{
+  "bursts": 8,
+  "timing": "known fixed burst boundaries; no packet detection",
+  "cfo_correction": true,
+  "pilot_tracking": true,
+  "partial_input_samples": 0,
+  "pending_output_symbols": 0,
+  "estimated_cfo_hz": [
+    -8.429598135848411e-07,
+    1.7014922376258856e-06,
+    2.534360559078944e-06,
+    -1.0710978857071714e-06,
+    2.830622949173169e-08,
+    9.675283683628145e-07,
+    -6.331786605378238e-07,
+    1.6871377872934328e-06
+  ]
+}

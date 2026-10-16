@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "rates": 8,
+  "packetsPerRate": 16,
+  "matlabVersion": "26.1.0.3276743 (R2026a) Update 3",
+  "commonTxScale": 0.14322522172656077,
+  "source": "wlanWaveformGenerator",
+  "noiselessPsduRecovery": "passed_all_8_rates"
+}

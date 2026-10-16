@@ -1,0 +1,23 @@
+<<< Welcome to GNU Radio Companion Compiler 3.10.12.0 >>>
+
+Block paths:
+	/Users/ofi/.local/state/gnuradio
+	/Users/ofi/radioconda/share/gnuradio/grc/blocks
+
+>>> Loading: /Users/ofi/repos/grc/grc/awgn_symbol_benchmark.grc
+>>> Generating: /Users/ofi/repos/grc/grc/generated/awgn_symbol_benchmark.py
+>>> Warning: This flow graph may not have flow control: no audio or RF hardware blocks found. Add a Misc->Throttle block to your flow graph to avoid CPU congestion.
+
+>>> Loading: /Users/ofi/repos/grc/grc/usrp_wifi_rx.grc
+>>> Generating: /Users/ofi/repos/grc/grc/generated/usrp_wifi_rx.py
+
+>>> Loading: /Users/ofi/repos/grc/grc/usrp_wifi_tx.grc
+>>> Generating: /Users/ofi/repos/grc/grc/generated/usrp_wifi_tx.py
+
+>>> Loading: /Users/ofi/repos/grc/grc/wlan_ofdm_fft.grc
+>>> Generating: /Users/ofi/repos/grc/grc/generated/wlan_ofdm_fft.py
+>>> Warning: This flow graph may not have flow control: no audio or RF hardware blocks found. Add a Misc->Throttle block to your flow graph to avoid CPU congestion.
+
+>>> Loading: /Users/ofi/repos/grc/grc/wlan_reference_channel.grc
+>>> Generating: /Users/ofi/repos/grc/grc/generated/wlan_reference_channel.py
+>>> Warning: This flow graph may not have flow control: no audio or RF hardware blocks found. Add a Misc->Throttle block to your flow graph to avoid CPU congestion.

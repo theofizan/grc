@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "command_stages": 46,
+  "unit_tests": 25,
+  "finite_siso_gui_cases": 34,
+  "flowgraphs_compiled": 7,
+  "source_hash_mismatches": [],
+  "report_audits": {
+    "results/REPORT.md": {
+      "tables": 4,
+      "figures": 5,
+      "local_links": 65
+    },
+    "results/VALIDATION_APPENDIX.md": {
+      "tables": 11,
+      "figures": 8,
+      "local_links": 90
+    },
+    "README.md": {
+      "tables": 2,
+      "figures": 0,
+      "local_links": 27
+    },
+    "docs/SISO_LABS.md": {
+      "tables": 3,
+      "figures": 0,
+      "local_links": 0
+    }
+  },
+  "original_user_flowgraphs_unchanged": true
+}

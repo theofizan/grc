@@ -1,0 +1,33 @@
+Channels:
+ - conda-forge
+ - ryanvolz
+Platform: osx-arm64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+
+  environment location: /Users/ofi/radioconda
+
+  added / updated specs:
+    - direnv
+
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    direnv-2.38.2              |       ha5a11a4_0         6.6 MB  conda-forge
+    ------------------------------------------------------------
+                                           Total:         6.6 MB
+
+The following NEW packages will be INSTALLED:
+
+  direnv             conda-forge/osx-arm64::direnv-2.38.2-ha5a11a4_0 
+
+
+
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done

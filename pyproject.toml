@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "antenna-benchmark"
+version = "0.1.0"
+description = "Reproducible GNU Radio and MATLAB antenna benchmark baselines"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "matplotlib", "PyYAML"]
+
+[project.scripts]
+antenna-grc = "antenna_bench.launcher:main"
+
+[tool.setuptools]
+packages = ["antenna_bench"]
+py-modules = ["antenna_steering"]

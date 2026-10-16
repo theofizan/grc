@@ -1,0 +1,17 @@
+{
+  "context": {
+    "model": "SISO known-burst Wi-Fi",
+    "rate_index": 5,
+    "tx_reference_snr_db": 25,
+    "path_loss_db": 0,
+    "cfo_hz": 0,
+    "channel_taps": "1+0j",
+    "correct_cfo": 0,
+    "pilot_tracking": 0
+  },
+  "symbols": 21504,
+  "error_energy": 83.03748854798576,
+  "reference_energy": 21164.80090745739,
+  "evm_rms": 0.06263686442824688,
+  "evm_percent": 6.263686442824688
+}

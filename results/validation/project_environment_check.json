@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "environment": "/Users/ofi/repos/grc/.venv",
+  "base_runtime": "/Users/ofi/radioconda",
+  "shares_base_site_packages": true,
+  "activation": "direnv 2.38.2 via interactive zsh hook",
+  "checks": [
+    "Fresh project shell prompt hook selects project Python",
+    "Entering project activates project Python",
+    "Subfolders retain activation",
+    "Leaving restores previous Python and clears project VIRTUAL_ENV",
+    "GNU Radio 3.10.12.0 and UHD 4.8 import from project venv",
+    "antenna-grc --help works from /tmp without PYTHONPATH and with minimal PATH"
+  ],
+  "zshrc_backup": "/Users/ofi/.zshrc.before-grc-direnv-20261016T155619Z"
+}

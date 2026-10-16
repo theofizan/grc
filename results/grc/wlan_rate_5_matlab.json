@@ -1,0 +1,19 @@
+{
+  "rateIndex": 5,
+  "timingMode": "known_schedule_and_rate",
+  "errors": 0,
+  "bits": 128000,
+  "postFecBer": 0,
+  "preFecErrors": 0,
+  "preFecBits": 172032,
+  "preFecBer": 0,
+  "expectedPackets": 16,
+  "unavailablePackets": 0,
+  "packetErrors": 0,
+  "packetErrorRate": 0,
+  "evmRms": 0.062160492840906377,
+  "capturePath": "/Users/ofi/repos/grc/results/grc/wlan_rate_5_rx.c64",
+  "status": "analyzed_not_hardware_validated",
+  "pythonMaxSymbolDifference": 1.3551999095955061E-15,
+  "pythonEvmDifference": 6.9388939039072284E-18
+}

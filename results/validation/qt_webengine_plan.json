@@ -1,0 +1,154 @@
+{
+  "success": true,
+  "actions": {
+    "FETCH": [
+      {
+        "name": "pyqtwebengine",
+        "version": "5.15.11",
+        "build": "py312h1a0e663_2",
+        "build_number": 2,
+        "channel": "https://conda.anaconda.org/conda-forge/osx-arm64",
+        "subdir": "osx-arm64",
+        "fn": "pyqtwebengine-5.15.11-py312h1a0e663_2.conda",
+        "md5": "0f7756ce8840d11e14be639da4b2893e",
+        "url": "https://conda.anaconda.org/conda-forge/osx-arm64/pyqtwebengine-5.15.11-py312h1a0e663_2.conda",
+        "sha256": "a464a12bd654329ab446ec5de89296a7fa088018ff85622e745a6507ba811dd2",
+        "depends": [
+          "__osx >=11.0",
+          "libcxx >=19",
+          "pyqt >=5.15.11,<5.16.0a0",
+          "python >=3.12,<3.13.0a0",
+          "python >=3.12,<3.13.0a0 *_cpython",
+          "python_abi 3.12.* *_cp312",
+          "qt-main >=5.15.15,<5.16.0a0",
+          "qt-webengine >=5.15.15,<5.16.0a0"
+        ],
+        "constrains": [],
+        "license": "GPL-3.0-only",
+        "timestamp": 1759500586112,
+        "size": 131332
+      },
+      {
+        "name": "giflib",
+        "version": "6.1.3",
+        "build": "h74c22ad_2",
+        "build_number": 2,
+        "channel": "https://conda.anaconda.org/conda-forge/osx-arm64",
+        "subdir": "osx-arm64",
+        "fn": "giflib-6.1.3-h74c22ad_2.conda",
+        "md5": "edc562dcbe5872664817e64575aa325f",
+        "url": "https://conda.anaconda.org/conda-forge/osx-arm64/giflib-6.1.3-h74c22ad_2.conda",
+        "sha256": "36a1605ea258ea805fd5a0f23f07ce3febcf4ac041d1ea99d0b31902b79f4358",
+        "depends": [
+          "__osx >=11.0"
+        ],
+        "constrains": [],
+        "license": "MIT",
+        "timestamp": 1788948759889,
+        "size": 82055
+      },
+      {
+        "name": "qt-webengine",
+        "version": "5.15.15",
+        "build": "h5422c0a_1",
+        "build_number": 1,
+        "channel": "https://conda.anaconda.org/conda-forge/osx-arm64",
+        "subdir": "osx-arm64",
+        "fn": "qt-webengine-5.15.15-h5422c0a_1.conda",
+        "md5": "fd84cffd130e51dcca01142c554deabd",
+        "url": "https://conda.anaconda.org/conda-forge/osx-arm64/qt-webengine-5.15.15-h5422c0a_1.conda",
+        "sha256": "1d0e77747164dbc41972283dbcc838f926bc0db2d121b7fae3abaa7d550ad5df",
+        "depends": [
+          "__osx >=11.0",
+          "libcxx >=17",
+          "libiconv >=1.17,<2.0a0",
+          "libjpeg-turbo >=3.0.0,<4.0a0",
+          "libpng >=1.6.44,<1.7.0a0",
+          "libsqlite >=3.47.0,<4.0a0",
+          "libwebp",
+          "libwebp-base >=1.4.0,<2.0a0",
+          "libzlib >=1.3.1,<2.0a0",
+          "nspr >=4.36,<5.0a0",
+          "nss >=3.106,<4.0a0",
+          "qt-main >=5.15.15,<5.16.0a0"
+        ],
+        "constrains": [
+          "qt 5.15.3|5.15.4|5.15.6|5.15.8|5.15.15"
+        ],
+        "license": "LGPL-3.0-only",
+        "timestamp": 1729956546230,
+        "size": 44924621
+      },
+      {
+        "name": "libwebp",
+        "version": "1.6.0",
+        "build": "h25fcef4_2",
+        "build_number": 2,
+        "channel": "https://conda.anaconda.org/conda-forge/osx-arm64",
+        "subdir": "osx-arm64",
+        "fn": "libwebp-1.6.0-h25fcef4_2.conda",
+        "md5": "c7b299de970d4d3674e37eef86feb6a4",
+        "url": "https://conda.anaconda.org/conda-forge/osx-arm64/libwebp-1.6.0-h25fcef4_2.conda",
+        "sha256": "b17a2ce9d14fe9eba5201762f771b03992f193621b074dfd00e9807aae4ad663",
+        "depends": [
+          "__osx >=11.0",
+          "giflib >=6.1.3,<6.2.0a0",
+          "libjpeg-turbo >=3.2.0,<4.0a0",
+          "libpng >=1.6.58,<1.7.0a0",
+          "libtiff >=4.7.2,<4.8.0a0",
+          "libwebp-base 1.6.0.*",
+          "libwebp-base >=1.6.0,<2.0a0"
+        ],
+        "constrains": [],
+        "license": "BSD-3-Clause",
+        "timestamp": 1788189093990,
+        "size": 88786
+      }
+    ],
+    "PREFIX": "/Users/ofi/radioconda",
+    "LINK": [
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 2,
+        "build_string": "h74c22ad_2",
+        "channel": "conda-forge",
+        "dist_name": "giflib-6.1.3-h74c22ad_2",
+        "name": "giflib",
+        "platform": "osx-arm64",
+        "version": "6.1.3"
+      },
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 2,
+        "build_string": "h25fcef4_2",
+        "channel": "conda-forge",
+        "dist_name": "libwebp-1.6.0-h25fcef4_2",
+        "name": "libwebp",
+        "platform": "osx-arm64",
+        "version": "1.6.0"
+      },
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 1,
+        "build_string": "h5422c0a_1",
+        "channel": "conda-forge",
+        "dist_name": "qt-webengine-5.15.15-h5422c0a_1",
+        "name": "qt-webengine",
+        "platform": "osx-arm64",
+        "version": "5.15.15"
+      },
+      {
+        "base_url": "https://conda.anaconda.org/conda-forge",
+        "build_number": 2,
+        "build_string": "py312h1a0e663_2",
+        "channel": "conda-forge",
+        "dist_name": "pyqtwebengine-5.15.11-py312h1a0e663_2",
+        "name": "pyqtwebengine",
+        "platform": "osx-arm64",
+        "version": "5.15.11"
+      }
+    ]
+  },
+  "prefix": "/Users/ofi/radioconda",
+  "dry_run": true
+}

@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "utc": "2026-10-16T16:58:59.924081+00:00",
+  "interpreter": "/Users/ofi/repos/grc/.venv/bin/python",
+  "base_python_prefix": "/Users/ofi/radioconda",
+  "project_venv": true,
+  "gnuradio": "3.10.12.0",
+  "uhd": "4.8.0.0-release",
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "PyYAML": "6.0.3",
+    "PyQt5": "5.15.11",
+    "antenna-benchmark": "0.1.0",
+    "PyQtWebEngine": "5.15.7"
+  },
+  "imports_from_tmp_without_pythonpath": [
+    "3.10.12.0",
+    "/Users/ofi/repos/grc/antenna_bench/__init__.py",
+    "3"
+  ],
+  "required_gtk_imports": "passed",
+  "launcher": "/Users/ofi/repos/grc/.venv/bin/antenna-grc",
+  "qtgui_widget_check": "Qt5/Qwt widget passed",
+  "qwt_build": "h4ff56cd_0",
+  "qwt_dependencies": [
+    "__osx >=11.0",
+    "libcxx >=16",
+    "qt-main >=5.15.8,<5.16.0a0"
+  ],
+  "fixes": [
+    "Editable local package installed with --no-deps --no-build-isolation",
+    "Launcher uses radioconda Python and prepends its bin directory to PATH",
+    "Added conda-forge pyqtwebengine, qt-webengine, giflib and libwebp; no existing packages replaced"
+  ],
+  "qt_document_browser_available": true,
+  "qt_note": "Qt WebEngine widget import passed; stable GTK frontend remains the default launcher",
+  "discovery_exit_code": 1,
+  "device_found": false,
+  "hardware_streaming_tested": false
+}

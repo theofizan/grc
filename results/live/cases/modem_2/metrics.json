@@ -1,0 +1,261 @@
+{
+  "status": "passed",
+  "case": {
+    "mode": "modem",
+    "order": 2,
+    "ebno_db": 8,
+    "rate_index": 2,
+    "snr_db": 25,
+    "path_loss_db": 0,
+    "cfo_hz": 0,
+    "channel_taps": "1+0j",
+    "correct_cfo": 1,
+    "pilot_tracking": 1,
+    "symbol_count": 100000,
+    "packet_count": 8,
+    "case_id": "modem_2",
+    "snapshot": false,
+    "replay_capture": null
+  },
+  "siso": {
+    "tx_channels": 1,
+    "rx_channels": 1
+  },
+  "ber": {
+    "context": {
+      "model": "SISO symbol-rate",
+      "order": 2,
+      "ebno_db": 8,
+      "path_loss_db": 0
+    },
+    "bits": 100000,
+    "errors": 16,
+    "ber": 0.00016,
+    "ci95_lower": 9.145650183632773e-05,
+    "ci95_upper": 0.0002598170065129076,
+    "zero_error_upper95": null,
+    "confidence_scope": "nominal independent-bit bounds; QAM/coded bits can be correlated",
+    "history": [
+      [
+        4096,
+        2
+      ],
+      [
+        6144,
+        3
+      ],
+      [
+        7168,
+        3
+      ],
+      [
+        7680,
+        3
+      ],
+      [
+        7936,
+        3
+      ],
+      [
+        8064,
+        3
+      ],
+      [
+        8128,
+        3
+      ],
+      [
+        12224,
+        3
+      ],
+      [
+        12256,
+        3
+      ],
+      [
+        12272,
+        3
+      ],
+      [
+        12280,
+        3
+      ],
+      [
+        12284,
+        3
+      ],
+      [
+        12286,
+        3
+      ],
+      [
+        14334,
+        3
+      ],
+      [
+        18430,
+        4
+      ],
+      [
+        20478,
+        4
+      ],
+      [
+        24574,
+        5
+      ],
+      [
+        26622,
+        6
+      ],
+      [
+        30718,
+        7
+      ],
+      [
+        31742,
+        7
+      ],
+      [
+        35838,
+        7
+      ],
+      [
+        37886,
+        8
+      ],
+      [
+        41982,
+        8
+      ],
+      [
+        44030,
+        8
+      ],
+      [
+        48126,
+        9
+      ],
+      [
+        50174,
+        9
+      ],
+      [
+        54270,
+        9
+      ],
+      [
+        56318,
+        9
+      ],
+      [
+        57342,
+        9
+      ],
+      [
+        61438,
+        10
+      ],
+      [
+        63486,
+        11
+      ],
+      [
+        67582,
+        11
+      ],
+      [
+        69630,
+        11
+      ],
+      [
+        73726,
+        14
+      ],
+      [
+        75774,
+        15
+      ],
+      [
+        79870,
+        15
+      ],
+      [
+        81918,
+        15
+      ],
+      [
+        86014,
+        15
+      ],
+      [
+        88062,
+        15
+      ],
+      [
+        92158,
+        15
+      ],
+      [
+        94206,
+        16
+      ],
+      [
+        98302,
+        16
+      ],
+      [
+        99326,
+        16
+      ],
+      [
+        99838,
+        16
+      ],
+      [
+        99966,
+        16
+      ],
+      [
+        99998,
+        16
+      ],
+      [
+        100000,
+        16
+      ]
+    ]
+  },
+  "evm": {
+    "context": {
+      "model": "SISO symbol-rate",
+      "order": 2,
+      "ebno_db": 8,
+      "path_loss_db": 0
+    },
+    "symbols": 100000,
+    "error_energy": 15790.90164029555,
+    "reference_energy": 100000.0,
+    "evm_rms": 0.3973776747666576,
+    "evm_percent": 39.73776747666576
+  },
+  "receiver": null,
+  "theory_ber": 0.00019090777407599314,
+  "power": {
+    "tx_active_mean": 1.0,
+    "tx_peak": 1.0,
+    "measured_awgn_power": 0.15790902078151703,
+    "configured_awgn_power": 0.15848931924611132,
+    "units": "normalized simulation sample power; not dBm"
+  },
+  "qt_widgets": {
+    "constellation": true,
+    "frequency": true,
+    "waterfall": true,
+    "time": true,
+    "numeric_ber": true,
+    "numeric_evm": true
+  },
+  "qt_backend": "offscreen",
+  "elapsed_seconds": 0.03587616598815657
+}
