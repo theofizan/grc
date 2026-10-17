@@ -1,0 +1,9 @@
+{
+  "usrp_wifi_tx.grc": "Explicit DSP parameters and connections preserved",
+  "awgn_symbol_benchmark.grc": "Explicit DSP parameters and connections preserved",
+  "wlan_reference_channel.grc": "Explicit DSP parameters and connections preserved",
+  "usrp_wifi_rx.grc": "Explicit DSP parameters and connections preserved",
+  "siso_wlan_lab.grc": "Explicit DSP parameters and connections preserved",
+  "siso_modem_lab.grc": "Explicit DSP parameters and connections preserved",
+  "wlan_ofdm_fft.grc": "Explicit DSP parameters and connections preserved"
+}

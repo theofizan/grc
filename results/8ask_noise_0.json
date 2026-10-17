@@ -1,0 +1,117 @@
+{
+  "tx_power_dbm": 0,
+  "path_loss_db": 80,
+  "rx_noise_dbm": -100.0,
+  "noise_enabled": 0,
+  "tx_measured_dbm": 0.001610843891940062,
+  "rx_measured_dbm": -79.99834786913678,
+  "expected_rx_signal_dbm": -80,
+  "tx_sample_peak_dbm": 7.394570350646973,
+  "papr_db": 7.392959506755033,
+  "tile_layouts": {
+    "0": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "1": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "2": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "3": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "4": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "5": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "reference_evm_percent": 1.2508459091186523,
+  "nominal_rx_snr_db": null,
+  "nominal_rx_ebno_db": null,
+  "square_plot_panels": {},
+  "channel_echo": 0,
+  "pre_reference_evm_percent": 2.743929386138916,
+  "equalizer_final_taps": [
+    [
+      -0.00049569335533306,
+      0.0
+    ],
+    [
+      0.00016207022417802364,
+      0.0
+    ],
+    [
+      0.001454103272408247,
+      0.0
+    ],
+    [
+      -0.005134759936481714,
+      0.0
+    ],
+    [
+      0.013967782258987427,
+      0.0
+    ],
+    [
+      1.0106244087219238,
+      0.0
+    ],
+    [
+      -0.01454502996057272,
+      0.0
+    ],
+    [
+      0.004788062069565058,
+      0.0
+    ],
+    [
+      -0.0013537404593080282,
+      0.0
+    ],
+    [
+      9.363975550513715e-05,
+      0.0
+    ],
+    [
+      -0.0005138383130542934,
+      0.0
+    ]
+  ],
+  "modulation": "8ask",
+  "noise_voltage": 0.0,
+  "configured_delay_bits": 102,
+  "best_delay_bits": 102,
+  "aligned_ber": 0.0,
+  "display_ber_mean": 0.0,
+  "compared_bits": 250000,
+  "ber_windows": 25,
+  "stock_ber_arithmetic": "XOR -> UChar to Float -> Integrate(10000) -> Multiply(1/10000)",
+  "finite_completed": true,
+  "symbol_rate_hz": 1000000.0,
+  "sample_rate_hz": 4000000.0,
+  "gross_bit_rate_bps": 3000000.0,
+  "decision_directed_evm_rms_percent": 1.237324180874386,
+  "matlab_fixture": "8ask_noise_0.mat",
+  "tx_mean_sample_power": 1.000370977695522
+}

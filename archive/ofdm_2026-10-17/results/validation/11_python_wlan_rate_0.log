@@ -1,0 +1,16 @@
+{
+  "rate_index": 0,
+  "timing": "known_schedule_and_rate",
+  "expected_packets": 16,
+  "unavailable_packets": 0,
+  "capture_samples": 467712,
+  "strict_finite_replay": true,
+  "pre_fec_errors": 0,
+  "pre_fec_bits": 257280,
+  "pre_fec_ber": 0.0,
+  "pre_fec_scope": "all transmitted mapped DATA bits including encoded SERVICE/tail/pad",
+  "evm_rms": 0.06291324857578051,
+  "evm_correction": "unsmoothed L-LTF ZF; no CFO/pilot tracking; no RX payload fit",
+  "capture_sha256": "2ad7a2e3b2c42c91d68073e76456f77b4481cf7faba639d3eb7c018ef2edcb29",
+  "reference_sha256": "b8cd260c14f8e92bbc5ef6b53bd6b23ca15905bfe18fc3a2e3f5ce1c015fdf63"
+}

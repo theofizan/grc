@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "cases": 16,
+  "maxBerDifference": 2.6047229789716297E-9,
+  "maxEvmPercentDifference": 1.5954495211190078E-5,
+  "maxRmsPercentDifference": 1.0024273144892959E-6,
+  "symbolRateHz": 1.0E+6
+}

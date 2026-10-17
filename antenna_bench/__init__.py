@@ -1,1 +1,1 @@
-"""Reproducible antenna benchmark mathematics and capture analysis."""
+"""Launch the stock-block single-carrier GNU Radio examples."""

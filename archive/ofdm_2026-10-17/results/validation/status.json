@@ -1,0 +1,588 @@
+{
+  "status": "passed",
+  "utc": "2026-10-17T18:14:38.334698+00:00",
+  "python": "3.12.15",
+  "platform": "macOS-26.5-arm64-arm-64bit",
+  "runs": [
+    {
+      "label": "installation_check",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/check_install.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.6870589159952942
+    },
+    {
+      "label": "python_reference",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/run_python_reference.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.6565249999985099
+    },
+    {
+      "label": "matlab_theory_and_references",
+      "command": [
+        "/Applications/MATLAB_R2026a.app/bin/matlab",
+        "-batch",
+        "addpath('/Users/ofi/repos/grc/matlab'); validate_wifi_profile; run_theory; validate_python_results; export_wlan_reference; run_wlan_awgn;"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 23.748469582991675
+    },
+    {
+      "label": "unit_tests",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.0645270840032026
+    },
+    {
+      "label": "compile_grc",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/compile_flowgraphs.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.053253499994753
+    },
+    {
+      "label": "grc_all_modulations",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_symbols.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.434170416992856
+    },
+    {
+      "label": "grc_symbol_simulation",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/awgn_symbol_benchmark.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4657513339770958
+    },
+    {
+      "label": "score_grc_symbols",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_symbols.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4414485420275014
+    },
+    {
+      "label": "grc_wlan_rate_0",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "0"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.49179120900225826
+    },
+    {
+      "label": "python_wlan_rate_0",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "0",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4568717500078492
+    },
+    {
+      "label": "grc_ofdm_fft_rate_0",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "0"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.47555604099761695
+    },
+    {
+      "label": "validate_grc_fft_rate_0",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "0"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1447793749975972
+    },
+    {
+      "label": "grc_wlan_rate_1",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.45033483402221464
+    },
+    {
+      "label": "python_wlan_rate_1",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "1",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4380825420084875
+    },
+    {
+      "label": "grc_ofdm_fft_rate_1",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.47783029099809937
+    },
+    {
+      "label": "validate_grc_fft_rate_1",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.13944883400108665
+    },
+    {
+      "label": "grc_wlan_rate_2",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4584884170035366
+    },
+    {
+      "label": "python_wlan_rate_2",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "2",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4455949999974109
+    },
+    {
+      "label": "grc_ofdm_fft_rate_2",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.46508525000535883
+    },
+    {
+      "label": "validate_grc_fft_rate_2",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.14043679099995643
+    },
+    {
+      "label": "grc_wlan_rate_3",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4549818329978734
+    },
+    {
+      "label": "python_wlan_rate_3",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "3",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.42391516698990017
+    },
+    {
+      "label": "grc_ofdm_fft_rate_3",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4717971670033876
+    },
+    {
+      "label": "validate_grc_fft_rate_3",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.14680891600437462
+    },
+    {
+      "label": "grc_wlan_rate_4",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4455834169930313
+    },
+    {
+      "label": "python_wlan_rate_4",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "4",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4346868330030702
+    },
+    {
+      "label": "grc_ofdm_fft_rate_4",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4682742090080865
+    },
+    {
+      "label": "validate_grc_fft_rate_4",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "4"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1340268749918323
+    },
+    {
+      "label": "grc_wlan_rate_5",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "5"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.44659645901992917
+    },
+    {
+      "label": "python_wlan_rate_5",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "5",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.43970237497705966
+    },
+    {
+      "label": "grc_ofdm_fft_rate_5",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "5"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4716478339978494
+    },
+    {
+      "label": "validate_grc_fft_rate_5",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "5"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.13143129198579118
+    },
+    {
+      "label": "grc_wlan_rate_6",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "6"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.46023183298530057
+    },
+    {
+      "label": "python_wlan_rate_6",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "6",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.42758308301563375
+    },
+    {
+      "label": "grc_ofdm_fft_rate_6",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "6"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.45873875002143905
+    },
+    {
+      "label": "validate_grc_fft_rate_6",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "6"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.159197957982542
+    },
+    {
+      "label": "grc_wlan_rate_7",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_reference_channel.py",
+        "--rate-index",
+        "7"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4645072919956874
+    },
+    {
+      "label": "python_wlan_rate_7",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/analyze_wlan.py",
+        "--rate-index",
+        "7",
+        "--require-complete"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.43752375000622123
+    },
+    {
+      "label": "grc_ofdm_fft_rate_7",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "grc/generated/wlan_ofdm_fft.py",
+        "--rate-index",
+        "7"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.47321566700702533
+    },
+    {
+      "label": "validate_grc_fft_rate_7",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_grc_fft.py",
+        "--rate-index",
+        "7"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.13231983300647698
+    },
+    {
+      "label": "cross_validate_grc",
+      "command": [
+        "/Applications/MATLAB_R2026a.app/bin/matlab",
+        "-batch",
+        "addpath('/Users/ofi/repos/grc/matlab'); validate_python_results('/Users/ofi/repos/grc/results/grc'); for rate=0:7, analyze_wlan_capture(rate); end"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.5852081250050105
+    },
+    {
+      "label": "live_siso_labs",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/validate_live_labs.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 33.45233054200071
+    },
+    {
+      "label": "live_siso_matlab",
+      "command": [
+        "/Applications/MATLAB_R2026a.app/bin/matlab",
+        "-batch",
+        "addpath('/Users/ofi/repos/grc/matlab'); validate_live_labs;"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.702218708000146
+    },
+    {
+      "label": "summary_figures",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/plot_validation.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.6112441250006668
+    },
+    {
+      "label": "live_siso_figures",
+      "command": [
+        "/Users/ofi/repos/grc/.venv/bin/python",
+        "scripts/plot_live_results.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.8271375829936005
+    }
+  ],
+  "software": {
+    "gnuradio": "3.10.12.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "pyyaml": "6.0.3"
+  },
+  "hardware_executed": false,
+  "limitations": [
+    "WLAN receiver checks use known packet timing/rate; no autonomous acquisition validation",
+    "No real RF, calibrated antenna performance, or live steering has been measured",
+    "Coded curves use exploratory packet counts; post-FEC errors are correlated"
+  ],
+  "source_sha256": {
+    ".envrc": "00820eea9b1dfae07a62a7f6cbe7408613a9ab0ad422cfa26a190db673c9f039",
+    ".vscode/settings.json": "269636ef8d053915f263214ae4f9e5aabec23106446540cf4211ff67d46cd34e",
+    "AGENTS.md": "3c81b2d7cf12f543db1ff97ee3c5c5a92472cae620d328493ec7489b8a3daf2b",
+    "ANTENNA_BENCHMARK_PLAN.md": "1d6f4d725cd100d82a9f4f15ee9c13046aca96e322512df855518e95adb8f809",
+    "Open Benchmark GRC.command": "99165f9114149a99dd2d05f3e30e26ba222626be5716f75b88b2fd6e5b1daccc",
+    "README.md": "99b5c5c234b88074e4ae1533b0b14c8ffd40086ffb6b57169c9cfec444add340",
+    "antenna_bench/__init__.py": "0e1451c254efdb5632795d5ac7298a7fbbccba735fb11fdd1e557120e03566f1",
+    "antenna_bench/gr_metrics.py": "dea4e6c0d316ddde5b11d36deb6b8b2a780d69303c7837ace022b63d03c6c66e",
+    "antenna_bench/launcher.py": "d42b4c4dd46c804e74e820fd5ce7d1cdc94ba5b254dae99cb41a6137275903b8",
+    "antenna_bench/live.py": "084fbc88db9c376b9bd35e990351098e1140a93e6eee86921948ce34b20c41c6",
+    "antenna_bench/math.py": "ca3a86656729ce64ffb3234250ae0bee010547c569f7dc5f032d753933cbd2c9",
+    "antenna_bench/paths.py": "e64be62d6eb291cfe01389e1dc3eb37fc3a86fa71d01428f78dea2cfec337984",
+    "antenna_bench/wlan.py": "70d451207196314b0322bdfb71a7811a1a4c5322275fb0802d124728ccf455bf",
+    "antenna_steering.py": "f58a46beff1755727ce5acfca9a8b0f535de16d60271da80bfbbd4c12f16d74f",
+    "configs/wifi_nonht_defaults.json": "d1e7a74ad808b87bb88109db16525e07db54d524d63ff7fb26ef956595a477aa",
+    "docs/ENVIRONMENT.md": "2ea316b26b154347e64e48e883650a3a349c9cdb66d21d233accee577df70423",
+    "docs/FLOWGRAPHS.md": "e6fc0c0d318b57bd8b06fc4c0c81d9e83c24774940222a7186593aa12a032b56",
+    "docs/MODULAR_FLOWGRAPHS.md": "c04f55d2eb9102b49e252a17f322bf6c0250bf86fcb59482c0ac6db20e0b13bc",
+    "docs/PAPER_METHODS.md": "edd0c83f50ad6c28fd67be8554acff91675f3e7068ce5aa90604eaf9af1d7406",
+    "docs/REFERENCES.md": "35ccaa273e8ac05b05f1b6b620c616c1b4daa59a29ea892d007cebd18d5c04ef",
+    "docs/SISO_LABS.md": "8acc85e67c0284cecf5c187c41810a1dc71b28efca9913479d9916ae1e57a30f",
+    "docs/THEORY.md": "bd2cf23acf1f6d9f34a44b676c4eee1c786900658dc1ad2a7a4cdfc604a8c004",
+    "docs/VALIDATION.md": "2fa79b115450c75b3e650007fd9a464c86ecbb502f149fb950e6ee1adfd6a210",
+    "docs/WIFI_AND_STEERING.md": "6794a75d25678ec11586882afcfcbd99ac1e09dab16de3da559cf8ea90383e9c",
+    "grc/awgn_symbol_benchmark.grc": "5351047e0f2d9e5fc38c5725c1200870f82d1731b8cd690145799f092f5f372d",
+    "grc/awgn_symbol_benchmark.py": "fbc8ad6943fd5c8a3afbb773412f32546af22a543f85fd526dc62d7cd943dccc",
+    "grc/modules/bench_fir_channel.grc": "9fef215560a7ea3f693d8f204f31d6e06a54543a0502e1e5d028b1bcb072bf8a",
+    "grc/modules/bench_scalar_channel.grc": "15e831723d729cc267aa92cc84834f9df7930629ca6e0dc85459dad4d8849b63",
+    "grc/modules/bench_symbol_demapper.grc": "cfdc3510ec098c2f3acf671751f5a141f7eb950e6a0747329be4035f8d6b26b8",
+    "grc/modules/bench_symbol_mapper.grc": "b520bb4aee85e62c6c94da9f026d8b5ee7f3ff3e6d1edcb11197474dcac42e8a",
+    "grc/siso_modem_lab.grc": "d252dfa07b39fc109a029650a597ef3bf047b63bbd3d4c8d672fb3963f98df01",
+    "grc/siso_modem_lab.py": "3a5d5c66ef31211659a7033fb63c9b51bbf842790bfbc5d34ebdd821435fd09f",
+    "grc/siso_modem_lab_ber_meter.py": "4faa9957187186e84e1bda8e4872d31e1ff1b7d56cbe13aa79ee0ce356ce63a5",
+    "grc/siso_modem_lab_evm_meter.py": "3430f51408443071824b328c105ab8bebf234c1d8fb0a13ec6cda1752ed7d648",
+    "grc/siso_wlan_lab.grc": "f7b80107861c94ec87ae217727ecb691c76923f01da78ab4600981a50481bd1d",
+    "grc/siso_wlan_lab.py": "713bbe6711bed95cbfea4b3efd97d289a37944edb03ced6bcb3d76b452822d0f",
+    "grc/siso_wlan_lab_ber_meter.py": "4faa9957187186e84e1bda8e4872d31e1ff1b7d56cbe13aa79ee0ce356ce63a5",
+    "grc/siso_wlan_lab_burst_receiver.py": "f0c650fc5afe0f8c6d40e86e9f1be77763bf9c99e22879ee3ab3e2484e6b923c",
+    "grc/siso_wlan_lab_evm_meter.py": "3430f51408443071824b328c105ab8bebf234c1d8fb0a13ec6cda1752ed7d648",
+    "grc/usrp_wifi_rx.grc": "6f9450c48c7793ac3964cd024d2f87ba4acaf970d0c3ed0d7f118d396e483283",
+    "grc/usrp_wifi_tx.grc": "941028fd03d6c0e187e4607574ed6806956ed9a734d7c67428b0611e83a7978e",
+    "grc/usrp_wifi_tx.py": "75c655fa47a51a7826f39cb2632d1d504fd257b5c267039e911c743a8b61e019",
+    "grc/wlan_ofdm_fft.grc": "4dff74c66c5e257bfb1cf8cb4d9c44f8438fc7ec015b4ca67ab55a1d7afeeac8",
+    "grc/wlan_ofdm_fft.py": "40331c193a5b9c69ebdf6cfa783378f15e43947766d2fd31ff03285bc3056ba5",
+    "grc/wlan_reference_channel.grc": "47432a7553fe23f8af0ee34736491f382da7e22c59fbf7a64051cb3f60a685c1",
+    "grc/wlan_reference_channel.py": "e4001c580742624c5cb5b82821b6e65a7eddbb88a2fe3debcb0f25e8cfbdf630",
+    "matlab/analyze_wlan_capture.m": "f6ba5060881b57d79d1f711939bf8e2863f277d51208efbe2331587d4018aab5",
+    "matlab/export_wlan_reference.m": "4579b2c45db7677a3f089403d18689ce0151273a5178a90b2af098b33d9f83ab",
+    "matlab/gray_awgn_ber.m": "d7cdd4947741e6d1de7cbeefeb9d4c056781b98e215a04152afcc9ce61d261f8",
+    "matlab/recover_reference_packet.m": "b6033ade8d74bdf080af22f9d36aabaa193593ac1816db8782c87350658c61ff",
+    "matlab/run_theory.m": "d37c63d471de207346fba8ebb6cfeb1fa6fbb601d039e3a0acdaa02b75d96ad7",
+    "matlab/run_wlan_awgn.m": "72ae3a5aa68ec07703f982d8d540c342389a9fbe00bfd5f6a1fcfc13367ebb21",
+    "matlab/validate_live_labs.m": "9e07cc5563bb7bcfa853113f3d1a06bad46d93709df071b3d92002b1a65baf34",
+    "matlab/validate_python_results.m": "dfc001e34b8598d834c9924e2724ec9e7607e9d4b7e82f6e02dbb7b1bc0e393f",
+    "matlab/validate_wifi_profile.m": "f6b0953cd730d7c2e5155dd4c413f49584de37db042ef4b189c4d83b9cb7e2d6",
+    "pyproject.toml": "5f727964368d32cf053d0990a1d76c454c2a37e50910dce8af2e8e83a4485936",
+    "references.bib": "8d3b2a8a58db2cb29d0214ea009f3c2ad560ba2f4131f339148ba92763cfae61",
+    "scripts/analyze_symbols.py": "a767ac7a6907e888e53f71804d7e4bda0d724abfd14dcff94be394f04c3a5518",
+    "scripts/analyze_wlan.py": "436837e8d32a512fcadcf4ab003d5d29666260b2ac04445a8fffc95fe8c6ee63",
+    "scripts/build_flowgraphs.py": "b4301228beaecf3f86dcb364f645fdb83b6a194292f7d4977ee8739dd44df68f",
+    "scripts/build_siso_labs.py": "1c4483c52e51d4af27eb3895668c463977d58b6ed39b2516500ce1413d552b8a",
+    "scripts/check_install.py": "9a34a584a4c7f24486fd1ba124bb896ecb0a3593b8746d04aabd4db24da252e4",
+    "scripts/compile_flowgraphs.py": "2ea74611cc24e3d167447f96aa93b90176292a5325529a4a54b7efa72e5364b1",
+    "scripts/flowgraph_layout.py": "68ce560c073630c5e87e6fccf4522cf95d34b348f23d0d07ab9f0cc82ecfde3b",
+    "scripts/generate_report.py": "7aa157615468bd6cf0705cb27e00fd562c200930ed1535d8631c8ce151071404",
+    "scripts/generate_siso_report.py": "544e285f8c8c168757c3d3d5341bd7fca589f3ba2b83b51bdc71a5084c43aa0b",
+    "scripts/modular_flowgraphs.py": "8cc6440efbdb225b27685f40a66396544e9704c75656efe3f970141cfc815655",
+    "scripts/plot_live_results.py": "c1b6d52077444cac0df4a5f29ea5d305219b7667243621bf425ae8441353fcee",
+    "scripts/plot_validation.py": "98a23931d91c5fbf4240e15abc5582c53d78a32ef14e8acc0dde4cacc121957d",
+    "scripts/run_all.py": "a1efbf2664b08ebdc515b4914af6c4e5b6de3900602364337ccde210436416a1",
+    "scripts/run_live_case.py": "9aa3e525752ccee687ef417ab63620bbf56fdc1818d545b78f4e900f6a33d6b8",
+    "scripts/run_python_reference.py": "52fc4a260e493a7188b6358aecd54de4be11e8db2785913c8b8f5f3c2734dec8",
+    "scripts/validate_grc_fft.py": "ae6635cc2213cef4403e7baf90c64039e80c926892bfa2df3b96e53dc3e53555",
+    "scripts/validate_grc_symbols.py": "188354b536e69bf8960955b0f155b974670b896dab76679364d8be67b953e6f9",
+    "scripts/validate_live_labs.py": "26447033978986cdb969ee71f8c265e8ea77e3f0a2bfd833da84b8b94265a5d1",
+    "test_flow.grc": "dc4e35be70f9e7751ebfe43d8ce8891bab191553bf48ebbf1526a32ef447efce",
+    "test_flow.py": "675f6c7b09a3bb47165edd6e755113f63704bfaaa634111abb04183f4f451b03",
+    "tests/test_antenna_steering.py": "0b811121a19dae45f875b23f50b871fe10a1bd766c72d8c99f7d0e89bf2765b5",
+    "tests/test_benchmark_math.py": "3f617489090c4bfccc24eb6006fedd02397ca12a6a1a304a60c11bd6922d11d9",
+    "tests/test_live_siso.py": "5d2283469cfc7632a91694f53709aff71b994d740925d9025532e905135c2aef"
+  }
+}

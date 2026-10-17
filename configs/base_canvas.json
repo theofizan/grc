@@ -1,0 +1,306 @@
+{
+  "ber_display": [
+    1240,
+    620
+  ],
+  "ber_history": [
+    880,
+    1048.0
+  ],
+  "ber_link": [
+    1240,
+    716.0
+  ],
+  "ber_plot_input": [
+    730,
+    1060
+  ],
+  "ber_scale": [
+    1070,
+    620
+  ],
+  "channel": [
+    630,
+    280
+  ],
+  "clock_sync": [
+    980,
+    280
+  ],
+  "constellation": [
+    160,
+    860
+  ],
+  "decoded_link": [
+    1520,
+    280
+  ],
+  "decoded_source": [
+    16,
+    570
+  ],
+  "decoder": [
+    1330,
+    280
+  ],
+  "delay": [
+    330,
+    710
+  ],
+  "diff_decoder": [
+    152,
+    568.0
+  ],
+  "envelope_dbm": [
+    400,
+    2050
+  ],
+  "envelope_floor": [
+    160,
+    2050
+  ],
+  "envelope_input": [
+    16,
+    2050
+  ],
+  "envelope_plot": [
+    580,
+    2050
+  ],
+  "errors_float": [
+    760,
+    620
+  ],
+  "evm": [
+    160,
+    1060
+  ],
+  "evm_display": [
+    504,
+    1040.0
+  ],
+  "evm_history": [
+    1256,
+    1048.0
+  ],
+  "evm_input": [
+    16,
+    1060
+  ],
+  "evm_link": [
+    504,
+    1156.0
+  ],
+  "evm_plot_input": [
+    1090,
+    1060
+  ],
+  "evm_rms": [
+    340,
+    1060
+  ],
+  "eye": [
+    160,
+    1250
+  ],
+  "eye_input": [
+    16,
+    1250
+  ],
+  "integrate": [
+    910,
+    620
+  ],
+  "modulator": [
+    150,
+    280
+  ],
+  "peak_display": [
+    760,
+    1910
+  ],
+  "peak_input": [
+    16,
+    1910
+  ],
+  "power_history": [
+    1180,
+    1700
+  ],
+  "random_bytes": [
+    16,
+    280
+  ],
+  "reference_link": [
+    150,
+    440
+  ],
+  "reference_source": [
+    16,
+    710
+  ],
+  "rx_dbm": [
+    780,
+    1770
+  ],
+  "rx_iq_link": [
+    792,
+    340.0
+  ],
+  "rx_level": [
+    790,
+    280
+  ],
+  "rx_meter_input": [
+    16,
+    1770
+  ],
+  "rx_milliwatts": [
+    160,
+    1770
+  ],
+  "rx_power_display": [
+    950,
+    1770
+  ],
+  "rx_power_mean": [
+    570,
+    1770
+  ],
+  "rx_power_sum": [
+    370,
+    1770
+  ],
+  "rx_scale": [
+    1170,
+    280
+  ],
+  "scope": [
+    840,
+    1368.0
+  ],
+  "skip_rx": [
+    480,
+    570
+  ],
+  "skip_tx": [
+    480,
+    710
+  ],
+  "spectrum": [
+    560,
+    860
+  ],
+  "spectrum_input": [
+    410,
+    860
+  ],
+  "symbols_link": [
+    1328,
+    348.0
+  ],
+  "symbols_plot": [
+    16,
+    860
+  ],
+  "throttle": [
+    490,
+    280
+  ],
+  "timing_error": [
+    560,
+    1250
+  ],
+  "timing_input": [
+    410,
+    1250
+  ],
+  "timing_link": [
+    1168,
+    332.0
+  ],
+  "tx_dbm": [
+    780,
+    1640
+  ],
+  "tx_meter_input": [
+    16,
+    1640
+  ],
+  "tx_milliwatts": [
+    160,
+    1640
+  ],
+  "tx_mw_link": [
+    160,
+    1710
+  ],
+  "tx_peak_dbm": [
+    580,
+    1910
+  ],
+  "tx_peak_mw": [
+    400,
+    1910
+  ],
+  "tx_peak_vectors": [
+    160,
+    1910
+  ],
+  "tx_plot_link": [
+    330,
+    440
+  ],
+  "tx_power": [
+    320,
+    280
+  ],
+  "tx_power_display": [
+    950,
+    1640
+  ],
+  "tx_power_mean": [
+    570,
+    1640
+  ],
+  "tx_power_sum": [
+    370,
+    1640
+  ],
+  "tx_spectrum": [
+    410,
+    940
+  ],
+  "tx_time": [
+    850,
+    940
+  ],
+  "unpack_rx": [
+    330,
+    570
+  ],
+  "unpack_tx": [
+    150,
+    710
+  ],
+  "unused_timing_states": [
+    1208,
+    380.0
+  ],
+  "views": [
+    1220,
+    180
+  ],
+  "waveform": [
+    1000,
+    860
+  ],
+  "waveform_input": [
+    850,
+    860
+  ],
+  "xor": [
+    680,
+    620
+  ]
+}

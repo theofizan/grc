@@ -1,0 +1,14 @@
+{
+  "context": {
+    "model": "SISO symbol-rate",
+    "order": 16,
+    "ebno_db": 8,
+    "path_loss_db": 6.0,
+    "noise_seed": 20261017
+  },
+  "symbols": 100000,
+  "error_energy": 15716.177182940442,
+  "reference_energy": 99863.2043024041,
+  "evm_rms": 0.3967077726390153,
+  "evm_percent": 39.67077726390153
+}

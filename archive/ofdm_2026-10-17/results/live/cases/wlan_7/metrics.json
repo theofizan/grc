@@ -1,0 +1,256 @@
+{
+  "status": "passed",
+  "case": {
+    "mode": "wlan",
+    "order": 16,
+    "ebno_db": 8,
+    "rate_index": 7,
+    "snr_db": 25,
+    "path_loss_db": 0,
+    "cfo_hz": 0,
+    "channel_taps": "1+0j",
+    "correct_cfo": 0,
+    "pilot_tracking": 0,
+    "symbol_count": 100000,
+    "packet_count": 8,
+    "case_id": "wlan_7",
+    "snapshot": false,
+    "replay_capture": null
+  },
+  "siso": {
+    "tx_channels": 1,
+    "rx_channels": 1
+  },
+  "ber": {
+    "context": {
+      "model": "SISO known-burst Wi-Fi",
+      "rate_index": 7,
+      "tx_reference_snr_db": 25,
+      "path_loss_db": 0,
+      "cfo_hz": 0,
+      "channel_taps": "1+0j",
+      "correct_cfo": 0,
+      "pilot_tracking": 0,
+      "noise_seed": 20261017
+    },
+    "bits": 87552,
+    "errors": 6,
+    "ber": 6.853070175438596e-05,
+    "ci95_lower": 2.514996162339598e-05,
+    "ci95_upper": 0.0001491564730006337,
+    "zero_error_upper95": null,
+    "confidence_scope": "nominal independent-bit bounds; QAM/coded bits can be correlated",
+    "history": [
+      [
+        4096,
+        2
+      ],
+      [
+        8192,
+        2
+      ],
+      [
+        10240,
+        2
+      ],
+      [
+        10752,
+        2
+      ],
+      [
+        10880,
+        2
+      ],
+      [
+        10944,
+        2
+      ],
+      [
+        19136,
+        2
+      ],
+      [
+        21184,
+        3
+      ],
+      [
+        21696,
+        3
+      ],
+      [
+        21824,
+        3
+      ],
+      [
+        21888,
+        3
+      ],
+      [
+        30080,
+        3
+      ],
+      [
+        32127,
+        3
+      ],
+      [
+        32639,
+        3
+      ],
+      [
+        32767,
+        3
+      ],
+      [
+        40959,
+        4
+      ],
+      [
+        43006,
+        4
+      ],
+      [
+        51198,
+        4
+      ],
+      [
+        53245,
+        4
+      ],
+      [
+        54269,
+        4
+      ],
+      [
+        54525,
+        4
+      ],
+      [
+        62717,
+        5
+      ],
+      [
+        64764,
+        5
+      ],
+      [
+        65276,
+        5
+      ],
+      [
+        65532,
+        5
+      ],
+      [
+        65660,
+        5
+      ],
+      [
+        65664,
+        5
+      ],
+      [
+        69760,
+        5
+      ],
+      [
+        73856,
+        5
+      ],
+      [
+        75904,
+        5
+      ],
+      [
+        76416,
+        5
+      ],
+      [
+        76544,
+        5
+      ],
+      [
+        76608,
+        5
+      ],
+      [
+        80704,
+        5
+      ],
+      [
+        84800,
+        6
+      ],
+      [
+        86848,
+        6
+      ],
+      [
+        87360,
+        6
+      ],
+      [
+        87488,
+        6
+      ],
+      [
+        87552,
+        6
+      ]
+    ]
+  },
+  "evm": {
+    "context": {
+      "model": "SISO known-burst Wi-Fi",
+      "rate_index": 7,
+      "tx_reference_snr_db": 25,
+      "path_loss_db": 0,
+      "cfo_hz": 0,
+      "channel_taps": "1+0j",
+      "correct_cfo": 0,
+      "pilot_tracking": 0,
+      "noise_seed": 20261017
+    },
+    "symbols": 14592,
+    "error_energy": 54.33369649553551,
+    "reference_energy": 14243.047188355582,
+    "evm_rms": 0.061763680776992104,
+    "evm_percent": 6.176368077699211
+  },
+  "receiver": {
+    "bursts": 8,
+    "timing": "known fixed burst boundaries; no packet detection",
+    "cfo_correction": false,
+    "pilot_tracking": false,
+    "partial_input_samples": 0,
+    "pending_output_symbols": 0,
+    "estimated_cfo_hz": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "theory_ber": null,
+  "power": {
+    "tx_active_mean": 1.0000000000000002,
+    "tx_peak": 3.179105043411255,
+    "measured_awgn_power": 0.003131359127124812,
+    "configured_awgn_power": 0.0031622776601683794,
+    "units": "normalized simulation sample power; not dBm"
+  },
+  "qt_widgets": {
+    "constellation": true,
+    "frequency": true,
+    "waterfall": true,
+    "time": true,
+    "numeric_ber": true,
+    "numeric_evm": true
+  },
+  "qt_backend": "offscreen",
+  "elapsed_seconds": 0.02726016700034961
+}

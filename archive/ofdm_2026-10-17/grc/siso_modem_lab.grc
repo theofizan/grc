@@ -1,0 +1,687 @@
+options:
+  parameters:
+    id: siso_modem_lab
+    title: 'SISO modem: bits -> modulation -> channel -> decisions -> BER/EVM'
+    author: Antenna benchmark project
+    description: Complete uncoded symbol-rate SISO chain, ideal scalar receiver, live BER/EVM and Qt plots.
+    generate_options: qt_gui
+    output_language: python
+    run_options: run
+    catch_exceptions: 'True'
+    run: 'True'
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: project_imports
+  id: import
+  parameters:
+    imports: 'import math
+
+      import numpy as np
+
+      from antenna_bench.paths import ROOT
+
+      from antenna_bench.live import test_bits, wlan_reference, burst_waveform, reference_symbols, parse_taps
+
+      from antenna_bench.wlan import wlan_constellation
+
+      from gnuradio import digital'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 2200
+    - 16
+    rotation: 0
+    state: enabled
+- name: order
+  id: parameter
+  parameters:
+    value: '16'
+    type: intx
+    label: Constellation order M
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 304
+    rotation: 0
+    state: enabled
+- name: ebno_db
+  id: parameter
+  parameters:
+    value: '20'
+    type: eng_float
+    label: TX-reference uncoded Eb/N0 (dB)
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 304
+    rotation: 0
+    state: enabled
+- name: path_loss_db
+  id: parameter
+  parameters:
+    value: '0'
+    type: eng_float
+    label: SISO power loss (dB)
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1120
+    - 304
+    rotation: 0
+    state: enabled
+- name: symbol_count
+  id: parameter
+  parameters:
+    value: '0'
+    type: intx
+    label: Number of symbols
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1560
+    - 304
+    rotation: 0
+    state: enabled
+- name: pace
+  id: parameter
+  parameters:
+    value: '200000'
+    type: eng_float
+    label: Playback samples per wall-clock second
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 448
+    rotation: 0
+    state: enabled
+- name: k
+  id: variable
+  parameters:
+    value: int(math.log2(order))
+    comment: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 672
+    rotation: 0
+    state: enabled
+- name: channel_gain
+  id: variable
+  parameters:
+    value: 10**(-path_loss_db/20)
+    comment: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 672
+    rotation: 0
+    state: enabled
+- name: noise_voltage
+  id: variable
+  parameters:
+    value: math.sqrt(1/(k*10**(ebno_db/10)))
+    comment: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1120
+    - 672
+    rotation: 0
+    state: enabled
+- name: known_bits
+  id: blocks_vector_source_x
+  parameters:
+    type: byte
+    vector: test_bits(order).tolist()
+    repeat: 'True'
+    vlen: '1'
+    tags: '[]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 968
+    rotation: 0
+    state: enabled
+- name: finite_bits
+  id: blocks_head
+  parameters:
+    type: byte
+    num_items: symbol_count*k if symbol_count>0 else 2**60
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 968
+    rotation: 0
+    state: enabled
+- name: pace_tx
+  id: blocks_throttle2
+  parameters:
+    type: complex
+    samples_per_second: pace
+    vlen: '1'
+    ignoretag: 'True'
+    limit: auto
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1560
+    - 968
+    rotation: 0
+    state: enabled
+- name: equalize
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: 1/channel_gain
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 1648
+    rotation: 0
+    state: enabled
+- name: ber_meter
+  id: epy_block
+  parameters:
+    _source_code: "import antenna_bench.gr_metrics as metrics\n\nclass blk(metrics.BitErrorMeter):\n    def __init__(self,\
+      \ report_path=\"\", run_config=None):\n        super().__init__(report_path, run_config)\n"
+    report_path: str(ROOT / 'results/live/siso_modem_ber.json')
+    run_config: dict(model='SISO symbol-rate',order=order,ebno_db=ebno_db,path_loss_db=path_loss_db,noise_seed=noise_seed)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 1928
+    rotation: 0
+    state: enabled
+- name: evm_meter
+  id: epy_block
+  parameters:
+    _source_code: "import antenna_bench.gr_metrics as metrics\n\nclass blk(metrics.EvmMeter):\n    def __init__(self,\
+      \ report_path=\"\", run_config=None):\n        super().__init__(report_path, run_config)\n"
+    report_path: str(ROOT / 'results/live/siso_modem_evm.json')
+    run_config: dict(model='SISO symbol-rate',order=order,ebno_db=ebno_db,path_loss_db=path_loss_db,noise_seed=noise_seed)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1120
+    - 1928
+    rotation: 0
+    state: enabled
+- name: views
+  id: qtgui_tab_widget
+  parameters:
+    num_tabs: '3'
+    label0: Metrics and constellation
+    label1: 'TX waveform: spectrum / waterfall / time'
+    label2: 'RX waveform: spectrum / waterfall / time'
+    label3: Equalized DATA symbols
+    label4: TX reference symbols
+    gui_hint: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1560
+    - 2208
+    rotation: 0
+    state: enabled
+- name: tx_scope
+  id: qtgui_sink_x
+  parameters:
+    type: complex
+    name: TX waveform | complex baseband; relative FFT level
+    fftsize: '1024'
+    wintype: window.WIN_HANN
+    fc: '0'
+    bw: pace
+    rate: '5'
+    plotfreq: 'True'
+    plotwaterfall: 'True'
+    plottime: 'True'
+    plotconst: 'False'
+    showrf: 'False'
+    gui_hint: views@1:0,0,1,2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 2208
+    rotation: 0
+    state: enabled
+- name: rx_scope
+  id: qtgui_sink_x
+  parameters:
+    type: complex
+    name: RX waveform | before equalization; relative FFT level
+    fftsize: '1024'
+    wintype: window.WIN_HANN
+    fc: '0'
+    bw: pace
+    rate: '5'
+    plotfreq: 'True'
+    plotwaterfall: 'True'
+    plottime: 'True'
+    plotconst: 'False'
+    showrf: 'False'
+    gui_hint: views@2:0,0,1,2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 2208
+    rotation: 0
+    state: enabled
+- name: constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: SISO equalized symbols and known reference
+    size: '1024'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2.0'
+    xmax: '2.0'
+    ymin: '-2.0'
+    ymax: '2.0'
+    nconnections: '2'
+    label1: RX equalized DATA
+    label2: TX reference DATA
+    color1: '"blue"'
+    color2: '"red"'
+    style1: '0'
+    style2: '0'
+    marker1: '0'
+    marker2: '8'
+    alpha1: '0.5'
+    alpha2: '1.0'
+    gui_hint: views@0:1,0,1,2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1120
+    - 2208
+    rotation: 0
+    state: enabled
+- name: ber_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: Cumulative pre-FEC BER
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    nconnections: '1'
+    min: '0'
+    max: '1'
+    label1: Cumulative pre-FEC BER
+    unit1: errors/bit
+    gui_hint: views@0:0,0,1,1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 1928
+    rotation: 0
+    state: enabled
+- name: evm_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: Pooled RMS EVM
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    nconnections: '1'
+    min: '0'
+    max: '100'
+    label1: Pooled RMS EVM
+    unit1: '%'
+    gui_hint: views@0:0,1,1,1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1560
+    - 1928
+    rotation: 0
+    state: enabled
+- name: scope
+  id: note
+  parameters:
+    note: 'SISO UNCODED SYMBOL LAB: 1 TX / 1 RX. Perfect timing, known scalar channel. Symbol-rate diagnostic,
+
+      no RF pulse shaping.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 2600
+    rotation: 0
+    state: enabled
+- name: power
+  id: note
+  parameters:
+    note: 'Fixed TX Es=1; path loss reduces received SNR. AWGN is fixed relative to TX Eb/N0; it does NOT
+
+      follow path loss.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 2712
+    rotation: 0
+    state: enabled
+- name: use
+  id: note
+  parameters:
+    note: 'symbol_count=0 runs until Stop (F7). Set >0 for finite checks. Stop writes exact BER counts / EVM
+
+      JSON under results/live/.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 2824
+    rotation: 0
+    state: enabled
+- name: noise_seed
+  id: parameter
+  parameters:
+    value: '20261017'
+    type: intx
+    label: noise_seed
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 448
+    rotation: 0
+    state: enabled
+- name: mapper
+  id: bench_symbol_mapper
+  parameters:
+    order: order
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1120
+    - 968
+    rotation: 0
+    state: enabled
+- name: channel_output
+  id: bench_scalar_channel
+  parameters:
+    channel_gain: channel_gain
+    noise_voltage: noise_voltage
+    noise_seed: noise_seed
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 1248
+    rotation: 0
+    state: enabled
+- name: rx_bits
+  id: bench_symbol_demapper
+  parameters:
+    order: order
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 1648
+    rotation: 0
+    state: enabled
+- name: layout_controls
+  id: note
+  parameters:
+    note: RUN PARAMETERS
+  states:
+    coordinate:
+    - 240
+    - 240
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_constants
+  id: note
+  parameters:
+    note: DERIVED CONSTANTS
+  states:
+    coordinate:
+    - 240
+    - 624
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_0
+  id: note
+  parameters:
+    note: TRANSMITTER | known bits to complex symbols
+  states:
+    coordinate:
+    - 240
+    - 896
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_1
+  id: note
+  parameters:
+    note: SISO CHANNEL | fixed TX power, independent noise
+  states:
+    coordinate:
+    - 240
+    - 1176
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_2
+  id: note
+  parameters:
+    note: RECEIVER | ideal scalar equalization and decisions
+  states:
+    coordinate:
+    - 240
+    - 1576
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_3
+  id: note
+  parameters:
+    note: METRICS | aligned reference and received streams
+  states:
+    coordinate:
+    - 240
+    - 1856
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_4
+  id: note
+  parameters:
+    note: DISPLAYS | TX / RX waveform and constellation
+  states:
+    coordinate:
+    - 240
+    - 2136
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+- name: layout_notes
+  id: note
+  parameters:
+    note: MODEL ASSUMPTIONS AND OPERATING NOTES
+  states:
+    coordinate:
+    - 240
+    - 2536
+    rotation: 0
+    state: enabled
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+connections:
+- - known_bits
+  - '0'
+  - finite_bits
+  - '0'
+- - finite_bits
+  - '0'
+  - mapper
+  - '0'
+- - mapper
+  - '0'
+  - pace_tx
+  - '0'
+- - pace_tx
+  - '0'
+  - channel_output
+  - '0'
+- - channel_output
+  - '0'
+  - equalize
+  - '0'
+- - equalize
+  - '0'
+  - rx_bits
+  - '0'
+- - finite_bits
+  - '0'
+  - ber_meter
+  - '0'
+- - rx_bits
+  - '0'
+  - ber_meter
+  - '1'
+- - mapper
+  - '0'
+  - evm_meter
+  - '0'
+- - equalize
+  - '0'
+  - evm_meter
+  - '1'
+- - pace_tx
+  - '0'
+  - tx_scope
+  - '0'
+- - channel_output
+  - '0'
+  - rx_scope
+  - '0'
+- - equalize
+  - '0'
+  - constellation
+  - '0'
+- - mapper
+  - '0'
+  - constellation
+  - '1'
+- - ber_meter
+  - '0'
+  - ber_display
+  - '0'
+- - evm_meter
+  - '0'
+  - evm_display
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

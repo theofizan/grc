@@ -1,0 +1,26 @@
+wlan_0: independent receiver max difference 4.19583443545e-07
+wlan_1: independent receiver max difference 4.83211920255e-07
+wlan_2: independent receiver max difference 3.81655951287e-07
+wlan_3: independent receiver max difference 3.47551804225e-07
+wlan_4: independent receiver max difference 3.76972877802e-07
+wlan_5: independent receiver max difference 4.91512480494e-07
+wlan_6: independent receiver max difference 4.77767571283e-07
+wlan_7: independent receiver max difference 4.91512480494e-07
+wlan_0_loss6: independent receiver max difference 4.8382901241e-07
+wlan_0_loss12: independent receiver max difference 4.80548010273e-07
+wlan_0_loss18: independent receiver max difference 9.61096020546e-07
+wlan_2_loss6: independent receiver max difference 3.76972877802e-07
+wlan_2_loss12: independent receiver max difference 3.99840104137e-07
+wlan_2_loss18: independent receiver max difference 1.01852458556e-06
+wlan_4_loss6: independent receiver max difference 3.99840104137e-07
+wlan_4_loss12: independent receiver max difference 5.96046447754e-07
+wlan_4_loss18: independent receiver max difference 8.59630404193e-07
+wlan_6_loss6: independent receiver max difference 5.05762159264e-07
+wlan_6_loss12: independent receiver max difference 3.99840104137e-07
+wlan_6_loss18: independent receiver max difference 8.42936970002e-07
+                           status: 'passed'
+                            cases: 34
+                    receiverCases: 20
+               worstEvmDifference: 7.0166e-14
+    worstReceiverSymbolDifference: 1.0185e-06
+

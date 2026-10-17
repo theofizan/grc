@@ -1,0 +1,324 @@
+{
+  "status": "passed",
+  "case": {
+    "mode": "wlan",
+    "order": 16,
+    "ebno_db": 8,
+    "rate_index": 6,
+    "snr_db": 25,
+    "path_loss_db": 0,
+    "cfo_hz": 0,
+    "channel_taps": "1+0j",
+    "correct_cfo": 0,
+    "pilot_tracking": 0,
+    "symbol_count": 100000,
+    "packet_count": 8,
+    "case_id": "wlan_6",
+    "snapshot": false,
+    "replay_capture": null
+  },
+  "siso": {
+    "tx_channels": 1,
+    "rx_channels": 1
+  },
+  "ber": {
+    "context": {
+      "model": "SISO known-burst Wi-Fi",
+      "rate_index": 6,
+      "tx_reference_snr_db": 25,
+      "path_loss_db": 0,
+      "cfo_hz": 0,
+      "channel_taps": "1+0j",
+      "correct_cfo": 0,
+      "pilot_tracking": 0,
+      "noise_seed": 20261017
+    },
+    "bits": 96768,
+    "errors": 18,
+    "ber": 0.00018601190476190475,
+    "ci95_lower": 0.00011024605071716612,
+    "ci95_upper": 0.00029396313393742057,
+    "zero_error_upper95": null,
+    "confidence_scope": "nominal independent-bit bounds; QAM/coded bits can be correlated",
+    "history": [
+      [
+        8192,
+        2
+      ],
+      [
+        10239,
+        2
+      ],
+      [
+        11263,
+        2
+      ],
+      [
+        11775,
+        2
+      ],
+      [
+        12031,
+        2
+      ],
+      [
+        12095,
+        2
+      ],
+      [
+        12096,
+        2
+      ],
+      [
+        20288,
+        5
+      ],
+      [
+        22335,
+        5
+      ],
+      [
+        23359,
+        5
+      ],
+      [
+        23871,
+        5
+      ],
+      [
+        24127,
+        5
+      ],
+      [
+        24191,
+        5
+      ],
+      [
+        24192,
+        5
+      ],
+      [
+        28288,
+        6
+      ],
+      [
+        32384,
+        7
+      ],
+      [
+        34432,
+        7
+      ],
+      [
+        35456,
+        7
+      ],
+      [
+        35968,
+        7
+      ],
+      [
+        36224,
+        7
+      ],
+      [
+        36288,
+        7
+      ],
+      [
+        44480,
+        7
+      ],
+      [
+        46527,
+        9
+      ],
+      [
+        47551,
+        9
+      ],
+      [
+        48063,
+        9
+      ],
+      [
+        48319,
+        9
+      ],
+      [
+        48383,
+        9
+      ],
+      [
+        48384,
+        9
+      ],
+      [
+        56576,
+        9
+      ],
+      [
+        58623,
+        11
+      ],
+      [
+        59647,
+        11
+      ],
+      [
+        60159,
+        11
+      ],
+      [
+        60415,
+        11
+      ],
+      [
+        60479,
+        11
+      ],
+      [
+        60480,
+        11
+      ],
+      [
+        64576,
+        12
+      ],
+      [
+        68672,
+        12
+      ],
+      [
+        70720,
+        12
+      ],
+      [
+        71744,
+        12
+      ],
+      [
+        72256,
+        12
+      ],
+      [
+        72512,
+        12
+      ],
+      [
+        72576,
+        12
+      ],
+      [
+        76672,
+        13
+      ],
+      [
+        80768,
+        14
+      ],
+      [
+        82816,
+        14
+      ],
+      [
+        83840,
+        14
+      ],
+      [
+        84352,
+        14
+      ],
+      [
+        84608,
+        14
+      ],
+      [
+        84672,
+        14
+      ],
+      [
+        88768,
+        15
+      ],
+      [
+        92864,
+        17
+      ],
+      [
+        94912,
+        18
+      ],
+      [
+        95936,
+        18
+      ],
+      [
+        96448,
+        18
+      ],
+      [
+        96704,
+        18
+      ],
+      [
+        96768,
+        18
+      ]
+    ]
+  },
+  "evm": {
+    "context": {
+      "model": "SISO known-burst Wi-Fi",
+      "rate_index": 6,
+      "tx_reference_snr_db": 25,
+      "path_loss_db": 0,
+      "cfo_hz": 0,
+      "channel_taps": "1+0j",
+      "correct_cfo": 0,
+      "pilot_tracking": 0,
+      "noise_seed": 20261017
+    },
+    "symbols": 16128,
+    "error_energy": 59.64187468102106,
+    "reference_energy": 15769.90428503393,
+    "evm_rms": 0.061498017287953,
+    "evm_percent": 6.1498017287953
+  },
+  "receiver": {
+    "bursts": 8,
+    "timing": "known fixed burst boundaries; no packet detection",
+    "cfo_correction": false,
+    "pilot_tracking": false,
+    "partial_input_samples": 0,
+    "pending_output_symbols": 0,
+    "estimated_cfo_hz": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "theory_ber": null,
+  "power": {
+    "tx_active_mean": 1.0,
+    "tx_peak": 2.7274208068847656,
+    "measured_awgn_power": 0.0031307595933584157,
+    "configured_awgn_power": 0.0031622776601683794,
+    "units": "normalized simulation sample power; not dBm"
+  },
+  "qt_widgets": {
+    "constellation": true,
+    "frequency": true,
+    "waterfall": true,
+    "time": true,
+    "numeric_ber": true,
+    "numeric_evm": true
+  },
+  "qt_backend": "offscreen",
+  "elapsed_seconds": 0.02762595799867995
+}

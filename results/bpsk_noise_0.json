@@ -1,0 +1,117 @@
+{
+  "tx_power_dbm": 0,
+  "path_loss_db": 80,
+  "rx_noise_dbm": -100.0,
+  "noise_enabled": 0,
+  "tx_measured_dbm": -0.001593832637243795,
+  "rx_measured_dbm": -80.00159068652607,
+  "expected_rx_signal_dbm": -80,
+  "tx_sample_peak_dbm": 4.133317947387695,
+  "papr_db": 4.1349117800249395,
+  "tile_layouts": {
+    "0": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "1": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "2": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "3": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "4": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "5": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "reference_evm_percent": 1.0242124795913696,
+  "nominal_rx_snr_db": null,
+  "nominal_rx_ebno_db": null,
+  "square_plot_panels": {},
+  "channel_echo": 0,
+  "pre_reference_evm_percent": 2.636899948120117,
+  "equalizer_final_taps": [
+    [
+      -0.00018239243945572525,
+      0.0
+    ],
+    [
+      9.476738341618329e-05,
+      0.0
+    ],
+    [
+      0.0011302834609523416,
+      0.0
+    ],
+    [
+      -0.004914293065667152,
+      0.0
+    ],
+    [
+      0.014482300728559494,
+      0.0
+    ],
+    [
+      1.0103262662887573,
+      0.0
+    ],
+    [
+      -0.014762915670871735,
+      0.0
+    ],
+    [
+      0.004784927703440189,
+      0.0
+    ],
+    [
+      -0.001786206616088748,
+      0.0
+    ],
+    [
+      2.5586647097952664e-05,
+      0.0
+    ],
+    [
+      -0.00012245724792592227,
+      0.0
+    ]
+  ],
+  "modulation": "bpsk",
+  "noise_voltage": 0.0,
+  "configured_delay_bits": 34,
+  "best_delay_bits": 34,
+  "aligned_ber": 0.0,
+  "display_ber_mean": 0.0,
+  "compared_bits": 250000,
+  "ber_windows": 25,
+  "stock_ber_arithmetic": "XOR -> UChar to Float -> Integrate(10000) -> Multiply(1/10000)",
+  "finite_completed": true,
+  "symbol_rate_hz": 1000000.0,
+  "sample_rate_hz": 4000000.0,
+  "gross_bit_rate_bps": 1000000.0,
+  "decision_directed_evm_rms_percent": 1.0225341862691333,
+  "matlab_fixture": "bpsk_noise_0.mat",
+  "tx_mean_sample_power": 0.9996330843833927
+}

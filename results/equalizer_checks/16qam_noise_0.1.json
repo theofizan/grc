@@ -1,0 +1,117 @@
+{
+  "tx_power_dbm": 0,
+  "path_loss_db": 80,
+  "rx_noise_dbm": -100.0,
+  "noise_enabled": 1,
+  "tx_measured_dbm": 0.009458262694610118,
+  "rx_measured_dbm": -79.94082614287716,
+  "expected_rx_signal_dbm": -80,
+  "tx_sample_peak_dbm": 6.289686679840088,
+  "papr_db": 6.280228417145477,
+  "tile_layouts": {
+    "0": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "1": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "2": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "3": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "4": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "5": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "reference_evm_percent": 5.636072635650635,
+  "nominal_rx_snr_db": 20.0,
+  "nominal_rx_ebno_db": 20.0,
+  "square_plot_panels": {},
+  "channel_echo": 0.25,
+  "pre_reference_evm_percent": 24.670278549194336,
+  "equalizer_final_taps": [
+    [
+      -5.97290818404872e-05,
+      0.00022938578331377357
+    ],
+    [
+      0.0035866692196577787,
+      -0.0002238123124698177
+    ],
+    [
+      -0.014078578911721706,
+      -0.0009715040796436369
+    ],
+    [
+      0.06203627213835716,
+      -0.000488179997773841
+    ],
+    [
+      -0.2550521194934845,
+      -0.0005869108717888594
+    ],
+    [
+      1.0352920293807983,
+      -0.0009679065551608801
+    ],
+    [
+      -0.0032181236892938614,
+      0.00024916650727391243
+    ],
+    [
+      0.0011414582841098309,
+      -0.0006880277069285512
+    ],
+    [
+      -0.00038116119685582817,
+      -0.0002039040846284479
+    ],
+    [
+      -0.0004933475865982473,
+      0.000291162432404235
+    ],
+    [
+      -0.0009660652140155435,
+      0.0006268691504374146
+    ]
+  ],
+  "modulation": "16qam",
+  "noise_voltage": 0.1,
+  "configured_delay_bits": 136,
+  "best_delay_bits": 136,
+  "aligned_ber": 0.0,
+  "display_ber_mean": 0.0,
+  "compared_bits": 250000,
+  "ber_windows": 25,
+  "stock_ber_arithmetic": "XOR -> UChar to Float -> Integrate(10000) -> Multiply(1/10000)",
+  "finite_completed": true,
+  "symbol_rate_hz": 1000000.0,
+  "sample_rate_hz": 4000000.0,
+  "gross_bit_rate_bps": 4000000.0,
+  "decision_directed_evm_rms_percent": 5.436638323651688,
+  "matlab_fixture": "16qam_noise_0.1.mat",
+  "tx_mean_sample_power": 1.0021801999232476
+}

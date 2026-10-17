@@ -1,0 +1,180 @@
+options:
+  parameters:
+    id: bench_scalar_channel
+    title: SISO scalar channel | loss + AWGN
+    category: '[Antenna benchmark]'
+    generate_options: hb
+    output_language: python
+    description: Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: channel_gain
+  id: parameter
+  parameters:
+    value: '1'
+    type: eng_float
+    label: channel_gain
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 224
+    rotation: 0
+    state: enabled
+- name: noise_voltage
+  id: parameter
+  parameters:
+    value: '0.1'
+    type: eng_float
+    label: noise_voltage
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 640
+    - 224
+    rotation: 0
+    state: enabled
+- name: noise_seed
+  id: parameter
+  parameters:
+    value: '20261017'
+    type: intx
+    label: noise_seed
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1040
+    - 224
+    rotation: 0
+    state: enabled
+- name: siso_path
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: channel_gain
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 560
+    - 528
+    rotation: 0
+    state: enabled
+- name: awgn
+  id: analog_noise_source_x
+  parameters:
+    type: complex
+    noise_type: analog.GR_GAUSSIAN
+    amp: noise_voltage
+    seed: noise_seed
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 960
+    - 704
+    rotation: 0
+    state: enabled
+- name: channel_output
+  id: blocks_add_xx
+  parameters:
+    type: complex
+    num_inputs: '2'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1360
+    - 528
+    rotation: 0
+    state: enabled
+- name: input_stream
+  id: pad_source
+  parameters:
+    label: samples
+    type: complex
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 528
+    rotation: 0
+    state: enabled
+- name: output_stream
+  id: pad_sink
+  parameters:
+    label: samples
+    type: complex
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1760
+    - 528
+    rotation: 0
+    state: enabled
+- name: contract
+  id: note
+  parameters:
+    note: 'STREAM CONTRACT: complex64 samples -> complex64 samples. Edit this module, generate it, then regenerate
+      its parent lab.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 880
+    rotation: 0
+    state: enabled
+connections:
+- - siso_path
+  - '0'
+  - channel_output
+  - '0'
+- - awgn
+  - '0'
+  - channel_output
+  - '1'
+- - input_stream
+  - '0'
+  - siso_path
+  - '0'
+- - channel_output
+  - '0'
+  - output_stream
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

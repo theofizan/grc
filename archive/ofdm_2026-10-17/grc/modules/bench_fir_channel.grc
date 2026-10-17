@@ -1,0 +1,272 @@
+options:
+  parameters:
+    id: bench_fir_channel
+    title: SISO channel | FIR + CFO + AWGN
+    category: '[Antenna benchmark]'
+    generate_options: hb
+    output_language: python
+    description: Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: project_imports
+  id: import
+  parameters:
+    imports: 'import math
+
+      import numpy as np
+
+      from antenna_bench.paths import ROOT
+
+      from antenna_bench.live import test_bits, wlan_reference, burst_waveform, reference_symbols, parse_taps
+
+      from antenna_bench.wlan import wlan_constellation
+
+      from gnuradio import digital'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 64
+    rotation: 0
+    state: enabled
+- name: channel_gain
+  id: parameter
+  parameters:
+    value: '1'
+    type: eng_float
+    label: channel_gain
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 224
+    rotation: 0
+    state: enabled
+- name: channel_taps
+  id: parameter
+  parameters:
+    value: 1+0j
+    type: str
+    label: Causal SISO FIR taps
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 640
+    - 224
+    rotation: 0
+    state: enabled
+- name: cfo_hz
+  id: parameter
+  parameters:
+    value: '0'
+    type: eng_float
+    label: Carrier offset (Hz)
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1040
+    - 224
+    rotation: 0
+    state: enabled
+- name: sample_rate
+  id: parameter
+  parameters:
+    value: '20000000.0'
+    type: eng_float
+    label: sample_rate
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 368
+    rotation: 0
+    state: enabled
+- name: noise_voltage
+  id: parameter
+  parameters:
+    value: '0.1'
+    type: eng_float
+    label: noise_voltage
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 640
+    - 368
+    rotation: 0
+    state: enabled
+- name: noise_seed
+  id: parameter
+  parameters:
+    value: '20261017'
+    type: intx
+    label: noise_seed
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1040
+    - 368
+    rotation: 0
+    state: enabled
+- name: siso_fir
+  id: fir_filter_xxx
+  parameters:
+    type: ccc
+    decim: '1'
+    taps: '[channel_gain*t for t in parse_taps(channel_taps)]'
+    samp_delay: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 560
+    - 672
+    rotation: 0
+    state: enabled
+- name: carrier_offset
+  id: blocks_rotator_cc
+  parameters:
+    phase_inc: 2*math.pi*cfo_hz/sample_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 960
+    - 672
+    rotation: 0
+    state: enabled
+- name: awgn
+  id: analog_noise_source_x
+  parameters:
+    type: complex
+    noise_type: analog.GR_GAUSSIAN
+    amp: noise_voltage
+    seed: noise_seed
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 960
+    - 848
+    rotation: 0
+    state: enabled
+- name: channel_output
+  id: blocks_add_xx
+  parameters:
+    type: complex
+    num_inputs: '2'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1760
+    - 672
+    rotation: 0
+    state: enabled
+- name: input_stream
+  id: pad_source
+  parameters:
+    label: samples
+    type: complex
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 672
+    rotation: 0
+    state: enabled
+- name: output_stream
+  id: pad_sink
+  parameters:
+    label: samples
+    type: complex
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 2160
+    - 672
+    rotation: 0
+    state: enabled
+- name: contract
+  id: note
+  parameters:
+    note: 'STREAM CONTRACT: complex64 samples -> complex64 samples. Edit this module, generate it, then regenerate
+      its parent lab.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 1024
+    rotation: 0
+    state: enabled
+connections:
+- - siso_fir
+  - '0'
+  - carrier_offset
+  - '0'
+- - carrier_offset
+  - '0'
+  - channel_output
+  - '0'
+- - awgn
+  - '0'
+  - channel_output
+  - '1'
+- - input_stream
+  - '0'
+  - siso_fir
+  - '0'
+- - channel_output
+  - '0'
+  - output_stream
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

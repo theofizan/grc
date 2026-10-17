@@ -1,0 +1,117 @@
+{
+  "tx_power_dbm": 0,
+  "path_loss_db": 80,
+  "rx_noise_dbm": -90.45757490560675,
+  "noise_enabled": 1,
+  "tx_measured_dbm": -0.001593832637243795,
+  "rx_measured_dbm": -79.62296854203854,
+  "expected_rx_signal_dbm": -80,
+  "tx_sample_peak_dbm": 4.133317947387695,
+  "papr_db": 4.1349117800249395,
+  "tile_layouts": {
+    "0": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "1": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "2": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "3": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "4": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "5": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "reference_evm_percent": 15.075338363647461,
+  "nominal_rx_snr_db": 10.457574905606748,
+  "nominal_rx_ebno_db": 16.478174818886373,
+  "square_plot_panels": {},
+  "channel_echo": 0,
+  "pre_reference_evm_percent": 15.254693031311035,
+  "equalizer_final_taps": [
+    [
+      0.0022510411217808723,
+      -0.0005374641623347998
+    ],
+    [
+      0.005987587384879589,
+      0.002334929769858718
+    ],
+    [
+      0.004250501748174429,
+      -0.0003378098481334746
+    ],
+    [
+      -0.003908470273017883,
+      0.001464420580305159
+    ],
+    [
+      0.01593470387160778,
+      -0.0024241204373538494
+    ],
+    [
+      0.9856720566749573,
+      -0.004873806610703468
+    ],
+    [
+      -0.019284099340438843,
+      0.005068958271294832
+    ],
+    [
+      0.002500497503206134,
+      0.0008092167554423213
+    ],
+    [
+      -0.0026164331939071417,
+      0.0017102512065321207
+    ],
+    [
+      0.003604625351727009,
+      -0.002251206897199154
+    ],
+    [
+      -0.0027525844052433968,
+      -0.0005173091776669025
+    ]
+  ],
+  "modulation": "bpsk",
+  "noise_voltage": 0.3,
+  "configured_delay_bits": 34,
+  "best_delay_bits": 34,
+  "aligned_ber": 0.0,
+  "display_ber_mean": 0.0,
+  "compared_bits": 250000,
+  "ber_windows": 25,
+  "stock_ber_arithmetic": "XOR -> UChar to Float -> Integrate(10000) -> Multiply(1/10000)",
+  "finite_completed": true,
+  "symbol_rate_hz": 1000000.0,
+  "sample_rate_hz": 4000000.0,
+  "gross_bit_rate_bps": 1000000.0,
+  "decision_directed_evm_rms_percent": 15.073753843808042,
+  "matlab_fixture": "bpsk_noise_0.3.mat",
+  "tx_mean_sample_power": 0.9996330843833927
+}

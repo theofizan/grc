@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "rate_index": 7,
+  "vectors": 608,
+  "max_absolute_error": 3.469532695348209e-07,
+  "relative_l2_error": 8.143444205680107e-08,
+  "precision": "GRC complex64 FFT vs NumPy complex128 FFT on the same complex64 input"
+}

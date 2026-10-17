@@ -1,0 +1,66 @@
+id: bench_fir_channel
+label: SISO channel | FIR + CFO + AWGN
+category: '[Antenna benchmark]'
+
+parameters:
+-   id: channel_gain
+    label: channel_gain
+    dtype: real
+    default: '1'
+    hide: none
+-   id: channel_taps
+    label: Causal SISO FIR taps
+    dtype: string
+    default: 1+0j
+    hide: none
+-   id: cfo_hz
+    label: Carrier offset (Hz)
+    dtype: real
+    default: '0'
+    hide: none
+-   id: sample_rate
+    label: sample_rate
+    dtype: real
+    default: '20000000.0'
+    hide: none
+-   id: noise_voltage
+    label: noise_voltage
+    dtype: real
+    default: '0.1'
+    hide: none
+-   id: noise_seed
+    label: noise_seed
+    dtype: int
+    default: '20261017'
+    hide: none
+
+inputs:
+-   label: samples
+    dtype: complex
+    vlen: 1
+
+outputs:
+-   label: samples
+    dtype: complex
+    vlen: 1
+
+templates:
+    imports: 'from bench_fir_channel import bench_fir_channel  # grc-generated hier_block'
+    make: "bench_fir_channel(\n    channel_gain=${ channel_gain },\n    channel_taps=${\
+        \ channel_taps },\n    cfo_hz=${ cfo_hz },\n    sample_rate=${ sample_rate\
+        \ },\n    noise_voltage=${ noise_voltage },\n    noise_seed=${ noise_seed\
+        \ },\n)"
+    callbacks:
+    - set_channel_gain(${ channel_gain })
+    - set_channel_taps(${ channel_taps })
+    - set_cfo_hz(${ cfo_hz })
+    - set_sample_rate(${ sample_rate })
+    - set_noise_voltage(${ noise_voltage })
+    - set_noise_seed(${ noise_seed })
+
+documentation: 'Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+
+    /Users/ofi/repos/grc/grc/generated/bench_fir_channel.py'
+grc_source: /Users/ofi/repos/grc/grc/modules/bench_fir_channel.grc
+
+file_format: 1

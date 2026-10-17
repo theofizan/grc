@@ -1,0 +1,902 @@
+{
+  "bpsk": {
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "noise_volt": [
+      552,
+      232
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "samp_rate": [
+      328,
+      88
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ],
+    "ber_window": [
+      272,
+      288
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "bit_rate": [
+      440,
+      88
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "eq_step": [
+      624,
+      288
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "reference_delay": [
+      160,
+      288
+    ],
+    "symbol_rms": [
+      1216,
+      232
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "k": [
+      1096,
+      232
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "chart_math": [
+      432,
+      360
+    ]
+  },
+  "qpsk": {
+    "ber_window": [
+      272,
+      288
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "noise_volt": [
+      552,
+      232
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "chart_math": [
+      432,
+      360
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "samp_rate": [
+      328,
+      88
+    ],
+    "eq_step": [
+      624,
+      288
+    ],
+    "symbol_rms": [
+      1216,
+      232
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "reference_delay": [
+      160,
+      288
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "bit_rate": [
+      440,
+      88
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "k": [
+      1096,
+      232
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ]
+  },
+  "8psk": {
+    "reference_delay": [
+      160,
+      288
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "samp_rate": [
+      328,
+      88
+    ],
+    "symbol_rms": [
+      1216,
+      232
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "ber_window": [
+      272,
+      288
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ],
+    "chart_math": [
+      432,
+      360
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "bit_rate": [
+      440,
+      88
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "k": [
+      1096,
+      232
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "noise_volt": [
+      552,
+      232
+    ],
+    "eq_step": [
+      624,
+      288
+    ]
+  },
+  "4ask": {
+    "noise_volt": [
+      552,
+      232
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "symbol_rms": [
+      1216,
+      232
+    ],
+    "chart_math": [
+      432,
+      360
+    ],
+    "ber_window": [
+      272,
+      288
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "k": [
+      1096,
+      232
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "samp_rate": [
+      328,
+      88
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "reference_delay": [
+      160,
+      288
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "eq_step": [
+      624,
+      288
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "bit_rate": [
+      440,
+      88
+    ]
+  },
+  "8ask": {
+    "symbol_rms": [
+      1216,
+      232
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "eq_step": [
+      624,
+      288
+    ],
+    "bit_rate": [
+      440,
+      88
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "noise_volt": [
+      552,
+      232
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "chart_math": [
+      432,
+      360
+    ],
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "reference_delay": [
+      160,
+      288
+    ],
+    "samp_rate": [
+      328,
+      88
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "k": [
+      1096,
+      232
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "ber_window": [
+      272,
+      288
+    ]
+  },
+  "16qam": {
+    "samp_rate": [
+      328,
+      88
+    ],
+    "symbol_rate": [
+      160,
+      88
+    ],
+    "rrc_taps": [
+      728,
+      88
+    ],
+    "noise_enabled": [
+      520,
+      160
+    ],
+    "square_plot_panels": [
+      600,
+      360
+    ],
+    "path_loss_db": [
+      280,
+      160
+    ],
+    "nfilts": [
+      608,
+      88
+    ],
+    "rrc_bandwidth": [
+      1088,
+      88
+    ],
+    "warmup_bits": [
+      344,
+      288
+    ],
+    "ber_window": [
+      272,
+      288
+    ],
+    "eq_taps": [
+      512,
+      288
+    ],
+    "const": [
+      160,
+      360
+    ],
+    "bit_rate": [
+      440,
+      88
+    ],
+    "alpha": [
+      544,
+      88
+    ],
+    "path_gain": [
+      280,
+      232
+    ],
+    "eq_algorithm": [
+      280,
+      360
+    ],
+    "noise_volt": [
+      552,
+      232
+    ],
+    "evm_guide_percent": [
+      744,
+      288
+    ],
+    "rx_noise_dbm": [
+      400,
+      160
+    ],
+    "reference_delay": [
+      160,
+      288
+    ],
+    "expected_rx_dbm": [
+      416,
+      232
+    ],
+    "ebno_rx_db": [
+      952,
+      232
+    ],
+    "chart_math": [
+      432,
+      360
+    ],
+    "eq_delay_symbols": [
+      416,
+      288
+    ],
+    "tx_amplitude": [
+      160,
+      232
+    ],
+    "eye_synthesis_taps": [
+      904,
+      88
+    ],
+    "symbol_rms": [
+      1192,
+      232
+    ],
+    "equalizer_initial_taps": [
+      752,
+      360
+    ],
+    "eq_step": [
+      624,
+      288
+    ],
+    "snr_rx_db": [
+      680,
+      232
+    ],
+    "views": [
+      904,
+      360
+    ],
+    "timing_bw": [
+      664,
+      88
+    ],
+    "channel_echo": [
+      632,
+      160
+    ],
+    "esno_rx_db": [
+      800,
+      232
+    ],
+    "tx_power_dbm": [
+      160,
+      160
+    ],
+    "sps": [
+      280,
+      88
+    ],
+    "k": [
+      1072,
+      232
+    ]
+  }
+}

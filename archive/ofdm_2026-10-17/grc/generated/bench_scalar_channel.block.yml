@@ -1,0 +1,47 @@
+id: bench_scalar_channel
+label: SISO scalar channel | loss + AWGN
+category: '[Antenna benchmark]'
+
+parameters:
+-   id: channel_gain
+    label: channel_gain
+    dtype: real
+    default: '1'
+    hide: none
+-   id: noise_voltage
+    label: noise_voltage
+    dtype: real
+    default: '0.1'
+    hide: none
+-   id: noise_seed
+    label: noise_seed
+    dtype: int
+    default: '20261017'
+    hide: none
+
+inputs:
+-   label: samples
+    dtype: complex
+    vlen: 1
+
+outputs:
+-   label: samples
+    dtype: complex
+    vlen: 1
+
+templates:
+    imports: 'from bench_scalar_channel import bench_scalar_channel  # grc-generated
+        hier_block'
+    make: "bench_scalar_channel(\n    channel_gain=${ channel_gain },\n    noise_voltage=${\
+        \ noise_voltage },\n    noise_seed=${ noise_seed },\n)"
+    callbacks:
+    - set_channel_gain(${ channel_gain })
+    - set_noise_voltage(${ noise_voltage })
+    - set_noise_seed(${ noise_seed })
+
+documentation: 'Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+
+    /Users/ofi/repos/grc/grc/generated/bench_scalar_channel.py'
+grc_source: /Users/ofi/repos/grc/grc/modules/bench_scalar_channel.grc
+
+file_format: 1

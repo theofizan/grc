@@ -1,0 +1,2787 @@
+options:
+  parameters:
+    id: single_carrier_8ask
+    title: 8ASK single carrier | stock blocks
+    generate_options: qt_gui
+    output_language: python
+    author: Antenna benchmark
+  states:
+    coordinate:
+    - 16
+    - 12
+    rotation: 0
+    state: enabled
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    value: symbol_rate*sps
+  states:
+    coordinate:
+    - 328
+    - 88
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    value: '4'
+  states:
+    coordinate:
+    - 280
+    - 88
+    rotation: 0
+    state: enabled
+- name: alpha
+  id: variable
+  parameters:
+    value: '0.35'
+  states:
+    coordinate:
+    - 544
+    - 88
+    rotation: 0
+    state: enabled
+- name: nfilts
+  id: variable
+  parameters:
+    value: '32'
+  states:
+    coordinate:
+    - 608
+    - 88
+    rotation: 0
+    state: enabled
+- name: timing_bw
+  id: variable
+  parameters:
+    value: '0.0628'
+  states:
+    coordinate:
+    - 664
+    - 88
+    rotation: 0
+    state: enabled
+- name: rrc_taps
+  id: variable
+  parameters:
+    value: firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
+  states:
+    coordinate:
+    - 728
+    - 88
+    rotation: 0
+    state: enabled
+- name: const
+  id: variable_constellation_rect
+  parameters:
+    sym_map: '[0, 1, 2, 3, 4, 5, 6, 7]'
+    const_points: '[-7, -5, -3, -1, 1, 3, 5, 7]'
+    rot_sym: '1'
+    real_sect: '8'
+    imag_sect: '1'
+    w_real_sect: '2'
+    w_imag_sect: '1'
+  states:
+    coordinate:
+    - 160
+    - 360
+    rotation: 0
+    state: enabled
+- name: reference_delay
+  id: parameter
+  parameters:
+    value: '102'
+    type: intx
+    label: TX reference delay (bits)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 160
+    - 288
+    rotation: 0
+    state: enabled
+- name: ber_window
+  id: variable
+  parameters:
+    value: '10000'
+  states:
+    coordinate:
+    - 272
+    - 288
+    rotation: 0
+    state: enabled
+- name: warmup_bits
+  id: variable
+  parameters:
+    value: '4096'
+  states:
+    coordinate:
+    - 344
+    - 288
+    rotation: 0
+    state: enabled
+- name: k
+  id: variable
+  parameters:
+    value: const.bits_per_symbol()
+  states:
+    coordinate:
+    - 1096
+    - 232
+    rotation: 0
+    state: enabled
+- name: symbol_rate
+  id: parameter
+  parameters:
+    value: 1e6
+    type: eng_float
+    label: Symbol rate (symbols/s)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 160
+    - 88
+    rotation: 0
+    state: enabled
+- name: bit_rate
+  id: variable
+  parameters:
+    value: symbol_rate*k
+  states:
+    coordinate:
+    - 440
+    - 88
+    rotation: 0
+    state: enabled
+- name: rrc_bandwidth
+  id: variable
+  parameters:
+    value: symbol_rate*(1+alpha)
+  states:
+    coordinate:
+    - 1088
+    - 88
+    rotation: 0
+    state: enabled
+- name: random_bytes
+  id: analog_random_source_x
+  parameters:
+    type: byte
+    min: '0'
+    max: '256'
+    num_samps: '32768'
+    repeat: 'True'
+  states:
+    coordinate:
+    - 16
+    - 584
+    rotation: 0
+    state: enabled
+- name: modulator
+  id: digital_constellation_modulator
+  parameters:
+    constellation: const
+    differential: 'True'
+    samples_per_symbol: sps
+    excess_bw: alpha
+    truncate: 'False'
+  states:
+    coordinate:
+    - 144
+    - 584
+    rotation: 0
+    state: enabled
+- name: throttle
+  id: blocks_throttle2
+  parameters:
+    type: complex
+    samples_per_second: samp_rate
+    vlen: '1'
+    ignoretag: 'True'
+    limit: auto
+  states:
+    coordinate:
+    - 504
+    - 584
+    rotation: 0
+    state: enabled
+- name: channel
+  id: channels_channel_model
+  parameters:
+    noise_voltage: noise_volt
+    freq_offset: '0'
+    epsilon: '1'
+    taps: '[path_gain/(1+channel_echo**2)**0.5]+[0j]*(sps-1)+[path_gain*channel_echo/(1+channel_echo**2)**0.5]'
+    seed: '42'
+    block_tags: 'False'
+  states:
+    coordinate:
+    - 648
+    - 584
+    rotation: 0
+    state: enabled
+- name: clock_sync
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    type: ccf
+    sps: sps
+    loop_bw: timing_bw
+    taps: rrc_taps
+    filter_size: nfilts
+    init_phase: '16'
+    max_dev: '1.5'
+    osps: '1'
+  states:
+    coordinate:
+    - 992
+    - 584
+    rotation: 0
+    state: enabled
+- name: decoder
+  id: digital_constellation_decoder_cb
+  parameters:
+    constellation: const
+  states:
+    coordinate:
+    - 1464
+    - 584
+    rotation: 0
+    state: enabled
+- name: decoded_link
+  id: virtual_sink
+  parameters:
+    stream_id: decoded
+  states:
+    coordinate:
+    - 1624
+    - 584
+    rotation: 0
+    state: enabled
+- name: reference_link
+  id: virtual_sink
+  parameters:
+    stream_id: reference
+  states:
+    coordinate:
+    - 16
+    - 684
+    rotation: 0
+    state: enabled
+- name: decoded_source
+  id: virtual_source
+  parameters:
+    stream_id: decoded
+  states:
+    coordinate:
+    - 16
+    - 954
+    rotation: 0
+    state: enabled
+- name: diff_decoder
+  id: digital_diff_decoder_bb
+  parameters:
+    modulus: '8'
+    coding: digital.DIFF_DIFFERENTIAL
+  states:
+    coordinate:
+    - 152
+    - 952.0
+    rotation: 0
+    state: enabled
+- name: unpack_rx
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    k: k
+  states:
+    coordinate:
+    - 330
+    - 954
+    rotation: 0
+    state: enabled
+- name: skip_rx
+  id: blocks_skiphead
+  parameters:
+    type: byte
+    vlen: '1'
+    num_items: warmup_bits
+  states:
+    coordinate:
+    - 480
+    - 954
+    rotation: 0
+    state: enabled
+- name: reference_source
+  id: virtual_source
+  parameters:
+    stream_id: reference
+  states:
+    coordinate:
+    - 16
+    - 1094
+    rotation: 0
+    state: enabled
+- name: unpack_tx
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 150
+    - 1094
+    rotation: 0
+    state: enabled
+- name: delay
+  id: blocks_delay
+  parameters:
+    type: byte
+    vlen: '1'
+    delay: reference_delay
+  states:
+    coordinate:
+    - 330
+    - 1094
+    rotation: 0
+    state: enabled
+- name: skip_tx
+  id: blocks_skiphead
+  parameters:
+    type: byte
+    vlen: '1'
+    num_items: warmup_bits
+  states:
+    coordinate:
+    - 480
+    - 1094
+    rotation: 0
+    state: enabled
+- name: xor
+  id: blocks_xor_xx
+  parameters:
+    type: byte
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 680
+    - 1004
+    rotation: 0
+    state: enabled
+- name: errors_float
+  id: blocks_uchar_to_float
+  parameters: {}
+  states:
+    coordinate:
+    - 760
+    - 1004
+    rotation: 0
+    state: enabled
+- name: integrate
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: ber_window
+    vlen: '1'
+  states:
+    coordinate:
+    - 910
+    - 1004
+    rotation: 0
+    state: enabled
+- name: ber_scale
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: 1.0/ber_window
+    vlen: '1'
+  states:
+    coordinate:
+    - 1070
+    - 1004
+    rotation: 0
+    state: enabled
+- name: ber_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: BER | latest 10000 compared bits
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '0'
+    max: '1'
+    label1: Bit error ratio
+    unit1: errors/bit
+    gui_hint: views@0:0,0,1,1
+  states:
+    coordinate:
+    - 1240
+    - 1004
+    rotation: 0
+    state: enabled
+- name: constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: After adaptive LMS equalization | symbols and guides
+    size: '1024'
+    nconnections: '3'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2'
+    xmax: '2'
+    ymin: '-2'
+    ymax: '2'
+    gui_hint: views@0:2,0,1,1
+    label1: RX symbols
+    label2: Ideal reference
+    label3: EVM radius guide (% RMS)
+    color1: '"blue"'
+    color2: '"black"'
+    color3: '"dark green"'
+    marker1: '0'
+    marker2: '8'
+    marker3: '0'
+    style1: '0'
+    style2: '0'
+    style3: '0'
+    alpha1: '0.3'
+    alpha2: '1.0'
+    alpha3: '0.5'
+  states:
+    coordinate:
+    - 160
+    - 1324
+    rotation: 0
+    state: enabled
+- name: spectrum
+  id: qtgui_freq_sink_x
+  parameters:
+    type: complex
+    name: TX and RX baseband spectrum | relative dB
+    fftsize: '1024'
+    wintype: window.WIN_HANN
+    fc: '0'
+    bw: samp_rate
+    nconnections: '2'
+    gui_hint: views@1:2,0,1,1
+    label1: RX
+    label2: TX
+  states:
+    coordinate:
+    - 560
+    - 1324
+    rotation: 0
+    state: enabled
+- name: waveform
+  id: qtgui_time_sink_x
+  parameters:
+    type: complex
+    name: TX and RX waveform | I/Q
+    size: '512'
+    srate: samp_rate
+    nconnections: '2'
+    gui_hint: views@1:1,1,1,1
+    label1: RX I
+    label2: RX Q
+    label3: TX I
+    label4: TX Q
+  states:
+    coordinate:
+    - 1000
+    - 1324
+    rotation: 0
+    state: enabled
+- name: evm
+  id: digital_meas_evm_cc
+  parameters:
+    cons: const
+    meas_type: digital.evm_measurement_t.EVM_PERCENT
+  states:
+    coordinate:
+    - 160
+    - 1524
+    rotation: 0
+    state: enabled
+- name: evm_rms
+  id: blocks_rms_xx
+  parameters:
+    type: float
+    alpha: '0.001'
+  states:
+    coordinate:
+    - 340
+    - 1524
+    rotation: 0
+    state: enabled
+- name: evm_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: Decision-directed RMS EVM
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '0'
+    max: '100'
+    label1: Decision-directed EVM
+    unit1: '%'
+    gui_hint: views@0:0,1,1,1
+  states:
+    coordinate:
+    - 504
+    - 1504.0
+    rotation: 0
+    state: enabled
+- name: scope
+  id: note
+  parameters:
+    note: 'SISO single carrier, RRC pulse shaping. 8ASK, 4 samples/symbol. No carrier recovery: leave frequency
+      offset=0 and epsilon=1 for scored BER. Delay calibrated for this filter/clock configuration. See README.md.'
+  states:
+    coordinate:
+    - 16
+    - 2084
+    rotation: 0
+    state: enabled
+- name: rx_iq_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 648
+    - 704
+    rotation: 0
+    state: enabled
+- name: symbols_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 1312
+    - 712
+    rotation: 0
+    state: enabled
+- name: symbols_plot
+  id: virtual_source
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 16
+    - 1324
+    rotation: 0
+    state: enabled
+- name: spectrum_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 410
+    - 1324
+    rotation: 0
+    state: enabled
+- name: waveform_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 850
+    - 1324
+    rotation: 0
+    state: enabled
+- name: evm_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 16
+    - 1524
+    rotation: 0
+    state: enabled
+- name: symbol_rms
+  id: variable
+  parameters:
+    value: (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
+  states:
+    coordinate:
+    - 1216
+    - 232
+    rotation: 0
+    state: enabled
+- name: tx_power
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: tx_amplitude/symbol_rms
+    vlen: '1'
+  states:
+    coordinate:
+    - 312
+    - 584
+    rotation: 0
+    state: enabled
+- name: rx_scale
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: symbol_rms
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 584
+    rotation: 0
+    state: enabled
+- name: views
+  id: qtgui_tab_widget
+  parameters:
+    num_tabs: '6'
+    label0: Constellations
+    label1: Waveforms
+    label2: I eyes
+    gui_hint: ''
+    label3: Link budget
+    label4: Q eyes
+    label5: BER / EVM / taps
+  states:
+    coordinate:
+    - 904
+    - 360
+    rotation: 0
+    state: enabled
+- name: tx_plot_link
+  id: virtual_sink
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 312
+    - 684
+    rotation: 0
+    state: enabled
+- name: timing_link
+  id: virtual_sink
+  parameters:
+    stream_id: timing_error
+  states:
+    coordinate:
+    - 992
+    - 744
+    rotation: 0
+    state: enabled
+- name: ber_link
+  id: virtual_sink
+  parameters:
+    stream_id: ber_history
+  states:
+    coordinate:
+    - 1240
+    - 1100.0
+    rotation: 0
+    state: enabled
+- name: evm_link
+  id: virtual_sink
+  parameters:
+    stream_id: evm_history
+  states:
+    coordinate:
+    - 504
+    - 1620.0
+    rotation: 0
+    state: enabled
+- name: tx_spectrum
+  id: virtual_source
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 410
+    - 1404
+    rotation: 0
+    state: enabled
+- name: tx_time
+  id: virtual_source
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 850
+    - 1404
+    rotation: 0
+    state: enabled
+- name: ber_plot_input
+  id: virtual_source
+  parameters:
+    stream_id: ber_history
+  states:
+    coordinate:
+    - 730
+    - 1524
+    rotation: 0
+    state: enabled
+- name: ber_history
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: BER per compared-bit window
+    size: '128'
+    srate: bit_rate/ber_window
+    nconnections: '1'
+    autoscale: 'True'
+    gui_hint: views@5:1,0,1,1
+    ylabel: Bit error ratio
+    yunit: ''
+    label1: BER
+    ymin: '0'
+    ymax: '1'
+  states:
+    coordinate:
+    - 880
+    - 1512.0
+    rotation: 0
+    state: enabled
+- name: evm_plot_input
+  id: virtual_source
+  parameters:
+    stream_id: evm_history
+  states:
+    coordinate:
+    - 1090
+    - 1524
+    rotation: 0
+    state: enabled
+- name: evm_history
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: Smoothed decision-directed RMS EVM (%)
+    size: '128'
+    srate: symbol_rate
+    nconnections: '1'
+    autoscale: 'True'
+    gui_hint: views@5:1,1,1,1
+    ylabel: EVM
+    yunit: '%'
+    label1: Decision-directed EVM
+  states:
+    coordinate:
+    - 1256
+    - 1512.0
+    rotation: 0
+    state: enabled
+- name: timing_input
+  id: virtual_source
+  parameters:
+    stream_id: timing_error
+  states:
+    coordinate:
+    - 1040
+    - 1714
+    rotation: 0
+    state: enabled
+- name: timing_error
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: Clock sync timing error
+    size: '512'
+    srate: symbol_rate
+    nconnections: '1'
+    autoscale: 'True'
+    gui_hint: views@1:2,1,1,1
+  states:
+    coordinate:
+    - 1180
+    - 1714
+    rotation: 0
+    state: enabled
+- name: eye_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 16
+    - 1714
+    rotation: 0
+    state: enabled
+- name: eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    gui_hint: views@2:1,1,1,1
+    ylabel: RX in-phase amplitude
+    label1: RX I | raw channel output
+  states:
+    coordinate:
+    - 300
+    - 1714
+    rotation: 0
+    state: enabled
+- name: unused_timing_states
+  id: blocks_null_sink
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 992
+    - 804
+    rotation: 0
+    state: enabled
+- name: tx_power_dbm
+  id: parameter
+  parameters:
+    value: '0'
+    type: eng_float
+    label: TX average conducted power (dBm)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 160
+    - 160
+    rotation: 0
+    state: enabled
+- name: path_loss_db
+  id: parameter
+  parameters:
+    value: '80'
+    type: eng_float
+    label: Net path loss including gains/losses (dB)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 280
+    - 160
+    rotation: 0
+    state: enabled
+- name: rx_noise_dbm
+  id: parameter
+  parameters:
+    value: '-100'
+    type: eng_float
+    label: RX noise over sample bandwidth (dBm)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 400
+    - 160
+    rotation: 0
+    state: enabled
+- name: noise_enabled
+  id: parameter
+  parameters:
+    value: '1'
+    type: intx
+    label: Receiver noise enabled (0/1)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 520
+    - 160
+    rotation: 0
+    state: enabled
+- name: tx_amplitude
+  id: variable
+  parameters:
+    value: 10**(tx_power_dbm/20.0)
+  states:
+    coordinate:
+    - 160
+    - 232
+    rotation: 0
+    state: enabled
+- name: path_gain
+  id: variable
+  parameters:
+    value: 10**(-path_loss_db/20.0)
+  states:
+    coordinate:
+    - 280
+    - 232
+    rotation: 0
+    state: enabled
+- name: expected_rx_dbm
+  id: variable
+  parameters:
+    value: tx_power_dbm-path_loss_db
+  states:
+    coordinate:
+    - 416
+    - 232
+    rotation: 0
+    state: enabled
+- name: noise_volt
+  id: variable
+  parameters:
+    value: 10**(rx_noise_dbm/20.0) if noise_enabled else 0.0
+  states:
+    coordinate:
+    - 552
+    - 232
+    rotation: 0
+    state: enabled
+- name: rx_level
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: 1.0/(tx_amplitude*path_gain)
+    vlen: '1'
+  states:
+    coordinate:
+    - 840
+    - 584
+    rotation: 0
+    state: enabled
+- name: tx_meter_input
+  id: virtual_source
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 16
+    - 2184
+    rotation: 0
+    state: enabled
+- name: tx_milliwatts
+  id: blocks_complex_to_mag_squared
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 160
+    - 2184
+    rotation: 0
+    state: enabled
+- name: tx_power_sum
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '4096'
+    vlen: '1'
+  states:
+    coordinate:
+    - 370
+    - 2184
+    rotation: 0
+    state: enabled
+- name: tx_power_mean
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: 1.0/4096
+    vlen: '1'
+  states:
+    coordinate:
+    - 570
+    - 2184
+    rotation: 0
+    state: enabled
+- name: tx_dbm
+  id: blocks_nlog10_ff
+  parameters:
+    n: '10'
+    k: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 780
+    - 2184
+    rotation: 0
+    state: enabled
+- name: tx_power_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: TX average conducted power
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    label1: TX average
+    unit1: dBm
+    gui_hint: views@3:3,0,1,1
+  states:
+    coordinate:
+    - 950
+    - 2184
+    rotation: 0
+    state: enabled
+- name: rx_meter_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 16
+    - 2314
+    rotation: 0
+    state: enabled
+- name: rx_milliwatts
+  id: blocks_complex_to_mag_squared
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 160
+    - 2314
+    rotation: 0
+    state: enabled
+- name: rx_power_sum
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '4096'
+    vlen: '1'
+  states:
+    coordinate:
+    - 370
+    - 2314
+    rotation: 0
+    state: enabled
+- name: rx_power_mean
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: 1.0/4096
+    vlen: '1'
+  states:
+    coordinate:
+    - 570
+    - 2314
+    rotation: 0
+    state: enabled
+- name: rx_dbm
+  id: blocks_nlog10_ff
+  parameters:
+    n: '10'
+    k: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 780
+    - 2314
+    rotation: 0
+    state: enabled
+- name: rx_power_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: 'RX total power: signal + noise'
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    label1: RX signal + noise
+    unit1: dBm
+    gui_hint: views@3:3,1,1,1
+  states:
+    coordinate:
+    - 950
+    - 2314
+    rotation: 0
+    state: enabled
+- name: power_history
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: Measured power | TX average and RX signal + noise (dBm)
+    size: '128'
+    srate: samp_rate/4096
+    nconnections: '2'
+    autoscale: 'True'
+    label1: TX average (dBm)
+    label2: RX total (dBm)
+    gui_hint: views@3:1,0,1,1
+  states:
+    coordinate:
+    - 1180
+    - 2244
+    rotation: 0
+    state: enabled
+- name: tx_peak_vectors
+  id: blocks_stream_to_vector
+  parameters:
+    type: float
+    vlen: '1'
+    num_items: '4096'
+  states:
+    coordinate:
+    - 160
+    - 2454
+    rotation: 0
+    state: enabled
+- name: tx_peak_mw
+  id: blocks_max_xx
+  parameters:
+    type: float
+    vlen: '4096'
+    vlen_out: '1'
+    num_inputs: '1'
+  states:
+    coordinate:
+    - 400
+    - 2454
+    rotation: 0
+    state: enabled
+- name: tx_peak_dbm
+  id: blocks_nlog10_ff
+  parameters:
+    n: '10'
+    k: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 580
+    - 2454
+    rotation: 0
+    state: enabled
+- name: peak_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: TX sampled peak envelope power
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    label1: TX peak per 4096 samples
+    unit1: dBm
+    gui_hint: views@3:4,0,1,1
+  states:
+    coordinate:
+    - 760
+    - 2454
+    rotation: 0
+    state: enabled
+- name: envelope_floor
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    const: 1e-30
+    vlen: '1'
+  states:
+    coordinate:
+    - 160
+    - 2594
+    rotation: 0
+    state: enabled
+- name: envelope_dbm
+  id: blocks_nlog10_ff
+  parameters:
+    n: '10'
+    k: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 2594
+    rotation: 0
+    state: enabled
+- name: envelope_plot
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: TX sampled power envelope (dBm)
+    size: '512'
+    srate: samp_rate
+    nconnections: '1'
+    autoscale: 'True'
+    gui_hint: views@3:1,1,1,1
+  states:
+    coordinate:
+    - 580
+    - 2594
+    rotation: 0
+    state: enabled
+- name: tx_mw_link
+  id: virtual_sink
+  parameters:
+    stream_id: tx_power_mw
+  states:
+    coordinate:
+    - 160
+    - 2254
+    rotation: 0
+    state: enabled
+- name: peak_input
+  id: virtual_source
+  parameters:
+    stream_id: tx_power_mw
+  states:
+    coordinate:
+    - 16
+    - 2454
+    rotation: 0
+    state: enabled
+- name: envelope_input
+  id: virtual_source
+  parameters:
+    stream_id: tx_power_mw
+  states:
+    coordinate:
+    - 16
+    - 2594
+    rotation: 0
+    state: enabled
+- name: chart_math
+  id: import
+  parameters:
+    imports: 'import math
+
+      import numpy'
+  states:
+    coordinate:
+    - 432
+    - 360
+    rotation: 0
+    state: enabled
+- name: evm_guide_percent
+  id: parameter
+  parameters:
+    value: '5'
+    type: eng_float
+    label: Constellation guide radius (% RMS)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 744
+    - 288
+    rotation: 0
+    state: enabled
+- name: snr_rx_db
+  id: variable
+  parameters:
+    value: expected_rx_dbm-rx_noise_dbm if noise_enabled else float('inf')
+  states:
+    coordinate:
+    - 680
+    - 232
+    rotation: 0
+    state: enabled
+- name: esno_rx_db
+  id: variable
+  parameters:
+    value: snr_rx_db+10*math.log10(samp_rate/symbol_rate)
+  states:
+    coordinate:
+    - 800
+    - 232
+    rotation: 0
+    state: enabled
+- name: ebno_rx_db
+  id: variable
+  parameters:
+    value: snr_rx_db+10*math.log10(samp_rate/bit_rate)
+  states:
+    coordinate:
+    - 952
+    - 232
+    rotation: 0
+    state: enabled
+- name: rx_snr
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    vlen: '1'
+    const: -path_loss_db-rx_noise_dbm if noise_enabled else float('inf')
+  states:
+    coordinate:
+    - 160
+    - 2854
+    rotation: 0
+    state: enabled
+- name: snr_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: RX SNR | noise over Fs
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-100'
+    max: '100'
+    label1: RX SNR | noise over Fs
+    unit1: dB
+    gui_hint: views@3:4,1,1,1
+  states:
+    coordinate:
+    - 350
+    - 2854
+    rotation: 0
+    state: enabled
+- name: rx_ebno
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    vlen: '1'
+    const: -path_loss_db-rx_noise_dbm+10*math.log10(samp_rate/bit_rate) if noise_enabled else float('inf')
+  states:
+    coordinate:
+    - 780
+    - 2854
+    rotation: 0
+    state: enabled
+- name: ebno_display
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: RX Eb/N0 | known TX and noise
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-100'
+    max: '100'
+    label1: RX Eb/N0 | known TX and noise
+    unit1: dB
+    gui_hint: views@3:5,0,1,1
+  states:
+    coordinate:
+    - 980
+    - 2854
+    rotation: 0
+    state: enabled
+- name: tx_symbol_input
+  id: virtual_source
+  parameters:
+    stream_id: reference
+  states:
+    coordinate:
+    - 16
+    - 3104
+    rotation: 0
+    state: enabled
+- name: tx_symbol_chunks
+  id: blocks_packed_to_unpacked_xx
+  parameters:
+    type: byte
+    bits_per_chunk: k
+    endianness: gr.GR_MSB_FIRST
+    num_ports: '1'
+  states:
+    coordinate:
+    - 160
+    - 3104
+    rotation: 0
+    state: enabled
+- name: tx_symbol_diff
+  id: digital_diff_encoder_bb
+  parameters:
+    modulus: '8'
+    coding: digital.DIFF_DIFFERENTIAL
+  states:
+    coordinate:
+    - 380
+    - 3104
+    rotation: 0
+    state: enabled
+- name: tx_symbols
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    in_type: byte
+    out_type: complex
+    symbol_table: const.points()
+    dimension: '1'
+  states:
+    coordinate:
+    - 600
+    - 3104
+    rotation: 0
+    state: enabled
+- name: tx_constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: 'TX before RRC: blue symbols / black ideal / green guide'
+    size: '1024'
+    nconnections: '3'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2'
+    xmax: '2'
+    ymin: '-2'
+    ymax: '2'
+    gui_hint: views@0:1,0,1,1
+    label1: TX encoded symbols
+    label2: Ideal reference
+    label3: EVM radius guide (% RMS)
+    color1: '"blue"'
+    color2: '"black"'
+    color3: '"dark green"'
+    marker1: '0'
+    marker2: '8'
+    marker3: '0'
+    style1: '0'
+    style2: '0'
+    style3: '0'
+    alpha1: '0.3'
+    alpha2: '1.0'
+    alpha3: '0.5'
+  states:
+    coordinate:
+    - 840
+    - 3104
+    rotation: 0
+    state: enabled
+- name: ideal_symbols
+  id: blocks_vector_source_x
+  parameters:
+    type: complex
+    vector: const.points()
+    repeat: 'True'
+    vlen: '1'
+    tags: '[]'
+  states:
+    coordinate:
+    - 16
+    - 3264
+    rotation: 0
+    state: enabled
+- name: evm_circles
+  id: blocks_vector_source_x
+  parameters:
+    type: complex
+    vector: '[p+symbol_rms*evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t
+      in numpy.linspace(0,2*math.pi,64,endpoint=False)]'
+    repeat: 'True'
+    vlen: '1'
+    tags: '[]'
+  states:
+    coordinate:
+    - 420
+    - 3264
+    rotation: 0
+    state: enabled
+- name: eye_i
+  id: blocks_complex_to_real
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 160
+    - 1714
+    rotation: 0
+    state: enabled
+- name: eye_q
+  id: blocks_complex_to_imag
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 620
+    - 1714
+    rotation: 0
+    state: enabled
+- name: eye_quadrature
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    gui_hint: views@4:1,1,1,1
+    ylabel: RX quadrature amplitude
+    label1: RX Q | raw channel output
+  states:
+    coordinate:
+    - 760
+    - 1714
+    rotation: 0
+    state: enabled
+- name: square_plot_panels
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '0'
+    code: "# Plot layout is a resizable 2x2 grid, not a square-canvas constraint.\nfor index in range(self.views.count()):\n\
+      \    layout = getattr(self, \"views_grid_layout_\"+str(index))\n    if layout is not None:\n        layout.setColumnStretch(0,\
+      \ 1)\n        layout.setColumnStretch(1, 1)\n        layout.setRowStretch(1, 1)\n        layout.setRowStretch(2,\
+      \ 1)\n        # Native sinks otherwise request a large minimum and force scrolling.\n        for row in (1,\
+      \ 2):\n            for column in (0, 1):\n                panel = layout.itemAtPosition(row, column).widget()\n\
+      \                panel.setMinimumSize(0, 0)\n                panel.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)\n\
+      self.views.setMinimumSize(0, 0)\nself.views.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)\n\
+      self.resize(1180, 900)\n"
+    comment: 'UI layout only: resizable 2x2 dashboards.'
+  states:
+    coordinate:
+    - 600
+    - 360
+    rotation: 0
+    state: enabled
+- name: ideal_symbols_link
+  id: virtual_sink
+  parameters:
+    stream_id: ideal_points
+  states:
+    coordinate:
+    - 160
+    - 3344
+    rotation: 0
+    state: enabled
+- name: evm_circles_link
+  id: virtual_sink
+  parameters:
+    stream_id: guide_circles
+  states:
+    coordinate:
+    - 620
+    - 3344
+    rotation: 0
+    state: enabled
+- name: tx_dbm_link
+  id: virtual_sink
+  parameters:
+    stream_id: sensed_tx_dbm
+  states:
+    coordinate:
+    - 780
+    - 2104
+    rotation: 0
+    state: enabled
+- name: constellation_reference_1
+  id: virtual_source
+  parameters:
+    stream_id: ideal_points
+  states:
+    coordinate:
+    - 16
+    - 1394
+    rotation: 0
+    state: enabled
+- name: constellation_reference_2
+  id: virtual_source
+  parameters:
+    stream_id: guide_circles
+  states:
+    coordinate:
+    - 16
+    - 1464
+    rotation: 0
+    state: enabled
+- name: tx_constellation_reference_1
+  id: virtual_source
+  parameters:
+    stream_id: ideal_points
+  states:
+    coordinate:
+    - 620
+    - 3194
+    rotation: 0
+    state: enabled
+- name: tx_constellation_reference_2
+  id: virtual_source
+  parameters:
+    stream_id: guide_circles
+  states:
+    coordinate:
+    - 620
+    - 3264
+    rotation: 0
+    state: enabled
+- name: rx_snr_input
+  id: virtual_source
+  parameters:
+    stream_id: sensed_tx_dbm
+  states:
+    coordinate:
+    - 16
+    - 2854
+    rotation: 0
+    state: enabled
+- name: rx_ebno_input
+  id: virtual_source
+  parameters:
+    stream_id: sensed_tx_dbm
+  states:
+    coordinate:
+    - 620
+    - 2854
+    rotation: 0
+    state: enabled
+- name: eye_q_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 480
+    - 1714
+    rotation: 0
+    state: enabled
+- name: eq_taps
+  id: parameter
+  parameters:
+    value: '11'
+    type: intx
+    label: Adaptive equalizer taps
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 512
+    - 288
+    rotation: 0
+    state: enabled
+- name: eq_step
+  id: parameter
+  parameters:
+    value: '0.01'
+    type: eng_float
+    label: NLMS adaptation step
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 624
+    - 288
+    rotation: 0
+    state: enabled
+- name: channel_echo
+  id: parameter
+  parameters:
+    value: '0'
+    type: eng_float
+    label: One-symbol echo voltage ratio
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 632
+    - 160
+    rotation: 0
+    state: enabled
+- name: eq_algorithm
+  id: variable_adaptive_algorithm
+  parameters:
+    type: lms
+    cons: const
+    step_size: eq_step/(eq_taps*symbol_rms**2)
+  states:
+    coordinate:
+    - 280
+    - 360
+    rotation: 0
+    state: enabled
+- name: equalizer
+  id: digital_linear_equalizer
+  parameters:
+    num_taps: eq_taps
+    sps: '1'
+    alg: eq_algorithm
+    adapt_after_training: 'True'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1312
+    - 584
+    rotation: 0
+    state: enabled
+- name: pre_eq_link
+  id: virtual_sink
+  parameters:
+    stream_id: pre_eq_symbols
+  states:
+    coordinate:
+    - 1160
+    - 684
+    rotation: 0
+    state: enabled
+- name: before_eq_input
+  id: virtual_source
+  parameters:
+    stream_id: pre_eq_symbols
+  states:
+    coordinate:
+    - 16
+    - 3624
+    rotation: 0
+    state: enabled
+- name: before_eq_constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: 'Middle: timed symbols before adaptive EQ'
+    size: '1024'
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2'
+    xmax: '2'
+    ymin: '-2'
+    ymax: '2'
+    gui_hint: views@0:1,1,1,1
+  states:
+    coordinate:
+    - 200
+    - 3624
+    rotation: 0
+    state: enabled
+- name: eye_synthesis_taps
+  id: variable
+  parameters:
+    value: firdes.root_raised_cosine(sps,sps,1.0,alpha,11*sps)
+  states:
+    coordinate:
+    - 904
+    - 88
+    rotation: 0
+    state: enabled
+- name: middle_input
+  id: virtual_source
+  parameters:
+    stream_id: pre_eq_symbols
+  states:
+    coordinate:
+    - 16
+    - 3864
+    rotation: 0
+    state: enabled
+- name: middle_eye_reconstruction
+  id: interp_fir_filter_xxx
+  parameters:
+    type: ccf
+    interp: sps
+    taps: eye_synthesis_taps
+    samp_delay: '0'
+  states:
+    coordinate:
+    - 180
+    - 3864
+    rotation: 0
+    state: enabled
+- name: middle_i
+  id: blocks_complex_to_real
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 420
+    - 3864
+    rotation: 0
+    state: enabled
+- name: middle_i_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: MIDDLE I | reconstructed
+    gui_hint: views@2:2,0,1,1
+    label1: Middle I | before EQ, reconstructed
+  states:
+    coordinate:
+    - 600
+    - 3864
+    rotation: 0
+    state: enabled
+- name: middle_q
+  id: blocks_complex_to_imag
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 880
+    - 3864
+    rotation: 0
+    state: enabled
+- name: middle_q_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: MIDDLE Q | reconstructed
+    gui_hint: views@4:2,0,1,1
+    label1: Middle Q | before EQ, reconstructed
+  states:
+    coordinate:
+    - 1060
+    - 3864
+    rotation: 0
+    state: enabled
+- name: after_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 16
+    - 4044
+    rotation: 0
+    state: enabled
+- name: after_eye_reconstruction
+  id: interp_fir_filter_xxx
+  parameters:
+    type: ccf
+    interp: sps
+    taps: eye_synthesis_taps
+    samp_delay: '0'
+  states:
+    coordinate:
+    - 180
+    - 4044
+    rotation: 0
+    state: enabled
+- name: after_i
+  id: blocks_complex_to_real
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 420
+    - 4044
+    rotation: 0
+    state: enabled
+- name: after_i_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: AFTER I | reconstructed
+    gui_hint: views@2:2,1,1,1
+    label1: After EQ I | reconstructed
+  states:
+    coordinate:
+    - 600
+    - 4044
+    rotation: 0
+    state: enabled
+- name: after_q
+  id: blocks_complex_to_imag
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 880
+    - 4044
+    rotation: 0
+    state: enabled
+- name: after_q_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: AFTER Q | reconstructed
+    gui_hint: views@4:2,1,1,1
+    label1: After EQ Q | reconstructed
+  states:
+    coordinate:
+    - 1060
+    - 4044
+    rotation: 0
+    state: enabled
+- name: tx_eye_input
+  id: virtual_source
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 16
+    - 4224
+    rotation: 0
+    state: enabled
+- name: tx_eye_i
+  id: blocks_complex_to_real
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 420
+    - 4224
+    rotation: 0
+    state: enabled
+- name: tx_eye_i_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: TX_EYE I | TX shaped
+    gui_hint: views@2:1,0,1,1
+    label1: TX I | shaped waveform
+  states:
+    coordinate:
+    - 600
+    - 4224
+    rotation: 0
+    state: enabled
+- name: tx_eye_q
+  id: blocks_complex_to_imag
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 880
+    - 4224
+    rotation: 0
+    state: enabled
+- name: tx_eye_q_eye
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '1024'
+    samp_per_symbol: sps
+    srate: samp_rate
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'True'
+    ylabel: TX_EYE Q | TX shaped
+    gui_hint: views@4:1,0,1,1
+    label1: TX Q | shaped waveform
+  states:
+    coordinate:
+    - 1060
+    - 4224
+    rotation: 0
+    state: enabled
+- name: tx_wave_input
+  id: virtual_source
+  parameters:
+    stream_id: tx_iq
+  states:
+    coordinate:
+    - 16
+    - 4484
+    rotation: 0
+    state: enabled
+- name: tx_waveform
+  id: qtgui_time_sink_x
+  parameters:
+    type: complex
+    name: Clean TX waveform | I/Q
+    size: '512'
+    srate: samp_rate
+    nconnections: '1'
+    gui_hint: views@1:1,0,1,1
+  states:
+    coordinate:
+    - 200
+    - 4484
+    rotation: 0
+    state: enabled
+- name: evm_meter_history_input
+  id: virtual_source
+  parameters:
+    stream_id: evm_history
+  states:
+    coordinate:
+    - 600
+    - 4484
+    rotation: 0
+    state: enabled
+- name: eq_evm_history
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: Equalized decision-directed RMS EVM (%)
+    size: '128'
+    srate: symbol_rate
+    nconnections: '1'
+    autoscale: 'True'
+    gui_hint: views@0:2,1,1,1
+    ylabel: EVM
+    yunit: '%'
+    label1: Decision-directed EVM
+  states:
+    coordinate:
+    - 800
+    - 4484
+    rotation: 0
+    state: enabled
+- name: spectrum_budget
+  id: qtgui_freq_sink_x
+  parameters:
+    type: complex
+    name: RX spectrum | relative level
+    nconnections: '1'
+    gui_hint: views@3:2,0,1,1
+    fftsize: '1024'
+    wintype: window.WIN_HANN
+    fc: '0'
+    bw: samp_rate
+  states:
+    coordinate:
+    - 200
+    - 4664
+    rotation: 0
+    state: enabled
+- name: power_reference_chart
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: RX SNR over Fs | known reference
+    nconnections: '1'
+    gui_hint: views@3:2,1,1,1
+    size: '128'
+    srate: samp_rate/4096
+    autoscale: 'True'
+  states:
+    coordinate:
+    - 800
+    - 4664
+    rotation: 0
+    state: enabled
+- name: eq_error_trace
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: Per-symbol equalized EVM (%)
+    nconnections: '1'
+    gui_hint: views@5:2,0,1,1
+    size: '128'
+    srate: symbol_rate
+    autoscale: 'True'
+    ylabel: EVM
+    yunit: '%'
+    label1: Decision-directed EVM
+  states:
+    coordinate:
+    - 200
+    - 4864
+    rotation: 0
+    state: enabled
+- name: equalizer_initial_taps
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '0'
+    code: self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
+  states:
+    coordinate:
+    - 752
+    - 360
+    rotation: 0
+    state: enabled
+- name: eq_delay_symbols
+  id: variable
+  parameters:
+    value: (eq_taps-1)//2
+  states:
+    coordinate:
+    - 416
+    - 288
+    rotation: 0
+    state: enabled
+- name: eq_tap_decimator
+  id: blocks_keep_one_in_n
+  parameters:
+    type: complex
+    vlen: eq_taps
+    n: '1000'
+  states:
+    coordinate:
+    - 780
+    - 4864
+    rotation: 0
+    state: enabled
+- name: eq_tap_magnitudes
+  id: blocks_complex_to_mag
+  parameters:
+    vlen: eq_taps
+  states:
+    coordinate:
+    - 1010
+    - 4864
+    rotation: 0
+    state: enabled
+- name: eq_tap_plot
+  id: qtgui_vector_sink_f
+  parameters:
+    name: Adaptive LMS tap magnitudes | updated during convergence
+    vlen: eq_taps
+    x_start: '0'
+    x_step: '1'
+    x_axis_label: Tap index
+    y_axis_label: Magnitude
+    nconnections: '1'
+    autoscale: 'True'
+    grid: 'True'
+    gui_hint: views@5:2,1,1,1
+  states:
+    coordinate:
+    - 1210
+    - 4864
+    rotation: 0
+    state: enabled
+- name: spectrum_budget_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_iq
+  states:
+    coordinate:
+    - 16
+    - 4664
+    rotation: 0
+    state: enabled
+- name: snr_history_link
+  id: virtual_sink
+  parameters:
+    stream_id: snr_history
+  states:
+    coordinate:
+    - 350
+    - 2934
+    rotation: 0
+    state: enabled
+- name: power_reference_chart_input
+  id: virtual_source
+  parameters:
+    stream_id: snr_history
+  states:
+    coordinate:
+    - 620
+    - 4664
+    rotation: 0
+    state: enabled
+- name: evm_per_symbol_link
+  id: virtual_sink
+  parameters:
+    stream_id: evm_per_symbol
+  states:
+    coordinate:
+    - 160
+    - 1634
+    rotation: 0
+    state: enabled
+- name: eq_error_trace_input
+  id: virtual_source
+  parameters:
+    stream_id: evm_per_symbol
+  states:
+    coordinate:
+    - 16
+    - 4864
+    rotation: 0
+    state: enabled
+- name: adaptive_tap_vectors_link
+  id: virtual_sink
+  parameters:
+    stream_id: adaptive_tap_vectors
+  states:
+    coordinate:
+    - 1312
+    - 776
+    rotation: 0
+    state: enabled
+- name: eq_tap_decimator_input
+  id: virtual_source
+  parameters:
+    stream_id: adaptive_tap_vectors
+  states:
+    coordinate:
+    - 600
+    - 4864
+    rotation: 0
+    state: enabled
+- name: section_controls
+  id: note
+  parameters:
+    note: CONTROLS & RF SETTINGS
+    comment: ''
+  states:
+    coordinate:
+    - 160
+    - 0
+    rotation: 0
+    state: enabled
+- name: section_transmitter
+  id: note
+  parameters:
+    note: TRANSMITTER
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 504
+    rotation: 0
+    state: enabled
+- name: section_channel
+  id: note
+  parameters:
+    note: CHANNEL
+    comment: ''
+  states:
+    coordinate:
+    - 648
+    - 504
+    rotation: 0
+    state: enabled
+- name: section_receiver
+  id: note
+  parameters:
+    note: RECEIVER
+    comment: ''
+  states:
+    coordinate:
+    - 840
+    - 504
+    rotation: 0
+    state: enabled
+- name: section_ber
+  id: note
+  parameters:
+    note: BER MEASUREMENT
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 872.0
+    rotation: 0
+    state: enabled
+- name: section_rx_diagnostics
+  id: note
+  parameters:
+    note: RX DIAGNOSTICS
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 1244
+    rotation: 0
+    state: enabled
+- name: section_power
+  id: note
+  parameters:
+    note: LINK BUDGET & POWER METERS
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 2004
+    rotation: 0
+    state: enabled
+- name: section_reference
+  id: note
+  parameters:
+    note: TX SYMBOL REFERENCE & EVM GUIDES
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 3024
+    rotation: 0
+    state: enabled
+- name: section_pre_eq
+  id: note
+  parameters:
+    note: BEFORE EQUALIZATION
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 3544
+    rotation: 0
+    state: enabled
+- name: section_eyes
+  id: note
+  parameters:
+    note: 'EYE COMPARISON: MIDDLE / AFTER EQ / TX'
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 3784
+    rotation: 0
+    state: enabled
+- name: section_extra_plots
+  id: note
+  parameters:
+    note: LIVE WAVEFORM & ADAPTATION MONITORS
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 4404
+    rotation: 0
+    state: enabled
+connections:
+- - random_bytes
+  - '0'
+  - modulator
+  - '0'
+- - modulator
+  - '0'
+  - tx_power
+  - '0'
+- - throttle
+  - '0'
+  - channel
+  - '0'
+- - channel
+  - '0'
+  - rx_level
+  - '0'
+- - equalizer
+  - '0'
+  - decoder
+  - '0'
+- - decoder
+  - '0'
+  - decoded_link
+  - '0'
+- - random_bytes
+  - '0'
+  - reference_link
+  - '0'
+- - decoded_source
+  - '0'
+  - diff_decoder
+  - '0'
+- - diff_decoder
+  - '0'
+  - unpack_rx
+  - '0'
+- - unpack_rx
+  - '0'
+  - skip_rx
+  - '0'
+- - reference_source
+  - '0'
+  - unpack_tx
+  - '0'
+- - unpack_tx
+  - '0'
+  - delay
+  - '0'
+- - delay
+  - '0'
+  - skip_tx
+  - '0'
+- - skip_rx
+  - '0'
+  - xor
+  - '0'
+- - xor
+  - '0'
+  - errors_float
+  - '0'
+- - errors_float
+  - '0'
+  - integrate
+  - '0'
+- - integrate
+  - '0'
+  - ber_scale
+  - '0'
+- - ber_scale
+  - '0'
+  - ber_display
+  - '0'
+- - skip_tx
+  - '0'
+  - xor
+  - '1'
+- - evm
+  - '0'
+  - evm_rms
+  - '0'
+- - evm_rms
+  - '0'
+  - evm_display
+  - '0'
+- - channel
+  - '0'
+  - rx_iq_link
+  - '0'
+- - equalizer
+  - '0'
+  - symbols_link
+  - '0'
+- - symbols_plot
+  - '0'
+  - constellation
+  - '0'
+- - spectrum_input
+  - '0'
+  - spectrum
+  - '0'
+- - waveform_input
+  - '0'
+  - waveform
+  - '0'
+- - evm_input
+  - '0'
+  - evm
+  - '0'
+- - tx_power
+  - '0'
+  - throttle
+  - '0'
+- - clock_sync
+  - '0'
+  - rx_scale
+  - '0'
+- - tx_power
+  - '0'
+  - tx_plot_link
+  - '0'
+- - clock_sync
+  - '1'
+  - timing_link
+  - '0'
+- - ber_scale
+  - '0'
+  - ber_link
+  - '0'
+- - evm_rms
+  - '0'
+  - evm_link
+  - '0'
+- - tx_spectrum
+  - '0'
+  - spectrum
+  - '1'
+- - tx_time
+  - '0'
+  - waveform
+  - '1'
+- - ber_plot_input
+  - '0'
+  - ber_history
+  - '0'
+- - evm_plot_input
+  - '0'
+  - evm_history
+  - '0'
+- - timing_input
+  - '0'
+  - timing_error
+  - '0'
+- - clock_sync
+  - '2'
+  - unused_timing_states
+  - '0'
+- - clock_sync
+  - '3'
+  - unused_timing_states
+  - '1'
+- - rx_level
+  - '0'
+  - clock_sync
+  - '0'
+- - tx_meter_input
+  - '0'
+  - tx_milliwatts
+  - '0'
+- - tx_milliwatts
+  - '0'
+  - tx_power_sum
+  - '0'
+- - tx_power_sum
+  - '0'
+  - tx_power_mean
+  - '0'
+- - tx_power_mean
+  - '0'
+  - tx_dbm
+  - '0'
+- - tx_dbm
+  - '0'
+  - tx_power_display
+  - '0'
+- - rx_meter_input
+  - '0'
+  - rx_milliwatts
+  - '0'
+- - rx_milliwatts
+  - '0'
+  - rx_power_sum
+  - '0'
+- - rx_power_sum
+  - '0'
+  - rx_power_mean
+  - '0'
+- - rx_power_mean
+  - '0'
+  - rx_dbm
+  - '0'
+- - rx_dbm
+  - '0'
+  - rx_power_display
+  - '0'
+- - tx_dbm
+  - '0'
+  - power_history
+  - '0'
+- - rx_dbm
+  - '0'
+  - power_history
+  - '1'
+- - tx_peak_vectors
+  - '0'
+  - tx_peak_mw
+  - '0'
+- - tx_peak_mw
+  - '0'
+  - tx_peak_dbm
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - peak_display
+  - '0'
+- - envelope_floor
+  - '0'
+  - envelope_dbm
+  - '0'
+- - envelope_dbm
+  - '0'
+  - envelope_plot
+  - '0'
+- - tx_milliwatts
+  - '0'
+  - tx_mw_link
+  - '0'
+- - peak_input
+  - '0'
+  - tx_peak_vectors
+  - '0'
+- - envelope_input
+  - '0'
+  - envelope_floor
+  - '0'
+- - rx_snr
+  - '0'
+  - snr_display
+  - '0'
+- - rx_ebno
+  - '0'
+  - ebno_display
+  - '0'
+- - tx_symbol_input
+  - '0'
+  - tx_symbol_chunks
+  - '0'
+- - tx_symbol_chunks
+  - '0'
+  - tx_symbol_diff
+  - '0'
+- - tx_symbol_diff
+  - '0'
+  - tx_symbols
+  - '0'
+- - tx_symbols
+  - '0'
+  - tx_constellation
+  - '0'
+- - eye_input
+  - '0'
+  - eye_i
+  - '0'
+- - eye_i
+  - '0'
+  - eye
+  - '0'
+- - eye_q
+  - '0'
+  - eye_quadrature
+  - '0'
+- - ideal_symbols
+  - '0'
+  - ideal_symbols_link
+  - '0'
+- - evm_circles
+  - '0'
+  - evm_circles_link
+  - '0'
+- - tx_dbm
+  - '0'
+  - tx_dbm_link
+  - '0'
+- - constellation_reference_1
+  - '0'
+  - constellation
+  - '1'
+- - constellation_reference_2
+  - '0'
+  - constellation
+  - '2'
+- - tx_constellation_reference_1
+  - '0'
+  - tx_constellation
+  - '1'
+- - tx_constellation_reference_2
+  - '0'
+  - tx_constellation
+  - '2'
+- - rx_snr_input
+  - '0'
+  - rx_snr
+  - '0'
+- - rx_ebno_input
+  - '0'
+  - rx_ebno
+  - '0'
+- - eye_q_input
+  - '0'
+  - eye_q
+  - '0'
+- - rx_scale
+  - '0'
+  - equalizer
+  - '0'
+- - rx_scale
+  - '0'
+  - pre_eq_link
+  - '0'
+- - before_eq_input
+  - '0'
+  - before_eq_constellation
+  - '0'
+- - middle_input
+  - '0'
+  - middle_eye_reconstruction
+  - '0'
+- - middle_eye_reconstruction
+  - '0'
+  - middle_i
+  - '0'
+- - middle_i
+  - '0'
+  - middle_i_eye
+  - '0'
+- - middle_eye_reconstruction
+  - '0'
+  - middle_q
+  - '0'
+- - middle_q
+  - '0'
+  - middle_q_eye
+  - '0'
+- - after_input
+  - '0'
+  - after_eye_reconstruction
+  - '0'
+- - after_eye_reconstruction
+  - '0'
+  - after_i
+  - '0'
+- - after_i
+  - '0'
+  - after_i_eye
+  - '0'
+- - after_eye_reconstruction
+  - '0'
+  - after_q
+  - '0'
+- - after_q
+  - '0'
+  - after_q_eye
+  - '0'
+- - tx_eye_input
+  - '0'
+  - tx_eye_i
+  - '0'
+- - tx_eye_i
+  - '0'
+  - tx_eye_i_eye
+  - '0'
+- - tx_eye_input
+  - '0'
+  - tx_eye_q
+  - '0'
+- - tx_eye_q
+  - '0'
+  - tx_eye_q_eye
+  - '0'
+- - tx_wave_input
+  - '0'
+  - tx_waveform
+  - '0'
+- - evm_meter_history_input
+  - '0'
+  - eq_evm_history
+  - '0'
+- - eq_tap_decimator
+  - '0'
+  - eq_tap_magnitudes
+  - '0'
+- - eq_tap_magnitudes
+  - '0'
+  - eq_tap_plot
+  - '0'
+- - spectrum_budget_input
+  - '0'
+  - spectrum_budget
+  - '0'
+- - rx_snr
+  - '0'
+  - snr_history_link
+  - '0'
+- - power_reference_chart_input
+  - '0'
+  - power_reference_chart
+  - '0'
+- - evm
+  - '0'
+  - evm_per_symbol_link
+  - '0'
+- - eq_error_trace_input
+  - '0'
+  - eq_error_trace
+  - '0'
+- - equalizer
+  - '1'
+  - adaptive_tap_vectors_link
+  - '0'
+- - eq_tap_decimator_input
+  - '0'
+  - eq_tap_decimator
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

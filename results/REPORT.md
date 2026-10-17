@@ -1,148 +1,157 @@
-# SISO antenna benchmark — results and operating guide
+# Single-carrier simulation checks
 
-**Software validation: PASS · 34 complete live-GRC cases · 46 command stages · one TX stream / one RX stream.** Run completed 2026-10-16T17:00:25.772526+00:00. [Commands, versions and source hashes](validation/status.json).
+Baseline: **1 Msymbol/s, four samples/symbol, 4 Msamples/s**. Six flat flowcharts containing only installed GNU Radio blocks. These are software simulations with zero carrier offset and no sample-rate mismatch.
 
-This report focuses on the agreed **fixed-power SISO experiment**: transmit a repeatable waveform, change only the SISO channel/antenna condition, and calculate **pre-FEC BER, RMS EVM and received power**. All results below are simulations. No antenna or USRP RF measurement has yet been performed.
+| Modulation | RX noise (dBm over Fs) | Reference delay (bits) | Compared bits | Display BER, mean of windows | TX mean power (mW) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| BPSK | off | 34 | 250000 | 0 | 0.99963 |
+| BPSK | -90.46 | 34 | 250000 | 0 | 0.99963 |
+| QPSK | off | 68 | 250000 | 0 | 0.99963 |
+| QPSK | -90.46 | 68 | 250000 | 0 | 0.99963 |
+| 8PSK | off | 102 | 250000 | 0 | 0.99963 |
+| 8PSK | -90.46 | 102 | 250000 | 0.000356 | 0.99963 |
+| 4ASK | off | 68 | 250000 | 0 | 1.0009 |
+| 4ASK | -90.46 | 68 | 250000 | 3.6e-05 | 1.0009 |
+| 8ASK | off | 102 | 250000 | 0 | 1.0004 |
+| 8ASK | -90.46 | 102 | 250000 | 0.05188 | 1.0004 |
+| 16QAM | off | 136 | 250000 | 0 | 1.0022 |
+| 16QAM | -90.46 | 136 | 250000 | 0.00678 | 1.0022 |
 
-## Read the results
+Each case verifies every XOR output bit against an independent TX/RX comparison and checks each Integrate/Multiply BER window. All six noiseless cases must have zero bit errors. The first 4096 output bits are excluded for filter and timing-loop startup.
 
-The in-graph modem counter agrees with coherent uncoded theory across BPSK, QPSK, 16-QAM and 64-QAM. The Wi-Fi lab recovers all eight legacy rates with exact expected symbol and bit counts. With a four-tap channel and 20 kHz CFO, the 16-QAM example reports **0/129024 bit errors and 3.00% EVM**. Replaying the identical received IQ with CFO/pilot corrections disabled gives **BER 0.424 and 147.51% EVM**. This demonstrates why receiver corrections remain necessary even in a simplified measurement.
+BER is the fraction of errors in each nonoverlapping 10,000-bit window. It is not a cumulative counter. Differential encoding is enabled. Receiver noise is input-referred and integrated across Fs. Nominal energy ratios can be computed from the documented bandwidth convention; theoretical BER agreement is not claimed here.
 
-## Open the flowgraphs
+The stock EVM block is decision-directed. Its RMS-smoothed display can underestimate error at poor SNR because the nearest constellation point can be the wrong transmitted point. The exported data-aided constellation figures additionally compare the actual transmitted and received symbols without decision bias.
 
-From a new terminal in this folder:
+## Adaptive equalizer and 2×2 dashboards
 
-```sh
-cd /Users/ofi/repos/grc
-antenna-grc grc/siso_modem_lab.grc grc/siso_wlan_lab.grc
-```
+All six live flowcharts use six resizable tabs with four charts per tab in a 2×2 grid. Controls are packed using their actual native GRC sizes with 8 px gaps. No plot canvas has a forced square size. Editable blue boxed section headings identify the transmitter, channel, receiver, BER measurement, and diagnostic areas in GRC; open with antenna-grc for the large heading style.
 
-Generate (**F5**), Execute (**F6**), Stop (**F7**). Settings are fixed per run; edit Parameter blocks and restart for a new condition. Zero counts mean continuous operation; positive counts make finite runs. The [detailed SISO guide](../docs/SISO_LABS.md) explains every block, parameter, view and output file.
+The receiver now includes a stock 11-tap, one-sample/symbol, decision-directed LMS Linear Equalizer after timing recovery. A centered identity initialization adds five symbols to the reference delay. A stock Python Snippet initializes the taps through the public API; all filtering/adaptation uses native GNU Radio blocks. The live tap-magnitude chart displays the actual adapting coefficients. Defaults: channel_echo=0, eq_step=0.01, native LMS step=eq_step/(eq_taps*symbol_rms²).
 
-| Graph | Use it for | Receiver assumption |
-| --- | --- | --- |
-| [SISO modem lab](../grc/siso_modem_lab.grc) | Transparent bits → mapping → channel → hard decisions → BER/EVM | Symbol timing and scalar channel are known |
-| [SISO Wi-Fi lab](../grc/siso_wlan_lab.grc) | Actual OFDM bursts → FIR/CFO/AWGN → trained receiver → BER/EVM | Burst timing, rate and length are supplied; channel/CFO estimated from training |
+A 16-QAM case with a power-normalized one-symbol echo of 0.25 voltage ratio and normalized input noise 0.10 measured **24.67% before EQ → 5.64% after EQ**, with observed BER 0 over 250,000 compared bits. EVM uses actual aligned TX symbols after a 1,024-symbol warmup, with no amplitude/phase fit; its averaging interval can include remaining LMS convergence. This single controlled case does not establish performance for arbitrary multipath or carrier offsets. [Capture values](equalizer_checks/16qam_noise_0.1.json).
 
-![**Figure S1](live/figures/siso_flowgraphs.png)
+![Four-panel equalizer dashboard](equalizer_dashboard.png)
 
-**Figure S1. The two complete SISO signal paths.** Both calculate BER/EVM inside GNU Radio. The first isolates mapping and counting. The second uses legacy Wi-Fi PHY bursts and training-based reception. There is no Wi-Fi networking/MAC, MIMO processing, acknowledgment or retry logic. [PDF](live/figures/siso_flowgraphs.pdf) · [SVG](live/figures/siso_flowgraphs.svg).
+Each I/Q eye dashboard shows TX, raw channel RX, middle (after timing/before EQ), and after EQ. TX/RX use actual 4-SPS waveform samples. Middle/post eyes are explicitly **display-only RRC reconstructions of 1-SPS symbol streams**, not measured oversampled receiver signals. Their interpolation branches never feed BER decoding. Raw waveforms in these exported dashboards are converted to RMS symbol units using known TX/path levels.
 
-## Live displays and saved evidence
+![I-eye dashboard](equalizer_eyes_i.png)
 
-The running window has a metrics/constellation tab and separate TX and RX waveform tabs. Each waveform tab contains frequency, waterfall and I/Q time views. The numerical readouts are cumulative BER and pooled RMS EVM. The overlaid constellation distinguishes the recovered DATA symbols from the known reference points. Raw OFDM waveform samples are not mislabeled as decoded constellation symbols.
+![Q-eye dashboard](equalizer_eyes_q.png)
 
-On Stop, exact integer errors/bits, EVM energies, configuration and recovered burst/CFO information are written to `results/live/siso_*_{ber,evm,receiver}.json` as applicable. These latest-session files are overwritten. The report instead reads archived [finite cases](live/manifest.json), each containing metrics and a MATLAB fixture; selected cases also retain raw/reference/equalized arrays in `capture.npz`.
+Native GNU Radio Qt renders: [I-eye tab](live_dashboard_2.png), [constellations](live_dashboard_0.png), [BER/EVM/tap tab](live_dashboard_5.png). These show the actual resizable layout. Finite captures can finish before all live-sink refreshes; the numerical values above use the captured streams.
 
-![**Figure S2](live/figures/siso_dashboard.png)
+MATLAB independently recomputes native adaptive FIR outputs from captured per-symbol tap vectors and input samples, and reconstructs both RRC eye streams from saved symbols/taps. Sources: [GNU Radio Linear Equalizer](https://wiki.gnuradio.org/index.php/Linear_Equalizer), [GNU Radio LMS source](https://github.com/gnuradio/gnuradio/blob/v3.10.12.0/gr-digital/include/gnuradio/digital/adaptive_algorithm_lms.h).
 
-**Figure S2. Diagnostics from an actual finite execution of the generated SISO Wi-Fi GRC graph.** (a) Recovered 16-QAM DATA symbols and exact constellation points. (b) TX/RX Welch PSD at logical 20 Msps. (c) First 40 µs of the clean and received I waveform. (d) In-graph cumulative BER versus compared bits. Zero-error observations use nominal one-sided 95% upper limits. These are exported data plots, not GUI screenshots. PSD is relative power/Hz, not calibrated dBm/Hz; native Qt frequency displays use their own relative FFT-level scale. [PDF](live/figures/siso_dashboard.pdf) · [SVG](live/figures/siso_dashboard.svg).
+## Link-budget power reference
 
-## Modem calibration against theory
+[Three fixed-noise link-budget tests](link_budget_checks/summary.json) also verify that adding 10 dB TX power and 10 dB path loss preserves received power/BER, while reducing TX power at fixed loss/noise worsens BER.
 
-![**Figure S3](live/figures/siso_modem_theory.png)
+IQ uses a power-wave convention: |IQ|² is milliwatts. TX average power defaults to 0 dBm, net path loss to 80 dB, and default RX noise to −100 dBm across the 4 MHz complex sample bandwidth. Received signal power is TX − net loss. The RX meter measures signal + noise. Validation cases explicitly set noise to their test values.
 
-**Figure S3. Complete symbol-rate GRC modem versus theory.** Circles are in-graph measurements; crosses are exact uncoded BER and AWGN EVM predictions. Nominal BER confidence bars assume independent bits. Each case compares 100,000 symbols. TX nominal Es and TX-reference Eb/N0 remain fixed; the final 16-QAM case adds 6 dB loss. Noise variance varies with bits/symbol to hold Eb/N0 fixed across modulations; this is a diagnostic distinct from the Wi-Fi fixed-noise sweep. [PDF](live/figures/siso_modem_theory.pdf) · [SVG](live/figures/siso_modem_theory.svg).
+| Modulation | Set TX average (dBm) | Measured TX (dBm) | RX signal expectation (dBm) | RX total measured (dBm) | Sampled TX peak (dBm) | PAPR (dB) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| BPSK | 0.00 | -0.002 | -80.00 | -80.002 | 4.133 | 4.135 |
+| QPSK | 0.00 | -0.002 | -80.00 | -80.002 | 3.937 | 3.939 |
+| 8PSK | 0.00 | -0.002 | -80.00 | -80.002 | 3.854 | 3.855 |
+| 4ASK | 0.00 | 0.004 | -80.00 | -79.996 | 6.464 | 6.460 |
+| 8ASK | 0.00 | 0.002 | -80.00 | -79.998 | 7.395 | 7.393 |
+| 16QAM | 0.00 | 0.009 | -80.00 | -79.991 | 6.290 | 6.280 |
 
-| Modulation / loss | Errors / bits | GRC BER | Exact BER | RMS EVM (%) |
-| --- | --- | --- | --- | --- |
-| BPSK / 0 dB | 16/100000 | 0.00016 | 0.000190908 | 39.738 |
-| QPSK / 0 dB | 25/200000 | 0.000125 | 0.000190908 | 28.099 |
-| 16-QAM / 0 dB | 3688/400000 | 0.00922 | 0.00924721 | 19.882 |
-| 64-QAM / 0 dB | 31270/600000 | 0.0521167 | 0.0523339 | 16.289 |
-| 16-QAM / 6 dB | 39110/400000 | 0.097775 | 0.0977419 | 39.671 |
+Average and sampled peak meters use stock magnitude-squared, integration/max, and Log10 blocks. MATLAB independently validates their outputs and absolute TX/RX powers. Sample peaks at four samples/symbol are estimates of continuous-time PEP. These are simulated powers; no USRP output calibration has been performed. [Power controls and equations](../README.md#power-in-dbm-and-link-budgets).
 
-## Fixed power and the channel
+## Data rate at 1 Msymbol/s
 
-In the Wi-Fi lab, **mean power over the complete active PPDU is exactly one**, separately for every rate. Idle zeros are excluded. The channel applies causal FIR taps, scalar attenuation and optional CFO, then adds complex AWGN. For the loss sweep, taps stay `[1]`, CFO stays zero, and noise variance stays **10^(-25/10)**. Only the scalar signal attenuation changes; the noise is never rescaled to hide the loss. With this flat path, nominal received active-PPDU SNR is `25 dB − path_loss_db`.
+![Gross bit rate](data_rate.png)
 
-The `snr_db` label means **TX-reference active-PPDU power / noise power**. It differs from the older DATA-only SNR convention in the validation appendix. These normalized powers are not conducted watts or dBm. Hardware measurements still require TX power/headroom calibration at the radio port and fixed RX gain. An unchanged USRP gain setting alone does not prove equal transmitted average power across modulations.
+Gross uncoded bit rate is symbol rate × log2(M). Rates are 1, 2, 3, 2, 3, and 4 Mbit/s respectively. These are not measured packet goodput. With rolloff 0.35, ideal RRC null-to-null bandwidth is 1.35 MHz (complex baseband edges ±0.675 MHz). [CSV](data_rate.csv), [vector PDF](data_rate.pdf), [independent MATLAB chart](matlab_data_rate.png).
 
-![**Figure S4](live/figures/siso_fixed_power.png)
+## BER and EVM comparison
 
-**Figure S4. Fixed-power, fixed-noise SISO channel-loss sweep.** Colors/legends specify modulation, coding rate and PHY rate. Each point uses eight 1000-byte PHY bursts. (a) Mapped pre-FEC DATA BER; downward triangles represent nominal zero-error 95% upper limits, not measured nonzero BER. (b) Pooled DATA EVM after noisy L-LTF channel correction. Timing is supplied and CFO/pilot tracking is disabled for this AWGN-only comparison. These are simulated channel losses, not measured antenna steering angles. [PDF](live/figures/siso_fixed_power.pdf) · [SVG](live/figures/siso_fixed_power.svg).
+![Measured BER](ber_comparison.png)
 
-| Rate (Mb/s) | Channel loss (dB) | Errors / mapped bits | BER | RMS EVM (%) | Active TX power |
-| --- | --- | --- | --- | --- | --- |
-| 6 | 0 | 0/128640 | 0 | 6.313 | 1.000000 |
-| 6 | 6 | 0/128640 | 0 | 12.693 | 1.000000 |
-| 6 | 12 | 0/128640 | 0 | 25.903 | 1.000000 |
-| 6 | 18 | 59/128640 | 0.000458644 | 56.452 | 1.000000 |
-| 12 | 0 | 0/129024 | 0 | 6.278 | 1.000000 |
-| 12 | 6 | 0/129024 | 0 | 12.535 | 1.000000 |
-| 12 | 12 | 0/129024 | 0 | 25.200 | 1.000000 |
-| 12 | 18 | 2148/129024 | 0.0166481 | 52.700 | 1.000000 |
-| 24 | 0 | 0/129024 | 0 | 6.272 | 1.000000 |
-| 24 | 6 | 15/129024 | 0.000116257 | 12.552 | 1.000000 |
-| 24 | 12 | 3011/129024 | 0.0233367 | 25.349 | 1.000000 |
-| 24 | 18 | 17248/129024 | 0.133681 | 53.464 | 1.000000 |
-| 48 | 0 | 18/96768 | 0.000186012 | 6.150 | 1.000000 |
-| 48 | 6 | 1967/96768 | 0.020327 | 12.312 | 1.000000 |
-| 48 | 12 | 10186/96768 | 0.105262 | 24.859 | 1.000000 |
-| 48 | 18 | 22035/96768 | 0.22771 | 52.352 | 1.000000 |
+![Data-aided EVM](evm_comparison.png)
 
-## Receiver controls and independent checks
+All baseline runs use 0 dBm nominal conducted TX power, 80 dB net loss, and the same receiver noise power; decision-directed EVM can be optimistic when decisions are wrong. Noise and energy ratios use the documented Fs convention; agreement with an ideal BER curve is not claimed.
 
-![**Figure S5](live/figures/siso_receiver_controls.png)
+## Independent MATLAB validation
 
-**Figure S5. Receiver correction control using identical recorded received IQ.** The disabled-corrections GRC run replays the enabled run’s stored waveform; an exact array comparison verifies this. Both use 16-QAM, a four-tap SISO channel, 20 kHz CFO, 3 dB attenuation and TX-reference SNR 35 dB. Axes have different scales. CFO is estimated from STF/LTF; common phase is estimated from pilots. No RX DATA reference fitting is used to lower EVM. Zero errors in the enabled case are a finite observation. [PDF](live/figures/siso_receiver_controls.pdf) · [SVG](live/figures/siso_receiver_controls.svg).
+MATLAB passed 16 actual capture cases: every XOR bit, BER window, stock per-symbol EVM, RMS smoothing, sample rate, gross bit rate, ideal RRC bandwidth, actual time-varying equalizer FIR output, and reconstructed eye waveforms. Maximum BER difference: 2.6e-09; maximum per-symbol EVM difference: 1.6e-05 percentage points. [MATLAB source](../matlab/validate_single_carrier.m), [machine-readable results](matlab_validation.json).
 
-MATLAB independently checked **34** cases with WLAN Toolbox hard bit labels and `comm.EVM`. It independently recovered raw IQ for **20** flat AWGN/no-tracking cases. Worst EVM difference: **7.04e-14**; worst receiver symbol difference: **1.02e-06**, against the 2e-6 complex64/double tolerance. [MATLAB result](live/matlab_validation.json). The older offline double-precision receiver check remains separately documented.
+Stock EVM formula: [GNU Radio 3.10.12 source](https://github.com/gnuradio/gnuradio/blob/v3.10.12.0/gr-digital/lib/meas_evm_cc_impl.cc).
 
-The current checks include exact finite counts, no channel sample loss, fixed active TX power, noise calibration, noiseless recovery, multipath/CFO recovery and a deliberately failing receiver control. Qt tests construct the actual GNU Radio plotting sinks and run their event loop with the **offscreen** backend; they are not hardware or performance-throughput tests.
+## RX SNR and Eb/N0
 
-## Installation finding and fix
+Live SNR uses measured TX average power minus known path loss and configured noise power over Fs. Eb/N0 adds 10 log10(Fs/bit_rate). These are known-reference link-budget readouts, not blind estimates from noisy RX samples. Noise disabled displays infinity. Defaults: SNR(Fs)=20 dB; Eb/N0=26.02, 23.01, 21.25, 23.01, 21.25, 20.00 dB across the six formats. The finite noisy test below uses −90.46 dBm noise and therefore different ratios.
 
-Runtime GUI testing found a real **Qt 5 / Qt 6 Qwt mismatch**: the installed GNU Radio plotting module required Qt 5, but the selected Qwt build loaded Qt 6 and aborted. Qwt 6.3.0 was replaced with Qt 5 build `h4ff56cd_0` and pinned in radioconda’s `conda-meta/pinned`. No GNU Radio, UHD, NumPy or MATLAB version was changed. [Transaction plan](validation/qwt_qt5_plan.json), [installation log](validation/qwt_qt5_install.log). The installation check now constructs a real Qt constellation widget in a subprocess, catching this failure before the full suite. [Environment check](validation/install_check.json).
+![Configured RX ratios](rx_ratios.png)
 
-## What this establishes for the antenna paper
+## TX and RX constellation figures
 
-The simulated **SISO measurement chain** works, with traceable counts and independent validation. The antenna experiment can remain: **set beam → settle → capture a fixed block → calculate BER/EVM and received power**. Keep post-FEC/PER work as an optional baseline. The receiver currently knows burst boundaries, rate and length; it does not establish autonomous acquisition sensitivity, sample-clock tracking, USRP stream integrity, live steering, antenna gain or an IEEE conformance result. No measured antenna improvement is claimed.
+TX symbols are the actual stock packing/differential-mapping monitor before pulse shaping. RX points are aligned with those TX symbols using the known latency, with no amplitude/phase fit. Green circles are the user-selected RMS-radius guide; orange circles show measured data-aided RMS error radius. Neither is a confidence contour or a compliance limit. Orange vectors show example TX-to-RX errors.
 
-For the first RF experiment, commission an attenuated cabled SISO link, then substitute reference antenna/AUT while holding conducted TX power, RX gain, waveform, geometry and polarization fixed. Record received power alongside BER/EVM and compare commanded beam direction with the actual measured radiation pattern. [Methods](../docs/PAPER_METHODS.md), [steering contract](../docs/WIFI_AND_STEERING.md).
+### BPSK symbols
 
-## Baselines, data and citations
+![TX constellation](bpsk_tx_constellation.png)
 
-The [validation appendix](VALIDATION_APPENDIX.md) retains all eight earlier theory/reference figures, complete uncoded/coded tables and the current command-log index. [Mathematical definitions](../docs/THEORY.md), [reference traceability](../docs/REFERENCES.md), [BibTeX](../references.bib), [SISO lab guide](../docs/SISO_LABS.md).
+![RX constellation](bpsk_rx_constellation.png)
 
-Waveform and receiver references: [legacy non-HT configuration](https://www.mathworks.com/help/wlan/ref/wlannonhtconfig.html), [WLAN recovery and EVM symbols](https://www.mathworks.com/help/wlan/ref/wlannonhtdatarecover.html), [EVM normalization](https://www.mathworks.com/help/comm/ref/comm.evm-system-object.html), [GNU Radio Qt displays](https://wiki.gnuradio.org/index.php/QT_GUI). An experimental precedent for USRP EVM versus steering angle is [Cho et al., EuMC 2024](https://doi.org/10.23919/EuMC61614.2024.10732723); it does not validate this implementation.
+### QPSK symbols
 
-### Every archived live case
+![TX constellation](qpsk_tx_constellation.png)
 
-| Case | Compared bits | Bit errors | BER | RMS EVM (%) | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| modem_2 | 100000 | 16 | 0.00016 | 39.7378 | [JSON](live/cases/modem_2/metrics.json) |
-| modem_4 | 200000 | 25 | 0.000125 | 28.0988 | [JSON](live/cases/modem_4/metrics.json) |
-| modem_16 | 400000 | 3688 | 0.00922 | 19.8825 | [JSON](live/cases/modem_16/metrics.json) |
-| modem_64 | 600000 | 31270 | 0.0521167 | 16.2886 | [JSON](live/cases/modem_64/metrics.json) |
-| modem_16_loss6 | 400000 | 39110 | 0.097775 | 39.6708 | [JSON](live/cases/modem_16_loss6/metrics.json) |
-| wlan_0 | 128640 | 0 | 0 | 6.3135 | [JSON](live/cases/wlan_0/metrics.json) |
-| wlan_1 | 85632 | 0 | 0 | 6.2043 | [JSON](live/cases/wlan_1/metrics.json) |
-| wlan_2 | 129024 | 0 | 0 | 6.2775 | [JSON](live/cases/wlan_2/metrics.json) |
-| wlan_3 | 86016 | 0 | 0 | 6.2783 | [JSON](live/cases/wlan_3/metrics.json) |
-| wlan_4 | 129024 | 0 | 0 | 6.2724 | [JSON](live/cases/wlan_4/metrics.json) |
-| wlan_5 | 86016 | 0 | 0 | 6.2637 | [JSON](live/cases/wlan_5/metrics.json) |
-| wlan_6 | 96768 | 18 | 0.000186012 | 6.1498 | [JSON](live/cases/wlan_6/metrics.json) |
-| wlan_7 | 87552 | 6 | 6.85307e-05 | 6.1764 | [JSON](live/cases/wlan_7/metrics.json) |
-| wlan_0_loss6 | 128640 | 0 | 0 | 12.6930 | [JSON](live/cases/wlan_0_loss6/metrics.json) |
-| wlan_0_loss12 | 128640 | 0 | 0 | 25.9031 | [JSON](live/cases/wlan_0_loss12/metrics.json) |
-| wlan_0_loss18 | 128640 | 59 | 0.000458644 | 56.4524 | [JSON](live/cases/wlan_0_loss18/metrics.json) |
-| wlan_0_clean | 128640 | 0 | 0 | 0.0000 | [JSON](live/cases/wlan_0_clean/metrics.json) |
-| wlan_0_impaired | 128640 | 0 | 0 | 2.9779 | [JSON](live/cases/wlan_0_impaired/metrics.json) |
-| wlan_2_loss6 | 129024 | 0 | 0 | 12.5351 | [JSON](live/cases/wlan_2_loss6/metrics.json) |
-| wlan_2_loss12 | 129024 | 0 | 0 | 25.2003 | [JSON](live/cases/wlan_2_loss12/metrics.json) |
-| wlan_2_loss18 | 129024 | 2148 | 0.0166481 | 52.6997 | [JSON](live/cases/wlan_2_loss18/metrics.json) |
-| wlan_2_clean | 129024 | 0 | 0 | 0.0000 | [JSON](live/cases/wlan_2_clean/metrics.json) |
-| wlan_2_impaired | 129024 | 0 | 0 | 2.9638 | [JSON](live/cases/wlan_2_impaired/metrics.json) |
-| wlan_4_loss6 | 129024 | 15 | 0.000116257 | 12.5518 | [JSON](live/cases/wlan_4_loss6/metrics.json) |
-| wlan_4_loss12 | 129024 | 3011 | 0.0233367 | 25.3493 | [JSON](live/cases/wlan_4_loss12/metrics.json) |
-| wlan_4_loss18 | 129024 | 17248 | 0.133681 | 53.4643 | [JSON](live/cases/wlan_4_loss18/metrics.json) |
-| wlan_4_clean | 129024 | 0 | 0 | 0.0000 | [JSON](live/cases/wlan_4_clean/metrics.json) |
-| wlan_4_impaired | 129024 | 0 | 0 | 2.9974 | [JSON](live/cases/wlan_4_impaired/metrics.json) |
-| wlan_6_loss6 | 96768 | 1967 | 0.020327 | 12.3123 | [JSON](live/cases/wlan_6_loss6/metrics.json) |
-| wlan_6_loss12 | 96768 | 10186 | 0.105262 | 24.8595 | [JSON](live/cases/wlan_6_loss12/metrics.json) |
-| wlan_6_loss18 | 96768 | 22035 | 0.22771 | 52.3516 | [JSON](live/cases/wlan_6_loss18/metrics.json) |
-| wlan_6_clean | 96768 | 0 | 0 | 0.0000 | [JSON](live/cases/wlan_6_clean/metrics.json) |
-| wlan_6_impaired | 96768 | 0 | 0 | 2.9740 | [JSON](live/cases/wlan_6_impaired/metrics.json) |
-| wlan_4_uncorrected | 129024 | 54765 | 0.424456 | 147.5090 | [JSON](live/cases/wlan_4_uncorrected/metrics.json) |
+![RX constellation](qpsk_rx_constellation.png)
 
+### 8PSK symbols
+
+![TX constellation](8psk_tx_constellation.png)
+
+![RX constellation](8psk_rx_constellation.png)
+
+### 4ASK symbols
+
+![TX constellation](4ask_tx_constellation.png)
+
+![RX constellation](4ask_rx_constellation.png)
+
+### 8ASK symbols
+
+![TX constellation](8ask_tx_constellation.png)
+
+![RX constellation](8ask_rx_constellation.png)
+
+### 16QAM symbols
+
+![TX constellation](16qam_tx_constellation.png)
+
+![RX constellation](16qam_rx_constellation.png)
+
+MATLAB checks TX symbol encoding, data-aided EVM, and SNR/Eb/N0 readouts in addition to the stock meters. SNR conversion: [MathWorks convertSNR](https://www.mathworks.com/help/comm/ref/convertsnr.html). EVM normalization: [MathWorks EVM](https://www.mathworks.com/help/comm/ref/comm.evm-system-object.html).
+
+## Actual GRC canvas exports
+
+### BPSK
+
+![BPSK GRC canvas](bpsk_flowchart.png)
+
+### QPSK
+
+![QPSK GRC canvas](qpsk_flowchart.png)
+
+### 8PSK
+
+![8PSK GRC canvas](8psk_flowchart.png)
+
+### 4ASK
+
+![4ASK GRC canvas](4ask_flowchart.png)
+
+### 8ASK
+
+![8ASK GRC canvas](8ask_flowchart.png)
+
+### 16QAM
+
+![16QAM GRC canvas](16qam_flowchart.png)
+
+Reference: [GNU Radio tutorial](https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod), read from the locally downloaded HTML and figures.

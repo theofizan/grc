@@ -1,0 +1,94 @@
+{
+  "alpha": [
+    392,
+    8
+  ],
+  "ber_window": [
+    280,
+    1380
+  ],
+  "bit_rate": [
+    300,
+    210
+  ],
+  "const": [
+    152,
+    212.0
+  ],
+  "expected_rx_dbm": [
+    620,
+    1490
+  ],
+  "k": [
+    792,
+    216.0
+  ],
+  "nfilts": [
+    480,
+    8
+  ],
+  "noise_volt": [
+    980,
+    1490
+  ],
+  "path_gain": [
+    280,
+    1490
+  ],
+  "rrc_bandwidth": [
+    1200,
+    8
+  ],
+  "rrc_taps": [
+    700,
+    8
+  ],
+  "samp_rate": [
+    168,
+    8
+  ],
+  "sps": [
+    312,
+    8
+  ],
+  "symbol_rms": [
+    950,
+    8
+  ],
+  "timing_bw": [
+    568,
+    8
+  ],
+  "tx_amplitude": [
+    16,
+    1490
+  ],
+  "warmup_bits": [
+    620,
+    1380
+  ],
+  "noise_enabled": [
+    376,
+    120.0
+  ],
+  "path_loss_db": [
+    136,
+    120.0
+  ],
+  "reference_delay": [
+    16,
+    1380
+  ],
+  "rx_noise_dbm": [
+    256,
+    120.0
+  ],
+  "symbol_rate": [
+    16,
+    198
+  ],
+  "tx_power_dbm": [
+    16,
+    120.0
+  ]
+}

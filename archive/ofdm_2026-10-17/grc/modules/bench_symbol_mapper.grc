@@ -1,0 +1,162 @@
+options:
+  parameters:
+    id: bench_symbol_mapper
+    title: Symbol mapper | unpacked bits to IQ
+    category: '[Antenna benchmark]'
+    generate_options: hb
+    output_language: python
+    description: Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: project_imports
+  id: import
+  parameters:
+    imports: 'import math
+
+      import numpy as np
+
+      from antenna_bench.paths import ROOT
+
+      from antenna_bench.live import test_bits, wlan_reference, burst_waveform, reference_symbols, parse_taps
+
+      from antenna_bench.wlan import wlan_constellation
+
+      from gnuradio import digital'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 64
+    rotation: 0
+    state: enabled
+- name: k
+  id: variable
+  parameters:
+    value: int(math.log2(order))
+    comment: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 680
+    - 64
+    rotation: 0
+    state: enabled
+- name: order
+  id: parameter
+  parameters:
+    value: '16'
+    type: intx
+    label: Constellation order M
+    short_id: ''
+    hide: none
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 224
+    rotation: 0
+    state: enabled
+- name: pack_bits
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: k
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 560
+    - 528
+    rotation: 0
+    state: enabled
+- name: mapper
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    in_type: byte
+    out_type: complex
+    symbol_table: wlan_constellation(order).tolist()
+    dimension: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 960
+    - 528
+    rotation: 0
+    state: enabled
+- name: input_stream
+  id: pad_source
+  parameters:
+    label: bits
+    type: byte
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 528
+    rotation: 0
+    state: enabled
+- name: output_stream
+  id: pad_sink
+  parameters:
+    label: samples
+    type: complex
+    vlen: '1'
+    num_streams: '1'
+    optional: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1360
+    - 528
+    rotation: 0
+    state: enabled
+- name: contract
+  id: note
+  parameters:
+    note: 'STREAM CONTRACT: unpacked 0/1 bytes -> complex64 samples. Edit this module, generate it, then regenerate
+      its parent lab.'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 240
+    - 880
+    rotation: 0
+    state: enabled
+connections:
+- - pack_bits
+  - '0'
+  - mapper
+  - '0'
+- - input_stream
+  - '0'
+  - pack_bits
+  - '0'
+- - mapper
+  - '0'
+  - output_stream
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

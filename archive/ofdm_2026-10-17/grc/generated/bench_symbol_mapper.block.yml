@@ -1,0 +1,34 @@
+id: bench_symbol_mapper
+label: Symbol mapper | unpacked bits to IQ
+category: '[Antenna benchmark]'
+
+parameters:
+-   id: order
+    label: Constellation order M
+    dtype: int
+    default: '16'
+    hide: none
+
+inputs:
+-   label: bits
+    dtype: byte
+    vlen: 1
+
+outputs:
+-   label: samples
+    dtype: complex
+    vlen: 1
+
+templates:
+    imports: 'from bench_symbol_mapper import bench_symbol_mapper  # grc-generated
+        hier_block'
+    make: "bench_symbol_mapper(\n    order=${ order },\n)"
+    callbacks:
+    - set_order(${ order })
+
+documentation: 'Editable stock-block stage. See docs/MODULAR_FLOWGRAPHS.md.
+
+    /Users/ofi/repos/grc/grc/generated/bench_symbol_mapper.py'
+grc_source: /Users/ofi/repos/grc/grc/modules/bench_symbol_mapper.grc
+
+file_format: 1

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html class="client-js" lang="en" dir="ltr"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>M-ASK Mod and Demod and QAM-M Mod and Demod - GNU Radio</title>
+<script>(function(){var className="client-js";var cookie=document.cookie.match(/(?:^|; )mediawikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\w+$|[^\w-]+/g,'')+'-clientpref-\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={"wgBreakFrames":false,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"ebd3d827c2018de08ceba7a2","wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod","wgTitle":"M-ASK Mod and Demod and QAM-M Mod and Demod","wgCurRevisionId":15354,"wgRevisionId":15354,"wgArticleId":5719,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgPageViewLanguage":"en","wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod","wgRelevantArticleId":5719,"wgIsProbablyEditable":false,"wgRelevantPageIsProbablyEditable":false,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgCheckUserClientHintsHeadersJsApi":["architecture","bitness","brands","fullVersionList","mobile","model","platform","platformVersion"]};
+RLSTATE={"site.styles":"ready","user.styles":"ready","user":"ready","user.options":"loading","skins.vector.styles.legacy":"ready"};RLPAGEMODULES=["site","mediawiki.page.ready","mediawiki.toc","skins.vector.legacy.js","ext.checkUser.clientHints","ext.moderation.notify","ext.moderation.notify.desktop"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.impl(function(){return["user.options@12s5i",function($,jQuery,require,module){mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
+}];});});</script>
+<link rel="stylesheet" href="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/load_jtOr.css">
+<script async="" src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/load_jtOr.js"></script>
+<meta name="generator" content="MediaWiki 1.43.6">
+<meta name="robots" content="max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<link rel="search" type="application/opensearchdescription+xml" href="https://wiki.gnuradio.org/rest.php/v1/search" title="GNU Radio (en)">
+<link rel="EditURI" type="application/rsd+xml" href="https://wiki.gnuradio.org/api.php?action=rsd">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">
+<link rel="alternate" type="application/atom+xml" title="GNU Radio Atom feed" href="https://wiki.gnuradio.org/index.php?title=Special:RecentChanges&amp;feed=atom">
+<style>
+#pending-review{border:3px solid #f00} .mw-notification-area.mw-notification-area-modqueued{position:static;margin-left:auto;margin-right:auto;width:max-content;font-size:0.9em;line-height:25px}.skin-vector-2022 .mw-notification-area-overlay{z-index:3}
+@media screen {
+	.toctoggle{-webkit-user-select:none;-moz-user-select:none;user-select:none;font-size:94%}}
+#mw-teleport-target{position:absolute;z-index:450}
+#postedit-modqueued a{font-weight:bold}#pending-review{display:inline-block;padding:5px;margin:10px;margin-left:0;font-weight:bold;font-size:120%;text-transform:uppercase}</style></head>
+<body class="skin-vector-legacy mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod rootpage-M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod skin-vector action-view"><div id="mw-page-base" class="noprint"></div>
+<div id="mw-head-base" class="noprint"></div>
+<div id="content" class="mw-body" role="main">
+	<a id="top"></a>
+	<div id="siteNotice"></div>
+	<div class="mw-indicators">
+	</div>
+	<h1 id="firstHeading" class="firstHeading mw-first-heading"><span class="mw-page-title-main">M-ASK Mod and Demod and QAM-M Mod and Demod</span></h1>
+	<div id="bodyContent" class="vector-body">
+		<div id="siteSub" class="noprint">From GNU Radio</div>
+		<div id="contentSub"><div id="mw-content-subtitle"></div></div>
+		<div id="contentSub2"></div>
+		
+		<div id="jump-to-nav"></div>
+		<a class="mw-jump-link" href="#mw-head">Jump to navigation</a>
+		<a class="mw-jump-link" href="#searchInput">Jump to search</a>
+		<div id="mw-content-text" class="mw-body-content"><div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr"><p>Purpose of the LAB: To put into practice M-ASK, M-PSK and QAM-M modulations and observe their properties.
+</p><p>Educational objectives:
+</p><p>Consider M-ary modulations with different schemes.
+</p><p>Visualize the constellation of modulations.
+</p><p>Analyze their spectral efficiency and noise sensitivity
+</p><p>Compare performance via BER
+</p>
+<div id="toc" class="toc" role="navigation" aria-labelledby="mw-toc-heading"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" aria-label="Hide the table of contents"><div class="toctitle" lang="en" dir="ltr"><h2 id="mw-toc-heading">Contents</h2><span class="toctogglespan"><label class="toctogglelabel" for="toctogglecheckbox"></label></span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Variables"><span class="tocnumber">1</span> <span class="toctext">Variables</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Blocks_Setting"><span class="tocnumber">2</span> <span class="toctext">Blocks Setting</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#M-PSK"><span class="tocnumber">3</span> <span class="toctext">M-PSK</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#M-ASK"><span class="tocnumber">4</span> <span class="toctext">M-ASK</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#QAM-M"><span class="tocnumber">5</span> <span class="toctext">QAM-M</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Variables">Variables</span></h2>
+<p>Contents of the variables 'Delay', 'rrc-taps' and 'timing_loop_bw'
+</p><p>Delay: int (5.5 * sps + 7)
+</p><p>rrc_ taps&nbsp;: firdes.root _raised_ cosine ( nfilts , nfilts , 1.0/float( sps ), Alpha, 11* sps * nfilts )
+</p><p>timing_loop_bw&nbsp;: 0.0628
+</p>
+<h2><span class="mw-headline" id="Blocks_Setting">Blocks Setting</span></h2>
+<p><span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:Block_setting.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/Block_setting_jtOr.png" decoding="async" width="1194" height="665" class="mw-file-element"></a></span>
+For a 2-ASK or BPSK <a href="https://wiki.gnuradio.org/images/9/9e/BPSK.grc" class="internal" title="BPSK.grc">Media:BPSK.grc</a>
+</p>
+<h2><span class="mw-headline" id="M-PSK">M-PSK</span></h2>
+<p>A.	Modify the previous flowgraph to obtain a QPSK <a href="https://wiki.gnuradio.org/images/5/58/QPSK.grc" class="internal" title="QPSK.grc">Media:QPSK.grc</a> <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:QPSK.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/QPSK_jtOr.png" decoding="async" width="1616" height="776" class="mw-file-element"></a></span>
+</p><p>-	Edit Constellation object QPSK.
+</p><p>-	Modulus Edit 4.
+</p><p>-	Add a K-bit Unpack block (K: 2) to be placed as shown
+</p><p>-	Multiply the delay by 2 ( int (5.5 * sps + 7)*2
+</p><p>-	Observe the BER as the noise power increases.
+</p><p><br>
+</p><p>B.	Modify the previous flowgraph to obtain an 8-PSK <a href="https://wiki.gnuradio.org/images/0/04/8psk.grc" class="internal" title="8psk.grc">Media:8psk.grc</a>  <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:8psk.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/8psk_jtOr.png" decoding="async" width="1616" height="788" class="mw-file-element"></a></span>
+</p><p>-	Edit Constellation object 8PSK
+</p><p>-	Modulus Edit 8
+</p><p>-	Add a K-bit Unpack block (K: 3).
+</p><p>-	Observe the BER as the noise power increases.
+</p><p>-	Multiply the delay by 3 ( int (5.5 * sps + 7)*3
+</p><p><br>
+</p>
+<h2><span class="mw-headline" id="M-ASK">M-ASK</span></h2>
+<p>A.	Modify the previous flowgraph to obtain a 4-ASK.
+</p><p>Replace the Constellation Object by Constellation Rect Object block
+</p><p>4-ASK <a href="https://wiki.gnuradio.org/images/7/75/4ASK.grc" class="internal" title="4ASK.grc">Media:4ASK.grc</a> whose flowgraph is given below&nbsp;: <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:4ASK.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/4ASK_jtOr.png" decoding="async" width="1616" height="776" class="mw-file-element"></a></span>
+</p><p>Modify Constellation Rect Object as shown <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:4ASK_Const.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/4ASK_Const_jtOr.png" decoding="async" width="557" height="456" class="mw-file-element"></a></span>
+</p><p>Modulus Edit 4.
+</p><p>Add a K-bit Unpack block (K: 2)
+</p><p>Multiply the delay by 2 ( int (5.5 * sps + 7)*2
+</p><p>Observe the BER as the noise power increases.
+</p><p><br>
+</p><p>8-ASK <a href="https://wiki.gnuradio.org/images/f/fd/8ASK.grc" class="internal" title="8ASK.grc">Media:8ASK.grc</a> whose flowgraph is given below&nbsp;: <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:8ASK.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/8ASK_jtOr.png" decoding="async" width="1616" height="776" class="mw-file-element"></a></span>
+</p><p>Edit Constellation Rect Object as shown <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:8ASK_Const.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/8ASK_Const_jtOr.png" decoding="async" width="554" height="464" class="mw-file-element"></a></span>
+</p>
+<h2><span class="mw-headline" id="QAM-M">QAM-M</span></h2>
+<p>QAM-16 <a href="https://wiki.gnuradio.org/images/e/e9/QAM16.grc" class="internal" title="QAM16.grc">Media:QAM16.grc</a> whose flowgraph is given below&nbsp;: <span class="mw-default-size" typeof="mw:File"><a href="https://wiki.gnuradio.org/index.php?title=File:QAM16.png" class="mw-file-description"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/QAM16_jtOr.png" decoding="async" width="1616" height="788" class="mw-file-element"></a></span>
+</p><p>Modify the previous flowgraph to obtain a 16-QAM
+</p><p>Edit Constellation object 16QAM
+</p><p>Modulus Edit 16
+</p><p>Add a K-bit Unpack block (K: 4).
+</p><p>Observe the BER as the noise power increases.
+-	Multiply the delay by 2 ( int (5.5 * sps + 7)*4
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20261017181406
+Cache expiry: 86400
+Reduced expiry: false
+Complications: [show‐toc]
+CPU time usage: 0.009 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 27/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/100
+Expensive parser function count: 0/100
+Unstrip recursion depth: 0/20
+Unstrip post‐expand size: 0/5000000 bytes
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 -total
+-->
+
+<!-- Saved in parser cache with key mediawiki:pcache:idhash:5719-0!canonical and timestamp 20261017181406 and revision id 15354. Rendering was triggered because: page-view
+ -->
+</div>
+<div class="printfooter" data-nosnippet="">Retrieved from "<a dir="ltr" href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;oldid=15354">https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;oldid=15354</a>"</div></div>
+		<div id="catlinks" class="catlinks catlinks-allhidden" data-mw="interface"></div>
+	</div>
+</div>
+
+<div id="mw-navigation">
+	<h2>Navigation menu</h2>
+	<div id="mw-head">
+		
+<nav id="p-personal" class="mw-portlet mw-portlet-personal vector-user-menu-legacy vector-menu" aria-labelledby="p-personal-label">
+	<h3 id="p-personal-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Personal tools</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="pt-login" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:UserLogin&amp;returnto=M-ASK+Mod+and+Demod+and+QAM-M+Mod+and+Demod" title="You are encouraged to log in; however, it is not mandatory [⌃⌥o]" accesskey="o"><span>Log in</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+		<div id="left-navigation">
+			
+<nav id="p-namespaces" class="mw-portlet mw-portlet-namespaces vector-menu-tabs vector-menu-tabs-legacy vector-menu" aria-labelledby="p-namespaces-label">
+	<h3 id="p-namespaces-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Namespaces</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="ca-nstab-main" class="selected mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod" title="View the content page [⌃⌥c]" accesskey="c"><span>Page</span></a></li><li id="ca-talk" class="new mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Talk:M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;action=edit&amp;redlink=1" rel="discussion" class="new" title="Discussion about the content page (page does not exist) [⌃⌥t]" accesskey="t"><span>Discussion</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+			
+<nav id="p-variants" class="mw-portlet mw-portlet-variants emptyPortlet vector-menu-dropdown vector-menu" aria-labelledby="p-variants-label">
+	<input type="checkbox" id="p-variants-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-p-variants" class="vector-menu-checkbox" aria-labelledby="p-variants-label">
+	<label id="p-variants-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">English</span>
+	</label>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</nav>
+
+		</div>
+		<div id="right-navigation">
+			
+<nav id="p-views" class="mw-portlet mw-portlet-views vector-menu-tabs vector-menu-tabs-legacy vector-menu" aria-labelledby="p-views-label">
+	<h3 id="p-views-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Views</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="ca-view" class="selected mw-list-item collapsible"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod"><span>Read</span></a></li><li id="ca-viewsource" class="mw-list-item collapsible"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;action=edit" title="This page is protected.
+You can view its source [⌃⌥e]" accesskey="e"><span>View source</span></a></li><li id="ca-history" class="mw-list-item collapsible"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;action=history" title="Past revisions of this page [⌃⌥h]" accesskey="h"><span>View history</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+			
+<nav id="p-cactions" class="mw-portlet mw-portlet-cactions emptyPortlet vector-menu-dropdown vector-menu" aria-labelledby="p-cactions-label" title="More options">
+	<input type="checkbox" id="p-cactions-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-p-cactions" class="vector-menu-checkbox" aria-labelledby="p-cactions-label">
+	<label id="p-cactions-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">More</span>
+	</label>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</nav>
+
+			
+<div id="p-search" role="search" class="vector-search-box-vue  vector-search-box-show-thumbnail vector-search-box-auto-expand-width vector-search-box">
+	<h3>Search</h3>
+	<form action="/index.php" id="searchform" class="vector-search-box-form">
+		<div id="simpleSearch" class="vector-search-box-inner" data-search-loc="header-navigation">
+			<input class="vector-search-box-input" type="search" name="search" placeholder="Search GNU Radio" aria-label="Search GNU Radio" autocapitalize="sentences" title="Search GNU Radio [⌃⌥f]" accesskey="f" id="searchInput">
+			<input type="hidden" name="title" value="Special:Search">
+			<input id="mw-searchButton" class="searchButton mw-fallbackSearchButton" type="submit" name="fulltext" title="Search the pages for this text" value="Search">
+			<input id="searchButton" class="searchButton" type="submit" name="go" title="Go to a page with this exact name if it exists" value="Go">
+		</div>
+	</form>
+</div>
+
+		</div>
+	</div>
+	
+<div id="mw-panel" class="vector-legacy-sidebar">
+	<div id="p-logo" role="banner">
+		<a class="mw-wiki-logo" href="https://wiki.gnuradio.org/index.php?title=Main_Page" title="Visit the main page"></a>
+	</div>
+	
+<nav id="p-navigation" class="mw-portlet mw-portlet-navigation vector-menu-portal portal vector-menu" aria-labelledby="p-navigation-label">
+	<h3 id="p-navigation-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Navigation</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-Wiki-Home" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Main_Page"><span>Wiki Home</span></a></li><li id="n-GNU-Radio-Website" class="mw-list-item"><a href="https://gnuradio.org/" rel="nofollow"><span>GNU Radio Website</span></a></li><li id="n-FAQ" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=FAQ"><span>FAQ</span></a></li><li id="n-Get-a-Wiki-Account" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Wiki_account"><span>Get a Wiki Account</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+	
+<nav id="p-Guides" class="mw-portlet mw-portlet-Guides vector-menu-portal portal vector-menu" aria-labelledby="p-Guides-label">
+	<h3 id="p-Guides-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Guides</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-Tutorials" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Tutorials"><span>Tutorials</span></a></li><li id="n-Installing-GNU-Radio" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=InstallingGR"><span>Installing GNU Radio</span></a></li><li id="n-Contributing" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Development"><span>Contributing</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+<nav id="p-Wiki_Tools" class="mw-portlet mw-portlet-Wiki_Tools vector-menu-portal portal vector-menu" aria-labelledby="p-Wiki_Tools-label">
+	<h3 id="p-Wiki_Tools-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Wiki Tools</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-recentchanges" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:RecentChanges" title="A list of recent changes in the wiki [⌃⌥r]" accesskey="r"><span>Recent changes</span></a></li><li id="n-randompage" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:Random" title="Load a random page [⌃⌥x]" accesskey="x"><span>Random page</span></a></li><li id="n-help" class="mw-list-item"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents" title="The place to find out"><span>Help</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+<nav id="p-tb" class="mw-portlet mw-portlet-tb vector-menu-portal portal vector-menu" aria-labelledby="p-tb-label">
+	<h3 id="p-tb-label" class="vector-menu-heading ">
+		<span class="vector-menu-heading-label">Tools</span>
+	</h3>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="t-whatlinkshere" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:WhatLinksHere/M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod" title="A list of all wiki pages that link here [⌃⌥j]" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:RecentChangesLinked/M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod" rel="nofollow" title="Recent changes in pages linked from this page [⌃⌥k]" accesskey="k"><span>Related changes</span></a></li><li id="t-specialpages" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=Special:SpecialPages" title="A list of all special pages [⌃⌥q]" accesskey="q"><span>Special pages</span></a></li><li id="t-print" class="mw-list-item"><a href="javascript:print();" rel="alternate" title="Printable version of this page [⌃⌥p]" accesskey="p"><span>Printable version</span></a></li><li id="t-permalink" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;oldid=15354" title="Permanent link to this revision of this page"><span>Permanent link</span></a></li><li id="t-info" class="mw-list-item"><a href="https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod&amp;action=info" title="More information about this page"><span>Page information</span></a></li>
+		</ul>
+		
+	</div>
+</nav>
+
+	
+</div>
+
+</div>
+
+<footer id="footer" class="mw-footer">
+	<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 13 September 2025, at 15:25.</li>
+	<li id="footer-info-copyright">Content is available under <a class="external" rel="nofollow" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a> unless otherwise noted.</li>
+</ul>
+
+	<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://wiki.gnuradio.org/index.php?title=GNU_Radio:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="https://wiki.gnuradio.org/index.php?title=GNU_Radio:About">About GNU Radio</a></li>
+	<li id="footer-places-disclaimers"><a href="https://wiki.gnuradio.org/index.php?title=GNU_Radio:General_disclaimer">Disclaimers</a></li>
+</ul>
+
+	<ul id="footer-icons" class="noprint">
+	<li id="footer-copyrightico"><a href="http://creativecommons.org/licenses/by-sa/3.0/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/cc-by-sa_jtOr.png" alt="Creative Commons Attribution-ShareAlike" width="88" height="31" loading="lazy"></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><img src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/poweredby_mediawiki_jtOr.svg" alt="Powered by MediaWiki" width="88" height="31" loading="lazy"></a></li>
+</ul>
+
+</footer>
+
+<script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":51,"wgPageParseReport":{"limitreport":{"cputime":"0.009","walltime":"0.011","ppvisitednodes":{"value":27,"limit":1000000},"postexpandincludesize":{"value":0,"limit":2097152},"templateargumentsize":{"value":0,"limit":2097152},"expansiondepth":{"value":2,"limit":100},"expensivefunctioncount":{"value":0,"limit":100},"unstrip-depth":{"value":0,"limit":20},"unstrip-size":{"value":0,"limit":5000000},"timingprofile":["100.00%    0.000      1 -total"]},"cachereport":{"timestamp":"20261017181406","ttl":86400,"transientcontent":false}}});});</script>
+<script type="module" src="M-ASK%20Mod%20and%20Demod%20and%20QAM-M%20Mod%20and%20Demod%20-%20GNU%20Radio_files/vce701823e78c4301a35b7e07294d87301792088814092_jtOr" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;e97d4a5fa7624f6695b701abdc317840&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c147e6cc2a708a',t:'MTc5MjI2MDg0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: medium; visibility: hidden;"></iframe>
+<div id="mw-teleport-target" class="vector-body"></div></body></html>

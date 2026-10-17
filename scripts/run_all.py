@@ -1,93 +1,114 @@
-"""Reproduce software validation and plots; never runs USRP hardware graphs.
+"""Compile saved flowcharts, check all six modulations, and write a short report.
 
-Usage: python scripts/run_all.py [--matlab /path/to/matlab]
-Requires this interpreter's GNU Radio/radioconda and an installed licensed
-MATLAB with Communications Toolbox and WLAN Toolbox. No downloads occur.
+This does not overwrite your editable .grc sources or run radio hardware.
 """
-from __future__ import annotations
-import argparse
-from datetime import datetime, timezone
-import hashlib
-import json
-import os
+
 from pathlib import Path
-import platform
-import shutil
+import json
+import hashlib
+import os
 import subprocess
 import sys
-import time
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1]
+PYTHON = sys.executable
+profiles = {"bpsk": 34, "qpsk": 68, "8psk": 102, "4ask": 68, "8ask": 102, "16qam": 136}
+subprocess.run(
+    [
+        PYTHON,
+        "-c",
+        "from gnuradio.grc.compiler import main; main()",
+        "-o",
+        "grc/generated",
+        *[str(p) for p in sorted((ROOT / "grc").glob("*.grc"))],
+    ],
+    cwd=ROOT,
+    check=True,
+)
+env = os.environ.copy()
+env["QT_QPA_PLATFORM"] = "offscreen"
+rows = []
+for profile, delay in profiles.items():
+    for noise in (0, 0.3):
+        subprocess.run(
+            [
+                PYTHON,
+                "scripts/validate_single_carrier.py",
+                "--modulation",
+                profile,
+                "--delay",
+                str(delay),
+                "--noise",
+                str(noise),
+            ],
+            cwd=ROOT,
+            env=env,
+            check=True,
+        )
+        result = json.loads(
+            (ROOT / "results" / f"{profile}_noise_{noise:g}.json").read_text()
+        )
+        assert result["best_delay_bits"] == delay
+        rows.append(result)
+    subprocess.run(
+        [PYTHON, "scripts/export_layout.py", "--modulation", profile],
+        cwd=ROOT,
+        check=True,
+    )
+zero_noise = [r for r in rows if r["noise_voltage"] == 0]
+powers = [r["tx_mean_sample_power"] for r in zero_noise]
+assert max(powers) / min(powers) < 1.04, "Transmit powers differ by more than 4%"
+subprocess.run([PYTHON, "scripts/check_link_budget.py"], cwd=ROOT, check=True)
+subprocess.run(
+    [
+        PYTHON,
+        "scripts/validate_single_carrier.py",
+        "--modulation",
+        "16qam",
+        "--delay",
+        "136",
+        "--noise",
+        "0.1",
+        "--render-dashboards",
+        "--echo",
+        "0.25",
+        "--output-dir",
+        str(ROOT / "results/equalizer_checks"),
+    ],
+    cwd=ROOT,
+    env=env,
+    check=True,
+)
+# MATLAB independently checks the actual saved GNU Radio captures.
+matlab_path = "/Applications/MATLAB_R2026a.app/bin/matlab"
+matlab_folder = str(ROOT / "matlab").replace("'", "''")
+subprocess.run(
+    [matlab_path, "-batch", f"addpath('{matlab_folder}'); validate_single_carrier;"],
+    cwd=ROOT,
+    check=True,
+)
+subprocess.run([PYTHON, "scripts/plot_results.py"], cwd=ROOT, check=True)
+subprocess.run([PYTHON, "scripts/plot_equalizer.py"], cwd=ROOT, check=True)
+matlab_results = json.loads((ROOT / "results/matlab_validation.json").read_text())
+subprocess.run([PYTHON, "scripts/write_report.py"], cwd=ROOT, check=True)
+print(
+    "PASS: six graphs; 16 cases: 12 baseline, three link-budget, one echo/EQ; MATLAB checked."
+)
 
-
-def main():
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--matlab',default=os.environ.get('MATLAB_BIN') or shutil.which('matlab') or '/Applications/MATLAB_R2026a.app/bin/matlab')
-    args=parser.parse_args()
-    logs=ROOT/'results/validation'; logs.mkdir(parents=True,exist_ok=True)
-    for folder in ('grc','reference','figures'): (ROOT/'results'/folder).mkdir(parents=True,exist_ok=True)
-    env=os.environ.copy(); env.pop('PYTHONPATH',None)
-    runs=[]
-
-    def run(label,command):
-        print(f'[{label}]',flush=True); started=time.monotonic()
-        with (logs/f'{len(runs)+1:02d}_{label}.log').open('w') as output:
-            process=subprocess.run(command,cwd=ROOT,env=env,stdout=output,stderr=subprocess.STDOUT)
-        record=dict(label=label,command=command,exit_code=process.returncode,elapsed_seconds=time.monotonic()-started)
-        runs.append(record)
-        if process.returncode:
-            raise RuntimeError(f'{label} failed; inspect {output.name}')
-
-    def matlab(label,expression):
-        # MATLAB string quoting; paths are data in this argument, never shell code.
-        path=str(ROOT/'matlab').replace("'","''")
-        run(label,[args.matlab,'-batch',f"addpath('{path}'); {expression}"])
-
-    status='failed'
-    try:
-        run('installation_check',[sys.executable,'scripts/check_install.py'])
-        run('python_reference',[sys.executable,'scripts/run_python_reference.py'])
-        matlab('matlab_theory_and_references',
-            'validate_wifi_profile; run_theory; validate_python_results; export_wlan_reference; run_wlan_awgn;')
-        run('unit_tests',[sys.executable,'-m','unittest','discover','-s','tests','-v'])
-        run('build_grc',[sys.executable,'scripts/build_flowgraphs.py'])
-        # Use the installed compiler's main directly; avoids a shell/python shebang dependency.
-        files=[str(path) for path in sorted((ROOT/'grc').glob('*.grc'))]
-        run('compile_grc',[sys.executable,'-c','from gnuradio.grc.compiler import main; main()',
-                           '-o',str(ROOT/'grc/generated'),*files])
-        run('grc_all_modulations',[sys.executable,'scripts/validate_grc_symbols.py'])
-        run('grc_symbol_simulation',[sys.executable,'grc/generated/awgn_symbol_benchmark.py'])
-        run('score_grc_symbols',[sys.executable,'scripts/analyze_symbols.py'])
-        for rate in range(8):
-            run(f'grc_wlan_rate_{rate}',[sys.executable,'grc/generated/wlan_reference_channel.py','--rate-index',str(rate)])
-            run(f'python_wlan_rate_{rate}',[sys.executable,'scripts/analyze_wlan.py','--rate-index',str(rate),'--require-complete'])
-            run(f'grc_ofdm_fft_rate_{rate}',[sys.executable,'grc/generated/wlan_ofdm_fft.py','--rate-index',str(rate)])
-            run(f'validate_grc_fft_rate_{rate}',[sys.executable,'scripts/validate_grc_fft.py','--rate-index',str(rate)])
-        matlab('cross_validate_grc',
-            f"validate_python_results('{str(ROOT/'results/grc').replace(chr(39),chr(39)*2)}'); "
-            'for rate=0:7, analyze_wlan_capture(rate); end')
-        run('live_siso_labs',[sys.executable,'scripts/validate_live_labs.py'])
-        matlab('live_siso_matlab','validate_live_labs;')
-        run('summary_figures',[sys.executable,'scripts/plot_validation.py'])
-        run('live_siso_figures',[sys.executable,'scripts/plot_live_results.py'])
-        status='passed'
-    finally:
-        source_files=[p for pattern in ('*.py','*.m','*.grc','*.json','*.md','*.bib','*.toml','*.command','.envrc') for p in ROOT.rglob(pattern)
-                      if not any(part in ('results','__pycache__','generated','.venv','.direnv','.git') for part in p.relative_to(ROOT).parts)]
-        import numpy, scipy, matplotlib, yaml
-        from gnuradio import gr
-        manifest=dict(status=status,utc=datetime.now(timezone.utc).isoformat(),
-            python=platform.python_version(),platform=platform.platform(),runs=runs,
-            software=dict(gnuradio=gr.version(),numpy=numpy.__version__,scipy=scipy.__version__,
-                          matplotlib=matplotlib.__version__,pyyaml=yaml.__version__),
-            hardware_executed=False,
-            limitations=['WLAN receiver checks use known packet timing/rate; no autonomous acquisition validation',
-                         'No real RF, calibrated antenna performance, or live steering has been measured',
-                         'Coded curves use exploratory packet counts; post-FEC errors are correlated'],
-            source_sha256={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(source_files)})
-        (logs/'status.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    subprocess.run([sys.executable,'scripts/generate_report.py'],cwd=ROOT,env=env,check=True)
-    print(f'Validation {status}; see {logs / "status.json"}',flush=True)
-
-
-if __name__=='__main__': main()
+# Save the exact editable sources associated with this validation run.
+source_paths = [ROOT / "README.md", ROOT / "AGENTS.md"]
+for pattern in (
+    "scripts/*.py",
+    "antenna_bench/*.py",
+    "grc/*.grc",
+    "matlab/*.m",
+    "configs/*.json",
+):
+    source_paths.extend(ROOT.glob(pattern))
+source_hashes = {
+    str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+    for path in sorted(source_paths)
+}
+(ROOT / "results/source_hashes.json").write_text(
+    json.dumps(source_hashes, indent=2) + "\n"
+)

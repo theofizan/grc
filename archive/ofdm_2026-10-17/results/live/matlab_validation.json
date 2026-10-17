@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "cases": 34,
+  "receiverCases": 20,
+  "worstEvmDifference": 7.0166095156309893E-14,
+  "worstReceiverSymbolDifference": 1.01852459E-6
+}
