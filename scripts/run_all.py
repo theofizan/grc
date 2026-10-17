@@ -87,7 +87,13 @@ subprocess.run(
     cwd=ROOT,
     check=True,
 )
+# BER versus Eb/N0 from the real flowcharts (about 100 finite captures).
+subprocess.run([PYTHON, "scripts/sweep_ber.py"], cwd=ROOT, env=env, check=True)
 subprocess.run([PYTHON, "scripts/plot_results.py"], cwd=ROOT, check=True)
+# N210 over-the-air variants: rebuild from the saved simulations, then check
+# them through a software stand-in for the radio (no hardware needed).
+subprocess.run([PYTHON, "scripts/build_n210.py"], cwd=ROOT, check=True)
+subprocess.run([PYTHON, "scripts/check_n210_loopback.py"], cwd=ROOT, env=env, check=True)
 subprocess.run([PYTHON, "scripts/plot_equalizer.py"], cwd=ROOT, check=True)
 matlab_results = json.loads((ROOT / "results/matlab_validation.json").read_text())
 subprocess.run([PYTHON, "scripts/write_report.py"], cwd=ROOT, check=True)

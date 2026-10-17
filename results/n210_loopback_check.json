@@ -1,0 +1,242 @@
+{
+  "channel": {
+    "delay_samples": 12345.37,
+    "cfo_hz": 300.0,
+    "phase_deg": 37.0,
+    "gain_db": -60.0,
+    "esno_db": 25.0
+  },
+  "note": "Software stand-in for N210 RF; not a hardware measurement.",
+  "results": [
+    {
+      "modulation": "bpsk",
+      "tx_rms_dbfs": -15.0,
+      "tx_sample_peak_dbfs": -10.87,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.0,
+          "ber_vs_true_tx": 0.49778,
+          "mer_db_settled": 4.709610939025879
+        },
+        {
+          "phase_fix_deg": 180,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.0,
+          "ber_vs_true_tx": 0.49778,
+          "mer_db_settled": 4.709610939025879
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 0,
+        "ber_windows": 60,
+        "self_referenced_ber": 0.0,
+        "ber_vs_true_tx": 0.49778,
+        "mer_db_settled": 4.709610939025879
+      },
+      "passed": false
+    },
+    {
+      "modulation": "qpsk",
+      "tx_rms_dbfs": -15.0,
+      "tx_sample_peak_dbfs": -10.99,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.2186249941587448,
+          "ber_vs_true_tx": 0.375125,
+          "mer_db_settled": 24.464693069458008
+        },
+        {
+          "phase_fix_deg": 90,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.0,
+          "ber_vs_true_tx": 0.0,
+          "mer_db_settled": 24.464693069458008
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 90,
+        "ber_windows": 60,
+        "self_referenced_ber": 0.0,
+        "ber_vs_true_tx": 0.0,
+        "mer_db_settled": 24.464693069458008
+      },
+      "passed": true
+    },
+    {
+      "modulation": "8psk",
+      "tx_rms_dbfs": -15.0,
+      "tx_sample_peak_dbfs": -11.06,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.25014999508857727,
+          "ber_vs_true_tx": 0.417555,
+          "mer_db_settled": 24.52937889099121
+        },
+        {
+          "phase_fix_deg": 45,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.23684999346733093,
+          "ber_vs_true_tx": 0.39051,
+          "mer_db_settled": 24.529375076293945
+        },
+        {
+          "phase_fix_deg": 90,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.24459999799728394,
+          "ber_vs_true_tx": 0.41845,
+          "mer_db_settled": 24.529375076293945
+        },
+        {
+          "phase_fix_deg": 135,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.23770000040531158,
+          "ber_vs_true_tx": 0.417815,
+          "mer_db_settled": 24.52937412261963
+        },
+        {
+          "phase_fix_deg": 180,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.0,
+          "ber_vs_true_tx": 0.031065,
+          "mer_db_settled": 24.529375076293945
+        },
+        {
+          "phase_fix_deg": 225,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.24084998667240143,
+          "ber_vs_true_tx": 0.420575,
+          "mer_db_settled": 24.529376983642578
+        },
+        {
+          "phase_fix_deg": 270,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.23444999754428864,
+          "ber_vs_true_tx": 0.41871,
+          "mer_db_settled": 24.52937889099121
+        },
+        {
+          "phase_fix_deg": 315,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.23719999194145203,
+          "ber_vs_true_tx": 0.39472,
+          "mer_db_settled": 24.529375076293945
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 180,
+        "ber_windows": 61,
+        "self_referenced_ber": 0.0,
+        "ber_vs_true_tx": 0.031065,
+        "mer_db_settled": 24.529375076293945
+      },
+      "passed": false
+    },
+    {
+      "modulation": "4ask",
+      "tx_rms_dbfs": -15.0,
+      "tx_sample_peak_dbfs": -8.49,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.21877498924732208,
+          "ber_vs_true_tx": 0.37661,
+          "mer_db_settled": 13.90326976776123
+        },
+        {
+          "phase_fix_deg": 180,
+          "ber_windows": 60,
+          "self_referenced_ber": 0.21857499331235886,
+          "ber_vs_true_tx": 0.375535,
+          "mer_db_settled": 13.90326976776123
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 180,
+        "ber_windows": 60,
+        "self_referenced_ber": 0.21857499331235886,
+        "ber_vs_true_tx": 0.375535,
+        "mer_db_settled": 13.90326976776123
+      },
+      "passed": false
+    },
+    {
+      "modulation": "8ask",
+      "tx_rms_dbfs": -15.01,
+      "tx_sample_peak_dbfs": -7.44,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.2293500006198883,
+          "ber_vs_true_tx": 0.46206,
+          "mer_db_settled": 19.378567695617676
+        },
+        {
+          "phase_fix_deg": 180,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.2292499989271164,
+          "ber_vs_true_tx": 0.45929,
+          "mer_db_settled": 19.37856674194336
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 180,
+        "ber_windows": 61,
+        "self_referenced_ber": 0.2292499989271164,
+        "ber_vs_true_tx": 0.45929,
+        "mer_db_settled": 19.37856674194336
+      },
+      "passed": false
+    },
+    {
+      "modulation": "16qam",
+      "tx_rms_dbfs": -15.0,
+      "tx_sample_peak_dbfs": -8.71,
+      "trials": [
+        {
+          "phase_fix_deg": 0,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.17080000042915344,
+          "ber_vs_true_tx": 0.454275,
+          "mer_db_settled": 13.689118385314941
+        },
+        {
+          "phase_fix_deg": 90,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.16714999079704285,
+          "ber_vs_true_tx": 0.454825,
+          "mer_db_settled": 13.689118385314941
+        },
+        {
+          "phase_fix_deg": 180,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.17080000042915344,
+          "ber_vs_true_tx": 0.453615,
+          "mer_db_settled": 13.689118385314941
+        },
+        {
+          "phase_fix_deg": 270,
+          "ber_windows": 61,
+          "self_referenced_ber": 0.16714999079704285,
+          "ber_vs_true_tx": 0.453705,
+          "mer_db_settled": 13.689118385314941
+        }
+      ],
+      "best": {
+        "phase_fix_deg": 180,
+        "ber_windows": 61,
+        "self_referenced_ber": 0.17080000042915344,
+        "ber_vs_true_tx": 0.453615,
+        "mer_db_settled": 13.689118385314941
+      },
+      "passed": false
+    }
+  ]
+}

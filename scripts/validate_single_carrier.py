@@ -33,6 +33,11 @@ parser.add_argument("--tx-power-dbm", type=float, default=0)
 parser.add_argument("--path-loss-db", type=float, default=80)
 parser.add_argument("--rx-noise-dbm", type=float, default=None)
 parser.add_argument("--output-dir", type=Path, default=ROOT / "results")
+parser.add_argument(
+    "--no-fixture",
+    action="store_true",
+    help="Skip the large MATLAB .mat fixture (used by BER sweeps)",
+)
 args = parser.parse_args()
 output_directory = args.output_dir
 output_directory.mkdir(parents=True, exist_ok=True)
@@ -274,7 +279,7 @@ reverse_error = float(np.max(abs(filter_reverse - symbols[:check_count])))
 tap_history_oldest_first = forward_error < reverse_error
 expected_eq = filter_forward if tap_history_oldest_first else filter_reverse
 np.testing.assert_allclose(expected_eq, symbols[:check_count], atol=2e-5)
-fixture_name = f"{args.modulation}_noise_{args.noise:g}.mat"
+fixture_name = None if args.no_fixture else f"{args.modulation}_noise_{args.noise:g}.mat"
 savemat(
     output_directory / fixture_name,
     dict(
@@ -329,7 +334,7 @@ savemat(
         rrc_bandwidth_hz=float(lab.rrc_bandwidth),
     ),
     do_compression=True,
-)
+) if fixture_name else None
 result = dict(
     tx_power_dbm=args.tx_power_dbm,
     path_loss_db=args.path_loss_db,

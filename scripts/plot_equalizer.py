@@ -4,22 +4,12 @@ from pathlib import Path
 import json
 import numpy as np
 from scipy.io import loadmat
-import matplotlib
+from paper_style import ROOT, DOUBLE_COLUMN_IN, COLORS, MUTED, plt, save
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-ROOT = Path(__file__).resolve().parents[1]
 CASE = ROOT / "results/equalizer_checks/16qam_noise_0.1"
 data = loadmat(str(CASE) + ".mat", squeeze_me=True)
 record = json.loads(Path(str(CASE) + ".json").read_text())
 SPS = int(data["sample_rate_hz"] / data["symbol_rate_hz"])
-
-
-def save(figure, name):
-    for extension in ("png", "pdf", "svg"):
-        figure.savefig(ROOT / "results" / f"{name}.{extension}", dpi=150)
-    plt.close(figure)
 
 
 # Raw waveforms are physical power waves; scale to RMS symbol units using
@@ -45,11 +35,7 @@ stages = [
 ]
 for component in ("I", "Q"):
     figure, axes = plt.subplots(
-        2, 2, figsize=(11, 9), layout="constrained", sharex=True, sharey=True
-    )
-    figure.suptitle(
-        f"16-QAM {component} eyes | 1 Msymbol/s, 4 samples/symbol\nOne-symbol echo = 0.25 voltage ratio; normalized input noise = 0.10",
-        fontsize=14,
+        2, 2, figsize=(DOUBLE_COLUMN_IN, 4.6), layout="constrained", sharex=True, sharey=True
     )
     for axis, (title, waveform) in zip(axes.flat, stages):
         samples = np.ravel(waveform)
@@ -61,9 +47,10 @@ for component in ("I", "Q"):
             axis.plot(
                 np.arange(2 * SPS + 1) / SPS,
                 samples[offset : offset + 2 * SPS + 1],
-                color="#31688e",
-                alpha=0.12,
-                linewidth=0.8,
+                color=COLORS["16qam"],
+                alpha=0.15,
+                linewidth=0.5,
+                rasterized=True,
             )
         axis.set(
             title=title,
@@ -74,11 +61,7 @@ for component in ("I", "Q"):
         axis.grid(alpha=0.25)
     save(figure, f"equalizer_eyes_{component.lower()}")
 
-figure, axes = plt.subplots(2, 2, figsize=(11, 9), layout="constrained")
-figure.suptitle(
-    "16-QAM adaptive LMS equalization | same echo test\nActual captured symbols and time-varying native equalizer taps",
-    fontsize=14,
-)
+figure, axes = plt.subplots(2, 2, figsize=(DOUBLE_COLUMN_IN, 6.2), layout="constrained")
 pre = np.ravel(data["pre_eq_symbols"])[1024:]
 post = np.ravel(data["received_symbols"])[1024:]
 for axis, samples, title, evm in [
@@ -86,55 +69,62 @@ for axis, samples, title, evm in [
     (axes[0, 1], post, "After adaptive LMS EQ", record["reference_evm_percent"]),
 ]:
     symbols = samples[:6000] / rms
-    axis.scatter(symbols.real, symbols.imag, s=3, alpha=0.15, label="Captured symbols")
+    axis.scatter(symbols.real, symbols.imag, s=1.2, alpha=0.25, linewidths=0,
+                 color=COLORS["16qam"], rasterized=True, label="Captured symbols")
     axis.scatter(
         points.real / rms,
         points.imag / rms,
         c="black",
         marker="+",
-        s=50,
+        s=28,
+        linewidths=0.8,
         label="Ideal positions",
     )
     axis.set(
-        title=f"{title} | data-aided RMS EVM {evm:.2f}%",
+        title=f"{title}: data-aided RMS EVM {evm:.2f}%",
         xlabel="I / RMS symbol amplitude",
         ylabel="Q / RMS symbol amplitude",
         xlim=(-2, 2),
         ylim=(-2, 2),
     )
     axis.set_aspect("equal", adjustable="box")
-    axis.grid(alpha=0.25)
-    axis.legend(fontsize=8)
+    axis.legend(loc="upper right", markerscale=2.5)
 taps = np.asarray(data["eq_tap_history"])
 axis = axes[1, 0]
+# Only the taps that move visibly get their own color; the rest stay muted.
+magnitudes = abs(taps)
+moving = np.argsort(magnitudes[-1])[::-1][:3]
+palette = [COLORS["bpsk"], COLORS["qpsk"], COLORS["8psk"]]
+time_ms = np.arange(len(taps)) / float(data["symbol_rate_hz"]) * 1000
 for tap in range(taps.shape[1]):
-    axis.plot(
-        np.arange(len(taps)) / float(data["symbol_rate_hz"]) * 1000,
-        abs(taps[:, tap]),
-        label=str(tap),
-    )
+    if tap in moving:
+        index = list(moving).index(tap)
+        axis.plot(time_ms, magnitudes[:, tap], color=palette[index], linewidth=1.0,
+                  label=f"Tap {tap}")
+    else:
+        axis.plot(time_ms, magnitudes[:, tap], color=MUTED, linewidth=0.5, alpha=0.6,
+                  label="Other taps" if tap == min(set(range(taps.shape[1])) - set(moving)) else None)
 axis.set(
     title="Actual LMS tap magnitudes during acquisition",
     xlabel="Time since start (ms)",
     ylabel="Tap magnitude",
 )
-axis.legend(title="Tap index", ncol=4, fontsize=7)
-axis.grid(alpha=0.25)
+axis.legend(loc="center right")
 axis = axes[1, 1]
 axis.bar(
     ["Before EQ", "After EQ"],
     [record["pre_reference_evm_percent"], record["reference_evm_percent"]],
-    color=["#888888", "#31688e"],
+    color=["#9a9a9a", COLORS["16qam"]],
+    width=0.55,
 )
 axis.set(title="Data-aided EVM | after 1,024-symbol warmup", ylabel="RMS EVM (%)")
-axis.grid(axis="y", alpha=0.25)
-axis.set_axisbelow(True)
+axis.grid(axis="x", visible=False)
 axis.text(
-    0.5,
-    0.88,
+    0.75,
+    0.95,
     f"Observed BER: {record['aligned_ber']:.3g}\n{record['compared_bits']:,} compared bits",
     transform=axis.transAxes,
     ha="center",
-    fontsize=10,
+    va="top",
 )
 save(figure, "equalizer_dashboard")

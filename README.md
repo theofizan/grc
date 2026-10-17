@@ -203,6 +203,42 @@ python scripts/build_flowgraph.py --modulation 16qam
 
 Edit `.grc` files for normal experimentation. `grc/generated/` is compiler output. `antenna_steering.py` remains the steering framework for later hardware work.
 
+## Paper figures
+
+`python scripts/sweep_ber.py` runs each saved flowchart at Eb/N₀ = 0, 1, 2, … dB (about 262,000 bits per point, stopping after two error-free points), then `python scripts/plot_results.py` and `python scripts/plot_equalizer.py` export the figures. Every figure is a vector PDF/SVG with embedded serif fonts plus a 600-dpi PNG, sized for an IEEE column (3.5 in) or page (7.16 in). Each modulation keeps one color, marker and line style, so figures also read in grayscale.
+
+| Figure | What it shows |
+| --- | --- |
+| [ber_vs_ebno](results/ber_vs_ebno.pdf) | Measured BER of all six flowcharts with exact 95% Clopper–Pearson intervals. Open markers: zero errors, plotted at the 95% upper bound. |
+| [ber_vs_ebno_panels](results/ber_vs_ebno_panels.pdf) | Each modulation against an ideal-synchronization reference with the same mapping and differential coding, and textbook coherent Gray-coded theory. |
+| [evm_vs_esno](results/evm_vs_esno.pdf) | Data-aided EVM against the AWGN prediction 100/√(Es/N₀). |
+| [constellation_grid](results/constellation_grid.pdf) | All six received constellations at the shared −90.46 dBm receiver-noise point. |
+
+What the figures show:
+- Above a few dB Eb/N₀, measured BER lies on the ideal-sync reference. The gap to Gray theory is the cost of differential coding plus the stock non-Gray symbol orders (ASK uses natural order).
+- At the lowest Eb/N₀ values, BPSK, 4-ASK and 8-ASK read BER ≈ 0.5 with EVM above 100%: timing recovery and the decision-directed equalizer lose lock there. That is real receiver behavior, not a plotting artifact.
+
+Data: [ber_sweep.csv](results/ber_sweep/ber_sweep.csv), [ideal_reference.csv](results/ber_sweep/ideal_reference.csv).
+
+## USRP N210 flowcharts (work in progress)
+
+`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. Throttle and Channel Model become a UHD USRP Sink (TX/RX port) and Source (RX2 port) on one N210. The changes:
+
+- **TX level** is set in dBFS. The default −15 dBFS RMS keeps sampled peaks between −7 and −11 dBFS.
+- **RX gain is fixed, with no AGC,** so the RX ADC level in dBFS tracks antenna gain directly. Set *Fixed RX digital gain* to −(RX ADC dBFS) once, then keep it for the whole antenna comparison.
+- **Carrier recovery** is a stock Costas loop, followed by a phase-ambiguity rotation applied after the equalizer.
+- **Known-link-budget SNR** readouts become MER from the decision-directed EVM.
+- **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD will warn that odd decimation adds slight CIC passband droop.
+
+**Status: not yet validated.** `python scripts/check_n210_loopback.py` replaces the radio with an impaired software channel (unknown delay, 300 Hz carrier offset, 37° phase, −60 dB, Es/N₀ 25 dB) and scores the decoded bits against the true transmitted data. Results ([n210_loopback_check.json](results/n210_loopback_check.json)):
+
+- **QPSK** decodes error-free.
+- **BPSK and 8-PSK** lock to a wrong phase state.
+- **ASK and 16-QAM** are not tracked well enough by a Costas loop.
+- **The on-screen BER cannot detect a wrong rotation.** It is self-referenced (RX bits against RX bits one data period earlier).
+
+These receivers need a known preamble or another carrier-recovery design before you take hardware measurements.
+
 ## OFDM archive
 
 The previous OFDM/Wi-Fi project, supporting flowcharts, custom modules, Python/MATLAB code, configurations, documentation, and results are preserved under [archive/ofdm_2026-10-17](archive/ofdm_2026-10-17/README.md). The active launcher opens only these six single-carrier examples. The user's original `test_flow.grc` and `test_flow.py` are preserved in the root folder.
