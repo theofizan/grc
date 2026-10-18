@@ -63,9 +63,16 @@ text += [
     "## Data rate at 1 Msymbol/s\n",
     "![Gross bit rate](data_rate.png)\n",
     "Gross uncoded bit rate is symbol rate × log2(M). Rates are 1, 2, 3, 2, 3, and 4 Mbit/s respectively. These are not measured packet goodput. With rolloff 0.35, ideal RRC null-to-null bandwidth is 1.35 MHz (complex baseband edges ±0.675 MHz). [CSV](data_rate.csv), [vector PDF](data_rate.pdf), [independent MATLAB chart](matlab_data_rate.png).\n",
-    "## BER and EVM comparison\n",
+    "## BER versus Eb/N0\n",
+    "![Measured BER versus Eb/N0](ber_vs_ebno.png)\n",
+    "Each point is one finite capture of the saved flowchart (about 250,000 compared bits) with receiver noise set from the requested Eb/N0 under the Fs noise-bandwidth convention. Error bars are exact 95% Clopper-Pearson intervals; open markers had zero errors and sit at the one-sided 95% upper bound. [Data](ber_sweep/ber_sweep.csv), [vector PDF](ber_vs_ebno.pdf).\n",
+    "![BER panels with references](ber_vs_ebno_panels.png)\n",
+    "Dashed: ideal synchronization with the same constellation, bit mapping and differential coding (NumPy). Grey: textbook coherent Gray-coded AWGN theory. Above a few dB the flowchart measurements lie on the ideal-sync reference; the gap to Gray theory is the cost of differential coding and the stock (non-Gray) ASK symbol order. At the lowest Eb/N0, BPSK, 4-ASK and 8-ASK lose timing/equalizer lock (BER near 0.5), which is real receiver behavior.\n",
+    "![EVM versus Es/N0](evm_vs_esno.png)\n",
+    "Data-aided EVM follows 100/sqrt(Es/N0) for every format wherever the receiver is locked, an independent check of the noise convention.\n",
+    "## BER and EVM at one receiver-noise setting\n",
     "![Measured BER](ber_comparison.png)\n\n![Data-aided EVM](evm_comparison.png)\n",
-    "All baseline runs use 0 dBm nominal conducted TX power, 80 dB net loss, and the same receiver noise power; decision-directed EVM can be optimistic when decisions are wrong. Noise and energy ratios use the documented Fs convention; agreement with an ideal BER curve is not claimed.\n",
+    "All baseline runs use 0 dBm nominal conducted TX power, 80 dB net loss, and the same receiver noise power; decision-directed EVM can be optimistic when decisions are wrong. Noise and energy ratios use the documented Fs convention. Error bars are 95% Clopper-Pearson intervals; zero-error cases show the 95% upper bound.\n",
     "## Independent MATLAB validation\n",
     f"MATLAB passed {matlab_results['cases']} actual capture cases: every XOR bit, BER window, stock per-symbol EVM, RMS smoothing, sample rate, gross bit rate, ideal RRC bandwidth, actual time-varying equalizer FIR output, and reconstructed eye waveforms. Maximum BER difference: {matlab_results['maxBerDifference']:.3g}; maximum per-symbol EVM difference: {matlab_results['maxEvmPercentDifference']:.3g} percentage points. [MATLAB source](../matlab/validate_single_carrier.m), [machine-readable results](matlab_validation.json).\n",
     "Stock EVM formula: [GNU Radio 3.10.12 source](https://github.com/gnuradio/gnuradio/blob/v3.10.12.0/gr-digital/lib/meas_evm_cc_impl.cc).\n",
@@ -75,7 +82,8 @@ text += [
     "Live SNR uses measured TX average power minus known path loss and configured noise power over Fs. Eb/N0 adds 10 log10(Fs/bit_rate). These are known-reference link-budget readouts, not blind estimates from noisy RX samples. Noise disabled displays infinity. Defaults: SNR(Fs)=20 dB; Eb/N0=26.02, 23.01, 21.25, 23.01, 21.25, 20.00 dB across the six formats. The finite noisy test below uses −90.46 dBm noise and therefore different ratios.\n",
     "![Configured RX ratios](rx_ratios.png)\n",
     "## TX and RX constellation figures\n",
-    "TX symbols are the actual stock packing/differential-mapping monitor before pulse shaping. RX points are aligned with those TX symbols using the known latency, with no amplitude/phase fit. Green circles are the user-selected RMS-radius guide; orange circles show measured data-aided RMS error radius. Neither is a confidence contour or a compliance limit. Orange vectors show example TX-to-RX errors.\n",
+    "TX symbols are the actual stock packing/differential-mapping monitor before pulse shaping. RX points are aligned with those TX symbols using the known latency, with no amplitude/phase fit. Dashed circles show the measured data-aided RMS error radius; they are not confidence contours or compliance limits.\n",
+    "![All six RX constellations](constellation_grid.png)\n",
 ]
 for profile in profiles:
     text.append(
@@ -84,6 +92,20 @@ for profile in profiles:
 text.append(
     "MATLAB checks TX symbol encoding, data-aided EVM, and SNR/Eb/N0 readouts in addition to the stock meters. SNR conversion: [MathWorks convertSNR](https://www.mathworks.com/help/comm/ref/convertsnr.html). EVM normalization: [MathWorks EVM](https://www.mathworks.com/help/comm/ref/comm.evm-system-object.html).\n"
 )
+n210_file = ROOT / "results/n210_loopback_check.json"
+if n210_file.exists():
+    n210 = json.loads(n210_file.read_text())
+    channel = n210["channel"]
+    text += [
+        "## Two-N210 flowcharts: software loopback check\n",
+        f"The generated n210_* flowcharts were run with both UHD blocks replaced by a software channel modelling two free-running radios: {channel['cfo_hz']:g} Hz carrier offset, {channel['clock_offset_ppm']:g} ppm sample-clock offset, {channel['delay_samples']:g}-sample delay, {channel['phase_deg']:g} deg carrier phase, {channel['gain_db']:g} dB path, Es/N0 {channel['esno_db']:g} dB. Bits are scored against the true transmitted data after acquisition. This is not a hardware measurement.\n",
+        "| Modulation | BER vs TX data | Flowchart BER display | MER (dB) | TX sampled peak (dBFS) | Pass |\n| --- | ---: | ---: | ---: | ---: | --- |\n"
+        + "".join(
+            f"| {r['modulation'].upper()} | {r['ber_vs_true_tx']:.3g} | {r['displayed_ber']:.3g} | "
+            f"{r['mer_db_settled']:.1f} | {r['tx_sample_peak_dbfs']:.1f} | {'yes' if r['passed'] else 'NO'} |\n"
+            for r in n210["results"]
+        ),
+    ]
 text += canvas_text
 text.append(
     "Reference: [GNU Radio tutorial](https://wiki.gnuradio.org/index.php?title=M-ASK_Mod_and_Demod_and_QAM-M_Mod_and_Demod), read from the locally downloaded HTML and figures.\n"

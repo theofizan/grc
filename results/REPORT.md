@@ -66,13 +66,27 @@ Average and sampled peak meters use stock magnitude-squared, integration/max, an
 
 Gross uncoded bit rate is symbol rate × log2(M). Rates are 1, 2, 3, 2, 3, and 4 Mbit/s respectively. These are not measured packet goodput. With rolloff 0.35, ideal RRC null-to-null bandwidth is 1.35 MHz (complex baseband edges ±0.675 MHz). [CSV](data_rate.csv), [vector PDF](data_rate.pdf), [independent MATLAB chart](matlab_data_rate.png).
 
-## BER and EVM comparison
+## BER versus Eb/N0
+
+![Measured BER versus Eb/N0](ber_vs_ebno.png)
+
+Each point is one finite capture of the saved flowchart (about 250,000 compared bits) with receiver noise set from the requested Eb/N0 under the Fs noise-bandwidth convention. Error bars are exact 95% Clopper-Pearson intervals; open markers had zero errors and sit at the one-sided 95% upper bound. [Data](ber_sweep/ber_sweep.csv), [vector PDF](ber_vs_ebno.pdf).
+
+![BER panels with references](ber_vs_ebno_panels.png)
+
+Dashed: ideal synchronization with the same constellation, bit mapping and differential coding (NumPy). Grey: textbook coherent Gray-coded AWGN theory. Above a few dB the flowchart measurements lie on the ideal-sync reference; the gap to Gray theory is the cost of differential coding and the stock (non-Gray) ASK symbol order. At the lowest Eb/N0, BPSK, 4-ASK and 8-ASK lose timing/equalizer lock (BER near 0.5), which is real receiver behavior.
+
+![EVM versus Es/N0](evm_vs_esno.png)
+
+Data-aided EVM follows 100/sqrt(Es/N0) for every format wherever the receiver is locked, an independent check of the noise convention.
+
+## BER and EVM at one receiver-noise setting
 
 ![Measured BER](ber_comparison.png)
 
 ![Data-aided EVM](evm_comparison.png)
 
-All baseline runs use 0 dBm nominal conducted TX power, 80 dB net loss, and the same receiver noise power; decision-directed EVM can be optimistic when decisions are wrong. Noise and energy ratios use the documented Fs convention; agreement with an ideal BER curve is not claimed.
+All baseline runs use 0 dBm nominal conducted TX power, 80 dB net loss, and the same receiver noise power; decision-directed EVM can be optimistic when decisions are wrong. Noise and energy ratios use the documented Fs convention. Error bars are 95% Clopper-Pearson intervals; zero-error cases show the 95% upper bound.
 
 ## Independent MATLAB validation
 
@@ -88,7 +102,9 @@ Live SNR uses measured TX average power minus known path loss and configured noi
 
 ## TX and RX constellation figures
 
-TX symbols are the actual stock packing/differential-mapping monitor before pulse shaping. RX points are aligned with those TX symbols using the known latency, with no amplitude/phase fit. Green circles are the user-selected RMS-radius guide; orange circles show measured data-aided RMS error radius. Neither is a confidence contour or a compliance limit. Orange vectors show example TX-to-RX errors.
+TX symbols are the actual stock packing/differential-mapping monitor before pulse shaping. RX points are aligned with those TX symbols using the known latency, with no amplitude/phase fit. Dashed circles show the measured data-aided RMS error radius; they are not confidence contours or compliance limits.
+
+![All six RX constellations](constellation_grid.png)
 
 ### BPSK symbols
 
@@ -127,6 +143,19 @@ TX symbols are the actual stock packing/differential-mapping monitor before puls
 ![RX constellation](16qam_rx_constellation.png)
 
 MATLAB checks TX symbol encoding, data-aided EVM, and SNR/Eb/N0 readouts in addition to the stock meters. SNR conversion: [MathWorks convertSNR](https://www.mathworks.com/help/comm/ref/convertsnr.html). EVM normalization: [MathWorks EVM](https://www.mathworks.com/help/comm/ref/comm.evm-system-object.html).
+
+## Two-N210 flowcharts: software loopback check
+
+The generated n210_* flowcharts were run with both UHD blocks replaced by a software channel modelling two free-running radios: 3000 Hz carrier offset, 2 ppm sample-clock offset, 12345.4-sample delay, 137 deg carrier phase, -40 dB path, Es/N0 25 dB. Bits are scored against the true transmitted data after acquisition. This is not a hardware measurement.
+
+| Modulation | BER vs TX data | Flowchart BER display | MER (dB) | TX sampled peak (dBFS) | Pass |
+| --- | ---: | ---: | ---: | ---: | --- |
+| BPSK | 0 | 0 | 24.4 | -10.9 | yes |
+| QPSK | 0 | 0 | 24.5 | -11.0 | yes |
+| 8PSK | 0 | 0 | 24.6 | -11.1 | yes |
+| 4ASK | 0 | 0 | 24.6 | -8.4 | yes |
+| 8ASK | 0 | 0 | 24.6 | -7.5 | yes |
+| 16QAM | 0 | 0 | 23.7 | -8.9 | yes |
 
 ## Actual GRC canvas exports
 

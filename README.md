@@ -105,7 +105,11 @@ Measured average power (dBm) = 10 log10(mean(|IQ|²))
 
 For a normal link budget, use `net_loss = propagation_loss + cable_losses + other_losses - TX_gain_dBi - RX_gain_dBi`. The reference planes are the conducted TX output and receiver input. This input is **not EIRP**. Add antenna gain and subtract feeder loss explicitly in the net-loss calculation.
 
-The **Link budget** tab shows measured TX average, RX total power (signal **plus noise**), sampled TX peak envelope power, a power history, and the sampled TX envelope in dBm. Averages and peaks use 4096-sample windows (1.024 ms at 4 Msamples/s). Average linear power is converted to dBm after averaging; averaging dBm samples would give a different result.
+The **Link budget** tab shows two readout tables, built from stock Number Sinks because GRC has no table widget:
+- **Transmit:** average, sampled peak and peak-to-average.
+- **Receive:** total power (signal **plus noise**), SNR over Fs and Eb/N₀.
+
+The tab also shows the RX spectrum and the fixed-length BER test. Averages and peaks use 4096-sample windows (1.024 ms at 4 Msamples/s). Average linear power is converted to dBm after averaging; averaging dBm samples would give a different result.
 
 Average power and peak envelope power are different. `PEP_dBm = average_dBm + PAPR_dB`. The average setting is nominal for random symbols through the selected pulse-shaping filter; finite measured averages can differ slightly. The sampled peak depends on modulation, RRC rolloff, data and observation length. At four samples/symbol it can miss a continuous-time peak. The simulation has no PA clipping, compression or receiver saturation.
 
@@ -137,7 +141,7 @@ At 1 Msymbol/s, gross uncoded rates are **1, 2, 3, 2, 3, and 4 Mbit/s** for BPSK
 
 ## RX SNR, Eb/N₀, and constellation guides
 
-The **Link budget** tab now includes RX SNR and Eb/N₀ readouts. These use the **measured TX average power**, known path loss, and configured receiver noise. They are known-reference link-budget quantities; RX total power alone cannot separate signal from noise.
+The **Link budget** tab's Receive table includes RX SNR and Eb/N₀. These use the **measured TX average power**, known path loss, and configured receiver noise. They are known-reference link-budget quantities; RX total power alone cannot separate signal from noise.
 
 ```text
 RX SNR over Fs (dB) = measured_TX_dBm - net_loss_dB - noise_dBm
@@ -220,24 +224,47 @@ What the figures show:
 
 Data: [ber_sweep.csv](results/ber_sweep/ber_sweep.csv), [ideal_reference.csv](results/ber_sweep/ideal_reference.csv).
 
-## USRP N210 flowcharts (work in progress)
+## Two USRP N210s: over-the-air BER
 
-`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. Throttle and Channel Model become a UHD USRP Sink (TX/RX port) and Source (RX2 port) on one N210. The changes:
+`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. One computer drives both radios: a UHD USRP Sink on the **TX N210** (TX/RX port) and a UHD USRP Source on the **RX N210** (RX2 port). Set both device addresses, the RF frequency and the normalized TX/RX gains at the top of the flowchart.
 
-- **TX level** is set in dBFS. The default −15 dBFS RMS keeps sampled peaks between −7 and −11 dBFS.
-- **RX gain is fixed, with no AGC,** so the RX ADC level in dBFS tracks antenna gain directly. Set *Fixed RX digital gain* to −(RX ADC dBFS) once, then keep it for the whole antenna comparison.
-- **Carrier recovery** is a stock Costas loop, followed by a phase-ambiguity rotation applied after the equalizer.
-- **Known-link-budget SNR** readouts become MER from the decision-directed EVM.
-- **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD will warn that odd decimation adds slight CIC passband droop.
+What changes from the simulation, in RF terms:
+- **TX level is in dBFS** (0 dBFS = DAC full scale). The default −15 dBFS RMS keeps sampled peaks between −7 and −11 dBFS, below clipping. Conducted dBm depends on the daughterboard and TX gain; the N210 is not power-calibrated.
+- **RX level is measured before any AGC.** The Receive table's ADC level (dBFS) comes straight from the RX N210 at fixed RF gain. With the same gain settings, it moves 1:1 with antenna gain and path loss.
+- **Demodulation:** AGC (for the demodulator only) → polyphase timing recovery → Costas loop → known-preamble detector → LMS equalizer trained on the known data.
+  - The Costas loop pulls in the few-kHz offset between two free-running N210 oscillators. Its bandwidth is 2π/200 rad/symbol for PSK, 2π/800 for ASK and 2π/1600 for 16-QAM.
+- **Known data:** differential coding is off. The TX repeats a fixed block of 32,766 random bytes, which is a whole number of symbols for every format.
+  - A stock Correlation Estimator finds the first 128 symbols of each block and tags them.
+  - The equalizer then trains on the block's known symbols. That fixes the absolute carrier phase, so a Costas loop locked to a rotated state still gives correct bits.
+- **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD warns that odd decimation adds slight CIC passband droop.
 
-**Status: not yet validated.** `python scripts/check_n210_loopback.py` replaces the radio with an impaired software channel (unknown delay, 300 Hz carrier offset, 37° phase, −60 dB, Es/N₀ 25 dB) and scores the decoded bits against the true transmitted data. Results ([n210_loopback_check.json](results/n210_loopback_check.json)):
+### Running a BER test (e.g. 1,000,000 bits)
 
-- **QPSK** decodes error-free.
-- **BPSK and 8-PSK** lock to a wrong phase state.
-- **ASK and 16-QAM** are not tracked well enough by a Costas loop.
-- **The on-screen BER cannot detect a wrong rotation.** It is self-referenced (RX bits against RX bits one data period earlier).
+```bash
+python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.3 --freq 915e6 --tx-gain 0.5 --rx-gain 0.5
+```
 
-These receivers need a known preamble or another carrier-recovery design before you take hardware measurements.
+What the runner does:
+1. Prints its time estimate. A run is acquisition (two data blocks) plus the test bits at the gross bit rate: about 0.8 s for 10⁶ QPSK bits, 7.6 s for 10⁷.
+2. Runs the flowchart (add `--gui` to watch the dashboard) and compares exactly that many received bits with the **actual transmitted data**.
+3. Scores in 50,000-bit chunks that are each re-aligned, so a USRP overflow only affects its own chunk. Re-alignments are reported.
+4. Saves `results/n210_runs/<time>_<modulation>_<label>.json` with:
+   - error count, BER and the exact 95% confidence interval
+   - RX ADC level and MER
+   - every RF setting
+
+Add `--simulate --esno-db 12` to try the whole procedure through a software channel with no radios.
+
+In GRC, `ber_test_bits` sets the length of the **BER test** readout on the RF levels tab. It shows the BER of each consecutive block of that many bits and never stops the radios. A label underneath shows when the first block will finish.
+
+### Validation without hardware
+
+`python scripts/check_n210_loopback.py` runs each generated flowchart with the two UHD blocks swapped for a software channel modelling two free-running radios:
+- 3 kHz carrier offset and 2 ppm sample-clock offset
+- unknown fractional delay and arbitrary carrier phase
+- −40 dB path, Es/N₀ 25 dB
+
+It scores the decoded bits against the true transmitted data, and requires the flowchart's own BER display to agree. All six formats decode error-free. All six were also error-free across five combinations of carrier phase and offset (−3 to +3 kHz). This checks the receiver logic, not RF hardware performance ([results](results/n210_loopback_check.json)).
 
 ## OFDM archive
 

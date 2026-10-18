@@ -16,6 +16,7 @@ import numpy
 from gnuradio import channels
 from gnuradio.filter import firdes
 from gnuradio import digital
+from gnuradio import eng_notation
 from gnuradio import filter
 from gnuradio import gr
 from gnuradio.fft import window
@@ -24,7 +25,6 @@ import signal
 from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
-from gnuradio import eng_notation
 import math
 import sip
 import threading
@@ -59,7 +59,7 @@ def snippets_main_after_init(tb):
 
 class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, reference_delay=68, symbol_rate=1e6, tx_power_dbm=0, path_loss_db=80, rx_noise_dbm=(-100), noise_enabled=1, evm_guide_percent=5, eq_taps=11, eq_step=0.01, channel_echo=0):
+    def __init__(self, reference_delay=68, symbol_rate=1e6, tx_power_dbm=0, path_loss_db=80, rx_noise_dbm=(-100), noise_enabled=1, evm_guide_percent=5, eq_taps=11, eq_step=0.01, channel_echo=0, ber_test_bits=1000000):
         gr.top_block.__init__(self, "4ASK single carrier | stock blocks", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("4ASK single carrier | stock blocks")
@@ -103,22 +103,25 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.eq_taps = eq_taps
         self.eq_step = eq_step
         self.channel_echo = channel_echo
+        self.ber_test_bits = ber_test_bits
 
         ##################################################
         # Variables
         ##################################################
         self.const = const = digital.constellation_rect([-3, -1, 1, 3], [0, 1, 2, 3],
         1, 4, 1, 2, 1).base()
-        self.sps = sps = 4
         self.k = k = const.bits_per_symbol()
+        self.warmup_bits = warmup_bits = 4096
+        self.sps = sps = 4
         self.expected_rx_dbm = expected_rx_dbm = tx_power_dbm-path_loss_db
+        self.bit_rate = bit_rate = symbol_rate*k
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
         self.snr_rx_db = snr_rx_db = expected_rx_dbm-rx_noise_dbm if noise_enabled else float('inf')
         self.samp_rate = samp_rate = symbol_rate*sps
         self.nfilts = nfilts = 32
-        self.bit_rate = bit_rate = symbol_rate*k
+        self.ber_test_seconds = ber_test_seconds = (warmup_bits + ber_test_bits) / bit_rate
+        self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.alpha = alpha = 0.35
-        self.warmup_bits = warmup_bits = 4096
         self.tx_amplitude = tx_amplitude = 10**(tx_power_dbm/20.0)
         self.timing_bw = timing_bw = 0.0628
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
@@ -131,6 +134,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.ebno_rx_db = ebno_rx_db = snr_rx_db+10*math.log10(samp_rate/bit_rate)
         self.ber_window = ber_window = 10000
+        self.ber_test_time = ber_test_time = '%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * ber_test_blocks, ber_test_seconds, bit_rate / 1e6)
 
         ##################################################
         # Blocks
@@ -332,47 +336,11 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.tx_symbol_chunks = blocks.packed_to_unpacked_bb(k, gr.GR_MSB_FIRST)
         self.tx_power_sum = blocks.integrate_ff(4096, 1)
         self.tx_power_mean = blocks.multiply_const_ff((1.0/4096))
-        self.tx_power_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.tx_power_display.set_update_time(0.10)
-        self.tx_power_display.set_title('TX average conducted power')
-
-        labels = ['TX average', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBm', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.tx_power_display.set_min(i, -200)
-            self.tx_power_display.set_max(i, 100)
-            self.tx_power_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.tx_power_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.tx_power_display.set_label(i, labels[i])
-            self.tx_power_display.set_unit(i, units[i])
-            self.tx_power_display.set_factor(i, factor[i])
-
-        self.tx_power_display.enable_autoscale(False)
-        self._tx_power_display_win = sip.wrapinstance(self.tx_power_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._tx_power_display_win, 3, 0, 1, 1)
-        for r in range(3, 4):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.tx_power = blocks.multiply_const_cc(tx_amplitude/symbol_rms)
         self.tx_peak_vectors = blocks.stream_to_vector(gr.sizeof_float*1, 4096)
         self.tx_peak_mw = blocks.max_ff(4096, 1)
         self.tx_peak_dbm = blocks.nlog10_ff(10, 1, 0)
+        self.tx_papr = blocks.sub_ff(1)
         self.tx_milliwatts = blocks.complex_to_mag_squared(1)
         self.tx_eye_q_eye = qtgui.eye_sink_f(
             1024, #size
@@ -599,7 +567,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
 
 
-        labels = ['', '', '', '', '',
+        labels = ['RX', '', '', '', '',
             '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
             1, 1, 1, 1, 1]
@@ -669,232 +637,17 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_1.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_1.setColumnStretch(c, 1)
-        self.snr_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.snr_display.set_update_time(0.10)
-        self.snr_display.set_title('RX SNR | noise over Fs')
-
-        labels = ['RX SNR | noise over Fs', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dB', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.snr_display.set_min(i, -100)
-            self.snr_display.set_max(i, 100)
-            self.snr_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.snr_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.snr_display.set_label(i, labels[i])
-            self.snr_display.set_unit(i, units[i])
-            self.snr_display.set_factor(i, factor[i])
-
-        self.snr_display.enable_autoscale(False)
-        self._snr_display_win = sip.wrapinstance(self.snr_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._snr_display_win, 4, 1, 1, 1)
-        for r in range(4, 5):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.skip_tx = blocks.skiphead(gr.sizeof_char*1, warmup_bits)
         self.skip_rx = blocks.skiphead(gr.sizeof_char*1, warmup_bits)
         self.rx_snr = blocks.add_const_ff((-path_loss_db-rx_noise_dbm if noise_enabled else float('inf')))
         self.rx_scale = blocks.multiply_const_cc(symbol_rms)
         self.rx_power_sum = blocks.integrate_ff(4096, 1)
         self.rx_power_mean = blocks.multiply_const_ff((1.0/4096))
-        self.rx_power_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.rx_power_display.set_update_time(0.10)
-        self.rx_power_display.set_title('RX total power: signal + noise')
-
-        labels = ['RX signal + noise', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBm', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.rx_power_display.set_min(i, -200)
-            self.rx_power_display.set_max(i, 100)
-            self.rx_power_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.rx_power_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.rx_power_display.set_label(i, labels[i])
-            self.rx_power_display.set_unit(i, units[i])
-            self.rx_power_display.set_factor(i, factor[i])
-
-        self.rx_power_display.enable_autoscale(False)
-        self._rx_power_display_win = sip.wrapinstance(self.rx_power_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._rx_power_display_win, 3, 1, 1, 1)
-        for r in range(3, 4):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.rx_milliwatts = blocks.complex_to_mag_squared(1)
         self.rx_level = blocks.multiply_const_cc(1.0/(tx_amplitude*path_gain))
         self.rx_ebno = blocks.add_const_ff((-path_loss_db-rx_noise_dbm+10*math.log10(samp_rate/bit_rate) if noise_enabled else float('inf')))
         self.rx_dbm = blocks.nlog10_ff(10, 1, 0)
         self.random_bytes = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 256, 32768))), True)
-        self.power_reference_chart = qtgui.time_sink_f(
-            128, #size
-            samp_rate/4096, #samp_rate
-            'RX SNR over Fs | known reference', #name
-            1, #number of inputs
-            None # parent
-        )
-        self.power_reference_chart.set_update_time(0.10)
-        self.power_reference_chart.set_y_axis(-1, 1)
-
-        self.power_reference_chart.set_y_label('Amplitude', "")
-
-        self.power_reference_chart.enable_tags(True)
-        self.power_reference_chart.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.power_reference_chart.enable_autoscale(True)
-        self.power_reference_chart.enable_grid(False)
-        self.power_reference_chart.enable_axis_labels(True)
-        self.power_reference_chart.enable_control_panel(False)
-        self.power_reference_chart.enable_stem_plot(False)
-
-
-        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.power_reference_chart.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.power_reference_chart.set_line_label(i, labels[i])
-            self.power_reference_chart.set_line_width(i, widths[i])
-            self.power_reference_chart.set_line_color(i, colors[i])
-            self.power_reference_chart.set_line_style(i, styles[i])
-            self.power_reference_chart.set_line_marker(i, markers[i])
-            self.power_reference_chart.set_line_alpha(i, alphas[i])
-
-        self._power_reference_chart_win = sip.wrapinstance(self.power_reference_chart.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._power_reference_chart_win, 2, 1, 1, 1)
-        for r in range(2, 3):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.power_history = qtgui.time_sink_f(
-            128, #size
-            samp_rate/4096, #samp_rate
-            'Measured power | TX average and RX signal + noise (dBm)', #name
-            2, #number of inputs
-            None # parent
-        )
-        self.power_history.set_update_time(0.10)
-        self.power_history.set_y_axis(-1, 1)
-
-        self.power_history.set_y_label('Amplitude', "")
-
-        self.power_history.enable_tags(True)
-        self.power_history.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.power_history.enable_autoscale(True)
-        self.power_history.enable_grid(False)
-        self.power_history.enable_axis_labels(True)
-        self.power_history.enable_control_panel(False)
-        self.power_history.enable_stem_plot(False)
-
-
-        labels = ['TX average (dBm)', 'RX total (dBm)', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(2):
-            if len(labels[i]) == 0:
-                self.power_history.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.power_history.set_line_label(i, labels[i])
-            self.power_history.set_line_width(i, widths[i])
-            self.power_history.set_line_color(i, colors[i])
-            self.power_history.set_line_style(i, styles[i])
-            self.power_history.set_line_marker(i, markers[i])
-            self.power_history.set_line_alpha(i, alphas[i])
-
-        self._power_history_win = sip.wrapinstance(self.power_history.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._power_history_win, 1, 0, 1, 1)
-        for r in range(1, 2):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.peak_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.peak_display.set_update_time(0.10)
-        self.peak_display.set_title('TX sampled peak envelope power')
-
-        labels = ['TX peak per 4096 samples', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBm', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.peak_display.set_min(i, -200)
-            self.peak_display.set_max(i, 100)
-            self.peak_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.peak_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.peak_display.set_label(i, labels[i])
-            self.peak_display.set_unit(i, units[i])
-            self.peak_display.set_factor(i, factor[i])
-
-        self.peak_display.enable_autoscale(False)
-        self._peak_display_win = sip.wrapinstance(self.peak_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._peak_display_win, 4, 0, 1, 1)
-        for r in range(4, 5):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.modulator = digital.generic_mod(
             constellation=const,
             differential=True,
@@ -1010,6 +763,80 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.middle_i = blocks.complex_to_real(1)
         self.middle_eye_reconstruction = filter.interp_fir_filter_ccf(sps, eye_synthesis_taps)
         self.middle_eye_reconstruction.declare_sample_delay(0)
+        self.link_tx_table = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_NONE,
+            3,
+            None # parent
+        )
+        self.link_tx_table.set_update_time(0.25)
+        self.link_tx_table.set_title('Transmit (conducted, nominal)')
+
+        labels = ['Average', 'Sampled peak', 'Peak/average', '', '',
+            '', '', '', '', '']
+        units = ['dBm', 'dBm', 'dB', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(3):
+            self.link_tx_table.set_min(i, -200)
+            self.link_tx_table.set_max(i, 100)
+            self.link_tx_table.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.link_tx_table.set_label(i, "Data {0}".format(i))
+            else:
+                self.link_tx_table.set_label(i, labels[i])
+            self.link_tx_table.set_unit(i, units[i])
+            self.link_tx_table.set_factor(i, factor[i])
+
+        self.link_tx_table.enable_autoscale(False)
+        self._link_tx_table_win = sip.wrapinstance(self.link_tx_table.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._link_tx_table_win, 1, 0, 1, 1)
+        for r in range(1, 2):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
+        self.link_rx_table = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_NONE,
+            3,
+            None # parent
+        )
+        self.link_rx_table.set_update_time(0.25)
+        self.link_rx_table.set_title('Receive (noise over Fs)')
+
+        labels = ['Signal + noise', 'SNR over Fs', 'Eb/N0 per bit', '', '',
+            '', '', '', '', '']
+        units = ['dBm', 'dB', 'dB', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(3):
+            self.link_rx_table.set_min(i, -200)
+            self.link_rx_table.set_max(i, 100)
+            self.link_rx_table.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.link_rx_table.set_label(i, "Data {0}".format(i))
+            else:
+                self.link_rx_table.set_label(i, labels[i])
+            self.link_rx_table.set_unit(i, units[i])
+            self.link_rx_table.set_factor(i, factor[i])
+
+        self.link_rx_table.enable_autoscale(False)
+        self._link_rx_table_win = sip.wrapinstance(self.link_rx_table.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._link_rx_table_win, 1, 1, 1, 1)
+        for r in range(1, 2):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(1, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.integrate = blocks.integrate_ff(ber_window, 1)
         self.ideal_symbols = blocks.vector_source_c(const.points(), True, 1, [])
         self.eye_quadrature = qtgui.eye_sink_f(
@@ -1359,97 +1186,6 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_5.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_5.setColumnStretch(c, 1)
-        self.envelope_plot = qtgui.time_sink_f(
-            512, #size
-            samp_rate, #samp_rate
-            'TX sampled power envelope (dBm)', #name
-            1, #number of inputs
-            None # parent
-        )
-        self.envelope_plot.set_update_time(0.10)
-        self.envelope_plot.set_y_axis(-1, 1)
-
-        self.envelope_plot.set_y_label('Amplitude', "")
-
-        self.envelope_plot.enable_tags(True)
-        self.envelope_plot.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.envelope_plot.enable_autoscale(True)
-        self.envelope_plot.enable_grid(False)
-        self.envelope_plot.enable_axis_labels(True)
-        self.envelope_plot.enable_control_panel(False)
-        self.envelope_plot.enable_stem_plot(False)
-
-
-        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.envelope_plot.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.envelope_plot.set_line_label(i, labels[i])
-            self.envelope_plot.set_line_width(i, widths[i])
-            self.envelope_plot.set_line_color(i, colors[i])
-            self.envelope_plot.set_line_style(i, styles[i])
-            self.envelope_plot.set_line_marker(i, markers[i])
-            self.envelope_plot.set_line_alpha(i, alphas[i])
-
-        self._envelope_plot_win = sip.wrapinstance(self.envelope_plot.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._envelope_plot_win, 1, 1, 1, 1)
-        for r in range(1, 2):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.envelope_floor = blocks.add_const_ff((1e-30))
-        self.envelope_dbm = blocks.nlog10_ff(10, 1, 0)
-        self.ebno_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.ebno_display.set_update_time(0.10)
-        self.ebno_display.set_title('RX Eb/N0 | known TX and noise')
-
-        labels = ['RX Eb/N0 | known TX and noise', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dB', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.ebno_display.set_min(i, -100)
-            self.ebno_display.set_max(i, 100)
-            self.ebno_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.ebno_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.ebno_display.set_label(i, labels[i])
-            self.ebno_display.set_unit(i, units[i])
-            self.ebno_display.set_factor(i, factor[i])
-
-        self.ebno_display.enable_autoscale(False)
-        self._ebno_display_win = sip.wrapinstance(self.ebno_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._ebno_display_win, 5, 0, 1, 1)
-        for r in range(5, 6):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.diff_decoder = digital.diff_decoder_bb(4, digital.DIFF_DIFFERENTIAL)
         self.delay = blocks.delay(gr.sizeof_char*1, reference_delay)
         self.decoder = digital.constellation_decoder_cb(const)
@@ -1461,6 +1197,61 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             taps=[path_gain/(1+channel_echo**2)**0.5]+[0j]*(sps-1)+[path_gain*channel_echo/(1+channel_echo**2)**0.5],
             noise_seed=42,
             block_tags=False)
+        self._ber_test_time_tool_bar = Qt.QToolBar(self)
+
+        if None:
+            self._ber_test_time_formatter = None
+        else:
+            self._ber_test_time_formatter = lambda x: str(x)
+
+        self._ber_test_time_tool_bar.addWidget(Qt.QLabel("BER test"))
+        self._ber_test_time_label = Qt.QLabel(str(self._ber_test_time_formatter(self.ber_test_time)))
+        self._ber_test_time_tool_bar.addWidget(self._ber_test_time_label)
+        self.views_grid_layout_3.addWidget(self._ber_test_time_tool_bar, 3, 0, 1, 2)
+        for r in range(3, 4):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(0, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
+        self.ber_test_sum_10k = blocks.integrate_ff(10000, 1)
+        self.ber_test_sum = blocks.integrate_ff(ber_test_blocks, 1)
+        self.ber_test_scale = blocks.multiply_const_ff((1.0/(10000*ber_test_blocks)))
+        self.ber_test_display = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_NONE,
+            1,
+            None # parent
+        )
+        self.ber_test_display.set_update_time(0.25)
+        self.ber_test_display.set_title('BER test | latest complete block (0 until the first block ends)')
+
+        labels = ['BER over block', '', '', '', '',
+            '', '', '', '', '']
+        units = ['errors/bit', '', '', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(1):
+            self.ber_test_display.set_min(i, 0)
+            self.ber_test_display.set_max(i, 1)
+            self.ber_test_display.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.ber_test_display.set_label(i, "Data {0}".format(i))
+            else:
+                self.ber_test_display.set_label(i, labels[i])
+            self.ber_test_display.set_unit(i, units[i])
+            self.ber_test_display.set_factor(i, factor[i])
+
+        self.ber_test_display.enable_autoscale(False)
+        self._ber_test_display_win = sip.wrapinstance(self.ber_test_display.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._ber_test_display_win, 2, 1, 1, 1)
+        for r in range(2, 3):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(1, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.ber_scale = blocks.multiply_const_ff((1.0/ber_window))
         self.ber_history = qtgui.time_sink_f(
             128, #size
@@ -1713,6 +1504,9 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.after_q, 0), (self.after_q_eye, 0))
         self.connect((self.ber_scale, 0), (self.ber_display, 0))
         self.connect((self.ber_scale, 0), (self.ber_history, 0))
+        self.connect((self.ber_test_scale, 0), (self.ber_test_display, 0))
+        self.connect((self.ber_test_sum, 0), (self.ber_test_scale, 0))
+        self.connect((self.ber_test_sum_10k, 0), (self.ber_test_sum, 0))
         self.connect((self.channel, 0), (self.eye_i, 0))
         self.connect((self.channel, 0), (self.eye_q, 0))
         self.connect((self.channel, 0), (self.rx_level, 0))
@@ -1722,13 +1516,11 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.channel, 0), (self.waveform, 0))
         self.connect((self.clock_sync, 0), (self.rx_scale, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
+        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.decoder, 0), (self.diff_decoder, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.diff_decoder, 0), (self.unpack_rx, 0))
-        self.connect((self.envelope_dbm, 0), (self.envelope_plot, 0))
-        self.connect((self.envelope_floor, 0), (self.envelope_dbm, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
         self.connect((self.eq_tap_magnitudes, 0), (self.eq_tap_plot, 0))
         self.connect((self.equalizer, 0), (self.after_eye_reconstruction, 0))
@@ -1736,6 +1528,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.equalizer, 0), (self.decoder, 0))
         self.connect((self.equalizer, 1), (self.eq_tap_decimator, 0))
         self.connect((self.equalizer, 0), (self.evm, 0))
+        self.connect((self.errors_float, 0), (self.ber_test_sum_10k, 0))
         self.connect((self.errors_float, 0), (self.integrate, 0))
         self.connect((self.evm, 0), (self.eq_error_trace, 0))
         self.connect((self.evm, 0), (self.evm_rms, 0))
@@ -1757,9 +1550,8 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.random_bytes, 0), (self.modulator, 0))
         self.connect((self.random_bytes, 0), (self.tx_symbol_chunks, 0))
         self.connect((self.random_bytes, 0), (self.unpack_tx, 0))
-        self.connect((self.rx_dbm, 0), (self.power_history, 1))
-        self.connect((self.rx_dbm, 0), (self.rx_power_display, 0))
-        self.connect((self.rx_ebno, 0), (self.ebno_display, 0))
+        self.connect((self.rx_dbm, 0), (self.link_rx_table, 0))
+        self.connect((self.rx_ebno, 0), (self.link_rx_table, 2))
         self.connect((self.rx_level, 0), (self.clock_sync, 0))
         self.connect((self.rx_milliwatts, 0), (self.rx_power_sum, 0))
         self.connect((self.rx_power_mean, 0), (self.rx_dbm, 0))
@@ -1767,21 +1559,21 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.rx_scale, 0), (self.before_eq_constellation, 0))
         self.connect((self.rx_scale, 0), (self.equalizer, 0))
         self.connect((self.rx_scale, 0), (self.middle_eye_reconstruction, 0))
-        self.connect((self.rx_snr, 0), (self.power_reference_chart, 0))
-        self.connect((self.rx_snr, 0), (self.snr_display, 0))
+        self.connect((self.rx_snr, 0), (self.link_rx_table, 1))
         self.connect((self.skip_rx, 0), (self.xor, 0))
         self.connect((self.skip_tx, 0), (self.xor, 1))
         self.connect((self.throttle, 0), (self.channel, 0))
-        self.connect((self.tx_dbm, 0), (self.power_history, 0))
+        self.connect((self.tx_dbm, 0), (self.link_tx_table, 0))
         self.connect((self.tx_dbm, 0), (self.rx_ebno, 0))
         self.connect((self.tx_dbm, 0), (self.rx_snr, 0))
-        self.connect((self.tx_dbm, 0), (self.tx_power_display, 0))
+        self.connect((self.tx_dbm, 0), (self.tx_papr, 1))
         self.connect((self.tx_eye_i, 0), (self.tx_eye_i_eye, 0))
         self.connect((self.tx_eye_q, 0), (self.tx_eye_q_eye, 0))
-        self.connect((self.tx_milliwatts, 0), (self.envelope_floor, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_peak_vectors, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_power_sum, 0))
-        self.connect((self.tx_peak_dbm, 0), (self.peak_display, 0))
+        self.connect((self.tx_papr, 0), (self.link_tx_table, 2))
+        self.connect((self.tx_peak_dbm, 0), (self.link_tx_table, 1))
+        self.connect((self.tx_peak_dbm, 0), (self.tx_papr, 0))
         self.connect((self.tx_peak_mw, 0), (self.tx_peak_dbm, 0))
         self.connect((self.tx_peak_vectors, 0), (self.tx_peak_mw, 0))
         self.connect((self.tx_power, 0), (self.spectrum, 1))
@@ -1895,12 +1687,34 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.channel_echo = channel_echo
         self.channel.set_taps([self.path_gain/(1+self.channel_echo**2)**0.5]+[0j]*(self.sps-1)+[self.path_gain*self.channel_echo/(1+self.channel_echo**2)**0.5])
 
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
+
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+        self.set_ber_test_seconds((self.warmup_bits + self.ber_test_bits) / self.bit_rate)
+
     def get_const(self):
         return self.const
 
     def set_const(self, const):
         self.const = const
         self.decoder.set_constellation(self.const)
+
+    def get_k(self):
+        return self.k
+
+    def set_k(self, k):
+        self.k = k
+        self.set_bit_rate(self.symbol_rate*self.k)
+
+    def get_warmup_bits(self):
+        return self.warmup_bits
+
+    def set_warmup_bits(self, warmup_bits):
+        self.warmup_bits = warmup_bits
+        self.set_ber_test_seconds((self.warmup_bits + self.ber_test_bits) / self.bit_rate)
 
     def get_sps(self):
         return self.sps
@@ -1920,19 +1734,23 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.tx_eye_i_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_q_eye.set_samp_per_symbol(self.sps)
 
-    def get_k(self):
-        return self.k
-
-    def set_k(self, k):
-        self.k = k
-        self.set_bit_rate(self.symbol_rate*self.k)
-
     def get_expected_rx_dbm(self):
         return self.expected_rx_dbm
 
     def set_expected_rx_dbm(self, expected_rx_dbm):
         self.expected_rx_dbm = expected_rx_dbm
         self.set_snr_rx_db(self.expected_rx_dbm-self.rx_noise_dbm if self.noise_enabled else float('inf'))
+
+    def get_bit_rate(self):
+        return self.bit_rate
+
+    def set_bit_rate(self, bit_rate):
+        self.bit_rate = bit_rate
+        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
+        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.set_ber_test_seconds((self.warmup_bits + self.ber_test_bits) / self.bit_rate)
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
 
     def get_symbol_rms(self):
         return self.symbol_rms
@@ -1960,8 +1778,6 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.spectrum.set_frequency_range(0, self.samp_rate)
         self.waveform.set_samp_rate(self.samp_rate)
         self.eye.set_samp_rate(self.samp_rate)
-        self.power_history.set_samp_rate(self.samp_rate/4096)
-        self.envelope_plot.set_samp_rate(self.samp_rate)
         self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
         self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
         self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
@@ -1974,7 +1790,6 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.tx_eye_q_eye.set_samp_rate(self.samp_rate)
         self.tx_waveform.set_samp_rate(self.samp_rate)
         self.spectrum_budget.set_frequency_range(0, self.samp_rate)
-        self.power_reference_chart.set_samp_rate(self.samp_rate/4096)
 
     def get_nfilts(self):
         return self.nfilts
@@ -1983,14 +1798,20 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.nfilts = nfilts
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
-    def get_bit_rate(self):
-        return self.bit_rate
+    def get_ber_test_seconds(self):
+        return self.ber_test_seconds
 
-    def set_bit_rate(self, bit_rate):
-        self.bit_rate = bit_rate
-        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
-        self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
-        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+    def set_ber_test_seconds(self, ber_test_seconds):
+        self.ber_test_seconds = ber_test_seconds
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
+
+    def get_ber_test_blocks(self):
+        return self.ber_test_blocks
+
+    def set_ber_test_blocks(self, ber_test_blocks):
+        self.ber_test_blocks = ber_test_blocks
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
+        self.ber_test_scale.set_k((1.0/(10000*self.ber_test_blocks)))
 
     def get_alpha(self):
         return self.alpha
@@ -2000,12 +1821,6 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
         self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
         self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
-
-    def get_warmup_bits(self):
-        return self.warmup_bits
-
-    def set_warmup_bits(self, warmup_bits):
-        self.warmup_bits = warmup_bits
 
     def get_tx_amplitude(self):
         return self.tx_amplitude
@@ -2090,6 +1905,13 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.ber_scale.set_k((1.0/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
 
+    def get_ber_test_time(self):
+        return self.ber_test_time
+
+    def set_ber_test_time(self, ber_test_time):
+        self.ber_test_time = ber_test_time
+        Qt.QMetaObject.invokeMethod(self._ber_test_time_label, "setText", Qt.Q_ARG("QString", str(self._ber_test_time_formatter(self.ber_test_time))))
+
 
 
 def argument_parser():
@@ -2124,6 +1946,9 @@ def argument_parser():
     parser.add_argument(
         "--channel-echo", dest="channel_echo", type=eng_float, default=eng_notation.num_to_str(float(0)),
         help="Set One-symbol echo voltage ratio [default=%(default)r]")
+    parser.add_argument(
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
     return parser
 
 
@@ -2133,7 +1958,7 @@ def main(top_block_cls=single_carrier_4ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(reference_delay=options.reference_delay, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, rx_noise_dbm=options.rx_noise_dbm, noise_enabled=options.noise_enabled, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, channel_echo=options.channel_echo)
+    tb = top_block_cls(reference_delay=options.reference_delay, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, rx_noise_dbm=options.rx_noise_dbm, noise_enabled=options.noise_enabled, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, channel_echo=options.channel_echo, ber_test_bits=options.ber_test_bits)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

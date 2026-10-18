@@ -248,7 +248,10 @@ for label, offset in [
         if lab.noise_enabled
         else np.full(len(observed), np.inf)
     )
-    np.testing.assert_allclose(observed, expected, atol=1e-4)
+    # Finite runs can stop between the two meters' last outputs; compare the
+    # windows both captured.
+    common = min(len(observed), len(expected))
+    np.testing.assert_allclose(observed[:common], expected[:common], atol=1e-4)
 pre_delay = 29
 pre_start = 1024 + pre_delay
 pre_count = min(len(tx_symbols) - 1024, len(pre_eq_symbols) - pre_start)

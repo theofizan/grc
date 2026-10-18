@@ -1009,26 +1009,6 @@ blocks:
     - 2184
     rotation: 0
     state: enabled
-- name: tx_power_display
-  id: qtgui_number_sink
-  parameters:
-    type: float
-    name: TX average conducted power
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-200'
-    max: '100'
-    label1: TX average
-    unit1: dBm
-    gui_hint: views@3:3,0,1,1
-  states:
-    coordinate:
-    - 950
-    - 2184
-    rotation: 0
-    state: enabled
 - name: rx_meter_input
   id: virtual_source
   parameters:
@@ -1085,44 +1065,6 @@ blocks:
     - 2314
     rotation: 0
     state: enabled
-- name: rx_power_display
-  id: qtgui_number_sink
-  parameters:
-    type: float
-    name: 'RX total power: signal + noise'
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-200'
-    max: '100'
-    label1: RX signal + noise
-    unit1: dBm
-    gui_hint: views@3:3,1,1,1
-  states:
-    coordinate:
-    - 950
-    - 2314
-    rotation: 0
-    state: enabled
-- name: power_history
-  id: qtgui_time_sink_x
-  parameters:
-    type: float
-    name: Measured power | TX average and RX signal + noise (dBm)
-    size: '128'
-    srate: samp_rate/4096
-    nconnections: '2'
-    autoscale: 'True'
-    label1: TX average (dBm)
-    label2: RX total (dBm)
-    gui_hint: views@3:1,0,1,1
-  states:
-    coordinate:
-    - 1180
-    - 2244
-    rotation: 0
-    state: enabled
 - name: tx_peak_vectors
   id: blocks_stream_to_vector
   parameters:
@@ -1160,66 +1102,6 @@ blocks:
     - 2454
     rotation: 0
     state: enabled
-- name: peak_display
-  id: qtgui_number_sink
-  parameters:
-    type: float
-    name: TX sampled peak envelope power
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-200'
-    max: '100'
-    label1: TX peak per 4096 samples
-    unit1: dBm
-    gui_hint: views@3:4,0,1,1
-  states:
-    coordinate:
-    - 760
-    - 2454
-    rotation: 0
-    state: enabled
-- name: envelope_floor
-  id: blocks_add_const_vxx
-  parameters:
-    type: float
-    const: 1e-30
-    vlen: '1'
-  states:
-    coordinate:
-    - 160
-    - 2594
-    rotation: 0
-    state: enabled
-- name: envelope_dbm
-  id: blocks_nlog10_ff
-  parameters:
-    n: '10'
-    k: '0'
-    vlen: '1'
-  states:
-    coordinate:
-    - 400
-    - 2594
-    rotation: 0
-    state: enabled
-- name: envelope_plot
-  id: qtgui_time_sink_x
-  parameters:
-    type: float
-    name: TX sampled power envelope (dBm)
-    size: '512'
-    srate: samp_rate
-    nconnections: '1'
-    autoscale: 'True'
-    gui_hint: views@3:1,1,1,1
-  states:
-    coordinate:
-    - 580
-    - 2594
-    rotation: 0
-    state: enabled
 - name: tx_mw_link
   id: virtual_sink
   parameters:
@@ -1238,16 +1120,6 @@ blocks:
     coordinate:
     - 16
     - 2454
-    rotation: 0
-    state: enabled
-- name: envelope_input
-  id: virtual_source
-  parameters:
-    stream_id: tx_power_mw
-  states:
-    coordinate:
-    - 16
-    - 2594
     rotation: 0
     state: enabled
 - name: chart_math
@@ -1318,26 +1190,6 @@ blocks:
     - 2854
     rotation: 0
     state: enabled
-- name: snr_display
-  id: qtgui_number_sink
-  parameters:
-    type: float
-    name: RX SNR | noise over Fs
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-100'
-    max: '100'
-    label1: RX SNR | noise over Fs
-    unit1: dB
-    gui_hint: views@3:4,1,1,1
-  states:
-    coordinate:
-    - 350
-    - 2854
-    rotation: 0
-    state: enabled
 - name: rx_ebno
   id: blocks_add_const_vxx
   parameters:
@@ -1347,26 +1199,6 @@ blocks:
   states:
     coordinate:
     - 780
-    - 2854
-    rotation: 0
-    state: enabled
-- name: ebno_display
-  id: qtgui_number_sink
-  parameters:
-    type: float
-    name: RX Eb/N0 | known TX and noise
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-100'
-    max: '100'
-    label1: RX Eb/N0 | known TX and noise
-    unit1: dB
-    gui_hint: views@3:5,0,1,1
-  states:
-    coordinate:
-    - 980
     - 2854
     rotation: 0
     state: enabled
@@ -2054,25 +1886,10 @@ blocks:
     wintype: window.WIN_HANN
     fc: '0'
     bw: samp_rate
+    label1: RX
   states:
     coordinate:
     - 200
-    - 4664
-    rotation: 0
-    state: enabled
-- name: power_reference_chart
-  id: qtgui_time_sink_x
-  parameters:
-    type: float
-    name: RX SNR over Fs | known reference
-    nconnections: '1'
-    gui_hint: views@3:2,1,1,1
-    size: '128'
-    srate: samp_rate/4096
-    autoscale: 'True'
-  states:
-    coordinate:
-    - 800
     - 4664
     rotation: 0
     state: enabled
@@ -2165,26 +1982,6 @@ blocks:
   states:
     coordinate:
     - 16
-    - 4664
-    rotation: 0
-    state: enabled
-- name: snr_history_link
-  id: virtual_sink
-  parameters:
-    stream_id: snr_history
-  states:
-    coordinate:
-    - 350
-    - 2934
-    rotation: 0
-    state: enabled
-- name: power_reference_chart_input
-  id: virtual_source
-  parameters:
-    stream_id: snr_history
-  states:
-    coordinate:
-    - 620
     - 4664
     rotation: 0
     state: enabled
@@ -2347,6 +2144,248 @@ blocks:
     coordinate:
     - 16
     - 4404
+    rotation: 0
+    state: enabled
+- name: tx_papr
+  id: blocks_sub_xx
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 980
+    - 2244
+    rotation: 0
+    state: enabled
+- name: link_tx_table
+  id: qtgui_number_sink
+  parameters:
+    name: Transmit (conducted, nominal)
+    type: float
+    nconnections: '3'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    update_time: '0.25'
+    gui_hint: views@3:1,0,1,1
+    label1: Average
+    unit1: dBm
+    color1: ("black", "black")
+    factor1: '1'
+    label2: Sampled peak
+    unit2: dBm
+    color2: ("black", "black")
+    factor2: '1'
+    label3: Peak/average
+    unit3: dB
+    color3: ("black", "black")
+    factor3: '1'
+  states:
+    coordinate:
+    - 1180
+    - 2244
+    rotation: 0
+    state: enabled
+- name: link_rx_table
+  id: qtgui_number_sink
+  parameters:
+    name: Receive (noise over Fs)
+    type: float
+    nconnections: '3'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    update_time: '0.25'
+    gui_hint: views@3:1,1,1,1
+    label1: Signal + noise
+    unit1: dBm
+    color1: ("black", "black")
+    factor1: '1'
+    label2: SNR over Fs
+    unit2: dB
+    color2: ("black", "black")
+    factor2: '1'
+    label3: Eb/N0 per bit
+    unit3: dB
+    color3: ("black", "black")
+    factor3: '1'
+  states:
+    coordinate:
+    - 1180
+    - 2384
+    rotation: 0
+    state: enabled
+- name: rx_snr_value_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_snr_value
+  states:
+    coordinate:
+    - 360
+    - 2914
+    rotation: 0
+    state: enabled
+- name: rx_snr_value_to_link_rx_table
+  id: virtual_source
+  parameters:
+    stream_id: rx_snr_value
+  states:
+    coordinate:
+    - 1020
+    - 2454
+    rotation: 0
+    state: enabled
+- name: rx_ebno_value_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_ebno_value
+  states:
+    coordinate:
+    - 980
+    - 2914
+    rotation: 0
+    state: enabled
+- name: rx_ebno_value_to_link_rx_table
+  id: virtual_source
+  parameters:
+    stream_id: rx_ebno_value
+  states:
+    coordinate:
+    - 1020
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_bits
+  id: parameter
+  parameters:
+    value: '1000000'
+    type: intx
+    label: BER test length (compared bits)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 1700
+    - 8
+    rotation: 0
+    state: enabled
+- name: ber_test_blocks
+  id: variable
+  parameters:
+    value: max(1, int(ber_test_bits) // 10000)
+  states:
+    coordinate:
+    - 1700
+    - 100
+    rotation: 0
+    state: enabled
+- name: ber_test_seconds
+  id: variable
+  parameters:
+    value: (warmup_bits + ber_test_bits) / bit_rate
+  states:
+    coordinate:
+    - 1700
+    - 170
+    rotation: 0
+    state: enabled
+- name: ber_test_time
+  id: variable_qtgui_label
+  parameters:
+    label: BER test
+    type: string
+    formatter: None
+    gui_hint: views@3:3,0,1,2
+    value: '''%d-bit blocks: first result after about %.2f s at %g Mbit/s'' % (10000 * ber_test_blocks, ber_test_seconds,
+      bit_rate / 1e6)'
+  states:
+    coordinate:
+    - 1700
+    - 240
+    rotation: 0
+    state: enabled
+- name: ber_test_sum_10k
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_sum
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: ber_test_blocks
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 2604
+    rotation: 0
+    state: enabled
+- name: ber_test_scale
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: 1.0/(10000*ber_test_blocks)
+    vlen: '1'
+  states:
+    coordinate:
+    - 1340
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_display
+  id: qtgui_number_sink
+  parameters:
+    name: BER test | latest complete block (0 until the first block ends)
+    type: float
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '0'
+    max: '1'
+    update_time: '0.25'
+    gui_hint: views@3:2,1,1,1
+    label1: BER over block
+    unit1: errors/bit
+    color1: ("black", "black")
+    factor1: '1'
+  states:
+    coordinate:
+    - 1520
+    - 2524
+    rotation: 0
+    state: enabled
+- name: bit_errors_link
+  id: virtual_sink
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 760
+    - 1074
+    rotation: 0
+    state: enabled
+- name: bit_errors_to_ber_test_sum_10k
+  id: virtual_source
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 980
+    - 2524
     rotation: 0
     state: enabled
 connections:
@@ -2530,10 +2569,6 @@ connections:
   - '0'
   - tx_dbm
   - '0'
-- - tx_dbm
-  - '0'
-  - tx_power_display
-  - '0'
 - - rx_meter_input
   - '0'
   - rx_milliwatts
@@ -2550,18 +2585,6 @@ connections:
   - '0'
   - rx_dbm
   - '0'
-- - rx_dbm
-  - '0'
-  - rx_power_display
-  - '0'
-- - tx_dbm
-  - '0'
-  - power_history
-  - '0'
-- - rx_dbm
-  - '0'
-  - power_history
-  - '1'
 - - tx_peak_vectors
   - '0'
   - tx_peak_mw
@@ -2570,18 +2593,6 @@ connections:
   - '0'
   - tx_peak_dbm
   - '0'
-- - tx_peak_dbm
-  - '0'
-  - peak_display
-  - '0'
-- - envelope_floor
-  - '0'
-  - envelope_dbm
-  - '0'
-- - envelope_dbm
-  - '0'
-  - envelope_plot
-  - '0'
 - - tx_milliwatts
   - '0'
   - tx_mw_link
@@ -2589,18 +2600,6 @@ connections:
 - - peak_input
   - '0'
   - tx_peak_vectors
-  - '0'
-- - envelope_input
-  - '0'
-  - envelope_floor
-  - '0'
-- - rx_snr
-  - '0'
-  - snr_display
-  - '0'
-- - rx_ebno
-  - '0'
-  - ebno_display
   - '0'
 - - tx_symbol_input
   - '0'
@@ -2758,14 +2757,6 @@ connections:
   - '0'
   - spectrum_budget
   - '0'
-- - rx_snr
-  - '0'
-  - snr_history_link
-  - '0'
-- - power_reference_chart_input
-  - '0'
-  - power_reference_chart
-  - '0'
 - - evm
   - '0'
   - evm_per_symbol_link
@@ -2781,6 +2772,66 @@ connections:
 - - eq_tap_decimator_input
   - '0'
   - eq_tap_decimator
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - tx_papr
+  - '0'
+- - tx_dbm
+  - '0'
+  - tx_papr
+  - '1'
+- - tx_dbm
+  - '0'
+  - link_tx_table
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - link_tx_table
+  - '1'
+- - tx_papr
+  - '0'
+  - link_tx_table
+  - '2'
+- - rx_dbm
+  - '0'
+  - link_rx_table
+  - '0'
+- - rx_snr
+  - '0'
+  - rx_snr_value_link
+  - '0'
+- - rx_snr_value_to_link_rx_table
+  - '0'
+  - link_rx_table
+  - '1'
+- - rx_ebno
+  - '0'
+  - rx_ebno_value_link
+  - '0'
+- - rx_ebno_value_to_link_rx_table
+  - '0'
+  - link_rx_table
+  - '2'
+- - errors_float
+  - '0'
+  - bit_errors_link
+  - '0'
+- - bit_errors_to_ber_test_sum_10k
+  - '0'
+  - ber_test_sum_10k
+  - '0'
+- - ber_test_sum_10k
+  - '0'
+  - ber_test_sum
+  - '0'
+- - ber_test_sum
+  - '0'
+  - ber_test_scale
+  - '0'
+- - ber_test_scale
+  - '0'
+  - ber_test_display
   - '0'
 metadata:
   file_format: 1

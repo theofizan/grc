@@ -4,7 +4,7 @@
   "rx_noise_dbm": -80.750613,
   "noise_enabled": 1,
   "tx_measured_dbm": 0.001610843891940062,
-  "rx_measured_dbm": -77.3365440182236,
+  "rx_measured_dbm": -77.33651644348002,
   "expected_rx_signal_dbm": -80.0,
   "tx_sample_peak_dbm": 7.394570350646973,
   "papr_db": 7.392959506755033,

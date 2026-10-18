@@ -286,6 +286,8 @@ def update(graph):
             edges.append(e)
     for tab, names in groups.items():
         for index, name in enumerate(names):
+            if name not in by:  # replaced by link_budget_tables
+                continue
             # Row zero is reserved for numbers; charts occupy a complete 2x2.
             by[name]["parameters"][
                 "gui_hint"
@@ -413,6 +415,8 @@ self.resize(1180, 900)
         ("snr_display", 4, 1),
         ("ebno_display", 5, 0),
     ]:
+        if name not in by:  # replaced by link_budget_tables
+            continue
         by[name]["parameters"]["gui_hint"] = f"views@3:{row},{col},1,1"
     for index, title in enumerate(
         [
@@ -459,4 +463,6 @@ self.resize(1180, 900)
         priority=0,
         code="self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))",
     )
-    return graph
+    from link_budget_tables import apply as link_budget_tables
+
+    return link_budget_tables(graph)

@@ -5,16 +5,17 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: 8-ASK over the air | USRP N210 loopback
+# Title: 8-ASK over the air | two USRP N210s
 # Author: Antenna benchmark
 # GNU Radio version: 3.10.12.0
 
 from PyQt5 import Qt
 from gnuradio import qtgui
 from PyQt5 import QtCore
+from gnuradio import analog
 from gnuradio import blocks
-import numpy
 from gnuradio import digital
+from gnuradio import eng_notation
 from gnuradio import filter
 from gnuradio.filter import firdes
 from gnuradio import gr
@@ -24,10 +25,10 @@ import signal
 from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
-from gnuradio import eng_notation
 from gnuradio import uhd
 import time
 import math
+import numpy
 import sip
 import threading
 
@@ -61,10 +62,10 @@ def snippets_main_after_init(tb):
 
 class n210_8ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, usrp_address='addr=192.168.10.2', center_freq_hz=915e6, rx_gain_db=75):
-        gr.top_block.__init__(self, "8-ASK over the air | USRP N210 loopback", catch_exceptions=True)
+    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, ber_test_bits=1000000, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.3', center_freq_hz=915e6):
+        gr.top_block.__init__(self, "8-ASK over the air | two USRP N210s", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("8-ASK over the air | USRP N210 loopback")
+        self.setWindowTitle("8-ASK over the air | two USRP N210s")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -100,36 +101,42 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.evm_guide_percent = evm_guide_percent
         self.eq_taps = eq_taps
         self.eq_step = eq_step
-        self.usrp_address = usrp_address
+        self.ber_test_bits = ber_test_bits
+        self.tx_usrp_address = tx_usrp_address
+        self.rx_usrp_address = rx_usrp_address
         self.center_freq_hz = center_freq_hz
-        self.rx_gain_db = rx_gain_db
 
         ##################################################
         # Variables
         ##################################################
         self.const = const = digital.constellation_rect([-7, -5, -3, -1, 1, 3, 5, 7], [0, 1, 2, 3, 4, 5, 6, 7],
         1, 8, 1, 2, 1).base()
+        self.tx_data = tx_data = list(numpy.random.RandomState(42).randint(0, 256, 32766))
+        self.k = k = const.bits_per_symbol()
+        self.warmup_bits = warmup_bits = 4096
+        self.data_period_bits = data_period_bits = 8*len(tx_data)
+        self.bit_rate = bit_rate = symbol_rate*k
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
         self.sps = sps = 4
         self.nfilts = nfilts = 32
-        self.k = k = const.bits_per_symbol()
+        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + ber_test_bits) / bit_rate
+        self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.alpha = alpha = 0.35
-        self.warmup_bits = warmup_bits = 4096
         self.tx_gain_norm = tx_gain_norm = 0.5
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
+        self.training_symbols = training_symbols = list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()])
         self.timing_bw = timing_bw = 0.0628
         self.samp_rate = samp_rate = symbol_rate*sps
         self.rx_gain_norm = rx_gain_norm = 0.5
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
         self.rrc_bandwidth = rrc_bandwidth = symbol_rate*(1+alpha)
-        self.phase_fix_deg = phase_fix_deg = 0
+        self.preamble_len = preamble_len = 128
         self.eye_synthesis_taps = eye_synthesis_taps = firdes.root_raised_cosine(sps,sps,1.0,alpha,11*sps)
         self.eq_delay_symbols = eq_delay_symbols = (eq_taps-1)//2
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
-        self.data_period_bits = data_period_bits = 8*32768
-        self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/200
-        self.bit_rate = bit_rate = symbol_rate*k
+        self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/800
         self.ber_window = ber_window = 10000
+        self.ber_test_time = ber_test_time = '%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * ber_test_blocks, ber_test_seconds, bit_rate / 1e6)
 
         ##################################################
         # Blocks
@@ -275,7 +282,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         for c in range(1, 2):
             self.views_grid_layout_1.setColumnStretch(c, 1)
         self.usrp_tx = uhd.usrp_sink(
-            ",".join((usrp_address, "")),
+            ",".join((tx_usrp_address, "")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -291,7 +298,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_antenna("TX/RX", 0)
         self.usrp_tx.set_normalized_gain(tx_gain_norm, 0)
         self.usrp_rx = uhd.usrp_source(
-            ",".join((usrp_address, "")),
+            ",".join((rx_usrp_address, "")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -366,51 +373,14 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         for c in range(0, 1):
             self.views_grid_layout_1.setColumnStretch(c, 1)
         self.tx_symbols = digital.chunks_to_symbols_bc(const.points(), 1)
-        self.tx_symbol_diff = digital.diff_encoder_bb(8, digital.DIFF_DIFFERENTIAL)
         self.tx_symbol_chunks = blocks.packed_to_unpacked_bb(k, gr.GR_MSB_FIRST)
         self.tx_power_sum = blocks.integrate_ff(4096, 1)
         self.tx_power_mean = blocks.multiply_const_ff((1.0/4096))
-        self.tx_power_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.tx_power_display.set_update_time(0.10)
-        self.tx_power_display.set_title('TX digital average level')
-
-        labels = ['TX digital average level', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBFS', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.tx_power_display.set_min(i, -200)
-            self.tx_power_display.set_max(i, 100)
-            self.tx_power_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.tx_power_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.tx_power_display.set_label(i, labels[i])
-            self.tx_power_display.set_unit(i, units[i])
-            self.tx_power_display.set_factor(i, factor[i])
-
-        self.tx_power_display.enable_autoscale(False)
-        self._tx_power_display_win = sip.wrapinstance(self.tx_power_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._tx_power_display_win, 3, 0, 1, 1)
-        for r in range(3, 4):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.tx_power = blocks.multiply_const_cc(tx_amplitude/symbol_rms)
         self.tx_peak_vectors = blocks.stream_to_vector(gr.sizeof_float*1, 4096)
         self.tx_peak_mw = blocks.max_ff(4096, 1)
         self.tx_peak_dbm = blocks.nlog10_ff(10, 1, 0)
+        self.tx_papr = blocks.sub_ff(1)
         self.tx_milliwatts = blocks.complex_to_mag_squared(1)
         self.tx_eye_q_eye = qtgui.eye_sink_f(
             1024, #size
@@ -636,7 +606,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
 
 
 
-        labels = ['', '', '', '', '',
+        labels = ['RX', '', '', '', '',
             '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
             1, 1, 1, 1, 1]
@@ -706,239 +676,21 @@ class n210_8ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_1.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_1.setColumnStretch(c, 1)
-        self.snr_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.snr_display.set_update_time(0.10)
-        self.snr_display.set_title('MER from decision-directed EVM (Es/N0 estimate)')
-
-        labels = ['MER from decision-directed EVM (Es/N0 estimate)', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dB', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.snr_display.set_min(i, -100)
-            self.snr_display.set_max(i, 100)
-            self.snr_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.snr_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.snr_display.set_label(i, labels[i])
-            self.snr_display.set_unit(i, units[i])
-            self.snr_display.set_factor(i, factor[i])
-
-        self.snr_display.enable_autoscale(False)
-        self._snr_display_win = sip.wrapinstance(self.snr_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._snr_display_win, 4, 1, 1, 1)
-        for r in range(4, 5):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+data_period_bits))
-        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+data_period_bits))
+        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
+        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
         self.rx_snr = blocks.nlog10_ff((-20), 1, 40)
         self.rx_scale = blocks.multiply_const_cc(symbol_rms)
         self.rx_power_sum = blocks.integrate_ff(4096, 1)
         self.rx_power_mean = blocks.multiply_const_ff((1.0/4096))
-        self.rx_power_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.rx_power_display.set_update_time(0.10)
-        self.rx_power_display.set_title('RX ADC level: signal + noise')
-
-        labels = ['RX ADC level: signal + noise', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBFS', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.rx_power_display.set_min(i, -200)
-            self.rx_power_display.set_max(i, 100)
-            self.rx_power_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.rx_power_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.rx_power_display.set_label(i, labels[i])
-            self.rx_power_display.set_unit(i, units[i])
-            self.rx_power_display.set_factor(i, factor[i])
-
-        self.rx_power_display.enable_autoscale(False)
-        self._rx_power_display_win = sip.wrapinstance(self.rx_power_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._rx_power_display_win, 3, 1, 1, 1)
-        for r in range(3, 4):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.rx_milliwatts = blocks.complex_to_mag_squared(1)
-        self.rx_level = blocks.multiply_const_cc(10**(rx_gain_db/20.0))
+        self.rx_level = analog.agc2_cc((1e-3), (1e-3), 1.0, 1.0, 65536)
         self.rx_ebno = blocks.nlog10_ff((-20), 1, (40-10*math.log10(k)))
         self.rx_dbm = blocks.nlog10_ff(10, 1, 0)
-        self.random_bytes = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 256, 32768))), True)
-        self.power_reference_chart = qtgui.time_sink_f(
-            128, #size
-            samp_rate/4096, #samp_rate
-            'MER history (dB)', #name
-            1, #number of inputs
-            None # parent
-        )
-        self.power_reference_chart.set_update_time(0.10)
-        self.power_reference_chart.set_y_axis(-1, 1)
-
-        self.power_reference_chart.set_y_label('Amplitude', "")
-
-        self.power_reference_chart.enable_tags(True)
-        self.power_reference_chart.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.power_reference_chart.enable_autoscale(True)
-        self.power_reference_chart.enable_grid(False)
-        self.power_reference_chart.enable_axis_labels(True)
-        self.power_reference_chart.enable_control_panel(False)
-        self.power_reference_chart.enable_stem_plot(False)
-
-
-        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.power_reference_chart.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.power_reference_chart.set_line_label(i, labels[i])
-            self.power_reference_chart.set_line_width(i, widths[i])
-            self.power_reference_chart.set_line_color(i, colors[i])
-            self.power_reference_chart.set_line_style(i, styles[i])
-            self.power_reference_chart.set_line_marker(i, markers[i])
-            self.power_reference_chart.set_line_alpha(i, alphas[i])
-
-        self._power_reference_chart_win = sip.wrapinstance(self.power_reference_chart.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._power_reference_chart_win, 2, 1, 1, 1)
-        for r in range(2, 3):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.power_history = qtgui.time_sink_f(
-            128, #size
-            samp_rate/4096, #samp_rate
-            'Digital levels | TX average and RX ADC (dBFS)', #name
-            2, #number of inputs
-            None # parent
-        )
-        self.power_history.set_update_time(0.10)
-        self.power_history.set_y_axis(-1, 1)
-
-        self.power_history.set_y_label('Amplitude', "")
-
-        self.power_history.enable_tags(True)
-        self.power_history.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.power_history.enable_autoscale(True)
-        self.power_history.enable_grid(False)
-        self.power_history.enable_axis_labels(True)
-        self.power_history.enable_control_panel(False)
-        self.power_history.enable_stem_plot(False)
-
-
-        labels = ['TX average (dBFS)', 'RX ADC total (dBFS)', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(2):
-            if len(labels[i]) == 0:
-                self.power_history.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.power_history.set_line_label(i, labels[i])
-            self.power_history.set_line_width(i, widths[i])
-            self.power_history.set_line_color(i, colors[i])
-            self.power_history.set_line_style(i, styles[i])
-            self.power_history.set_line_marker(i, markers[i])
-            self.power_history.set_line_alpha(i, alphas[i])
-
-        self._power_history_win = sip.wrapinstance(self.power_history.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._power_history_win, 1, 0, 1, 1)
-        for r in range(1, 2):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self._phase_fix_deg_range = qtgui.Range(0, 270, 180, 0, 200)
-        self._phase_fix_deg_win = qtgui.RangeWidget(self._phase_fix_deg_range, self.set_phase_fix_deg, "Phase-ambiguity rotation (deg)", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._phase_fix_deg_win)
-        self.phase_fix = blocks.multiply_const_cc(complex(math.cos(math.radians(phase_fix_deg)),math.sin(math.radians(phase_fix_deg))))
-        self.peak_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            1,
-            None # parent
-        )
-        self.peak_display.set_update_time(0.10)
-        self.peak_display.set_title('TX sampled peak (must stay below 0 dBFS)')
-
-        labels = ['TX sampled peak (must stay below 0 dBFS)', '', '', '', '',
-            '', '', '', '', '']
-        units = ['dBFS', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.peak_display.set_min(i, -200)
-            self.peak_display.set_max(i, 100)
-            self.peak_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.peak_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.peak_display.set_label(i, labels[i])
-            self.peak_display.set_unit(i, units[i])
-            self.peak_display.set_factor(i, factor[i])
-
-        self.peak_display.enable_autoscale(False)
-        self._peak_display_win = sip.wrapinstance(self.peak_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._peak_display_win, 4, 0, 1, 1)
-        for r in range(4, 5):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
+        self.random_bytes = blocks.vector_source_b(tx_data, True, 1, [])
+        self.preamble_detect = digital.corr_est_cc(list(numpy.array(training_symbols[:preamble_len])/symbol_rms), 1, (eq_delay_symbols+1), 0.9999, digital.THRESHOLD_DYNAMIC)
         self.modulator = digital.generic_mod(
             constellation=const,
-            differential=True,
+            differential=False,
             samples_per_symbol=sps,
             pre_diff_code=True,
             excess_bw=alpha,
@@ -1051,6 +803,80 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.middle_i = blocks.complex_to_real(1)
         self.middle_eye_reconstruction = filter.interp_fir_filter_ccf(sps, eye_synthesis_taps)
         self.middle_eye_reconstruction.declare_sample_delay(0)
+        self.link_tx_table = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_NONE,
+            3,
+            None # parent
+        )
+        self.link_tx_table.set_update_time(0.25)
+        self.link_tx_table.set_title('Transmit (digital full scale)')
+
+        labels = ['Average', 'Sampled peak (keep < 0)', 'Peak/average', '', '',
+            '', '', '', '', '']
+        units = ['dBFS', 'dBFS', 'dB', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(3):
+            self.link_tx_table.set_min(i, -200)
+            self.link_tx_table.set_max(i, 100)
+            self.link_tx_table.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.link_tx_table.set_label(i, "Data {0}".format(i))
+            else:
+                self.link_tx_table.set_label(i, labels[i])
+            self.link_tx_table.set_unit(i, units[i])
+            self.link_tx_table.set_factor(i, factor[i])
+
+        self.link_tx_table.enable_autoscale(False)
+        self._link_tx_table_win = sip.wrapinstance(self.link_tx_table.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._link_tx_table_win, 1, 0, 1, 1)
+        for r in range(1, 2):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
+        self.link_rx_table = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_NONE,
+            4,
+            None # parent
+        )
+        self.link_rx_table.set_update_time(0.25)
+        self.link_rx_table.set_title('Receive (fixed RF gain, uncalibrated)')
+
+        labels = ['ADC level', 'MER', 'Eb/N0 est.', 'EVM', '',
+            '', '', '', '', '']
+        units = ['dBFS', 'dB', 'dB', '%', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(4):
+            self.link_rx_table.set_min(i, -200)
+            self.link_rx_table.set_max(i, 100)
+            self.link_rx_table.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.link_rx_table.set_label(i, "Data {0}".format(i))
+            else:
+                self.link_rx_table.set_label(i, labels[i])
+            self.link_rx_table.set_unit(i, units[i])
+            self.link_rx_table.set_factor(i, factor[i])
+
+        self.link_rx_table.enable_autoscale(False)
+        self._link_rx_table_win = sip.wrapinstance(self.link_rx_table.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._link_rx_table_win, 1, 1, 1, 1)
+        for r in range(1, 2):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(1, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.integrate = blocks.integrate_ff(ber_window, 1)
         self.ideal_symbols = blocks.vector_source_c(const.points(), True, 1, [])
         self.eye_quadrature = qtgui.eye_sink_f(
@@ -1157,6 +983,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_2.setRowStretch(r, 1)
         for c in range(1, 2):
             self.views_grid_layout_2.setColumnStretch(c, 1)
+        self.evm_table_rate = blocks.keep_one_in_n(gr.sizeof_float*1, (4096//sps))
         self.evm_rms = blocks.rms_ff(0.001)
         self.evm_history = qtgui.time_sink_f(
             128, #size
@@ -1250,7 +1077,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.evm_circles = blocks.vector_source_c([p+symbol_rms*evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], True, 1, [])
         self.evm = digital.meas_evm_cc(const,digital.evm_measurement_t.EVM_PERCENT)
         self.errors_float = blocks.uchar_to_float()
-        self.equalizer = digital.linear_equalizer(eq_taps, 1, eq_algorithm, True, [], '')
+        self.equalizer = digital.linear_equalizer(eq_taps, 1, eq_algorithm, True, training_symbols, 'corr_est')
         self.eq_tap_plot = qtgui.vector_sink_f(
             eq_taps,
             0,
@@ -1400,73 +1227,41 @@ class n210_8ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_5.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_5.setColumnStretch(c, 1)
-        self.envelope_plot = qtgui.time_sink_f(
-            512, #size
-            samp_rate, #samp_rate
-            'TX sampled power envelope (dBFS)', #name
-            1, #number of inputs
-            None # parent
-        )
-        self.envelope_plot.set_update_time(0.10)
-        self.envelope_plot.set_y_axis(-1, 1)
+        self.delay = blocks.delay(gr.sizeof_char*1, data_period_bits)
+        self.decoder = digital.constellation_decoder_cb(const)
+        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 1.5, 1)
+        self.carrier_sync = digital.costas_loop_cc(carrier_loop_bw, 2, False)
+        self._ber_test_time_tool_bar = Qt.QToolBar(self)
 
-        self.envelope_plot.set_y_label('Amplitude', "")
+        if None:
+            self._ber_test_time_formatter = None
+        else:
+            self._ber_test_time_formatter = lambda x: str(x)
 
-        self.envelope_plot.enable_tags(True)
-        self.envelope_plot.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.envelope_plot.enable_autoscale(True)
-        self.envelope_plot.enable_grid(False)
-        self.envelope_plot.enable_axis_labels(True)
-        self.envelope_plot.enable_control_panel(False)
-        self.envelope_plot.enable_stem_plot(False)
-
-
-        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
-
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.envelope_plot.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.envelope_plot.set_line_label(i, labels[i])
-            self.envelope_plot.set_line_width(i, widths[i])
-            self.envelope_plot.set_line_color(i, colors[i])
-            self.envelope_plot.set_line_style(i, styles[i])
-            self.envelope_plot.set_line_marker(i, markers[i])
-            self.envelope_plot.set_line_alpha(i, alphas[i])
-
-        self._envelope_plot_win = sip.wrapinstance(self.envelope_plot.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._envelope_plot_win, 1, 1, 1, 1)
-        for r in range(1, 2):
+        self._ber_test_time_tool_bar.addWidget(Qt.QLabel("BER test"))
+        self._ber_test_time_label = Qt.QLabel(str(self._ber_test_time_formatter(self.ber_test_time)))
+        self._ber_test_time_tool_bar.addWidget(self._ber_test_time_label)
+        self.views_grid_layout_3.addWidget(self._ber_test_time_tool_bar, 3, 0, 1, 2)
+        for r in range(3, 4):
             self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
+        for c in range(0, 2):
             self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.envelope_floor = blocks.add_const_ff((1e-30))
-        self.envelope_dbm = blocks.nlog10_ff(10, 1, 0)
-        self.ebno_display = qtgui.number_sink(
+        self.ber_test_sum_10k = blocks.integrate_ff(10000, 1)
+        self.ber_test_sum = blocks.integrate_ff(ber_test_blocks, 1)
+        self.ber_test_scale = blocks.multiply_const_ff((0.5/(10000*ber_test_blocks)))
+        self.ber_test_display = qtgui.number_sink(
             gr.sizeof_float,
             0,
             qtgui.NUM_GRAPH_NONE,
             1,
             None # parent
         )
-        self.ebno_display.set_update_time(0.10)
-        self.ebno_display.set_title('Eb/N0 estimate from MER')
+        self.ber_test_display.set_update_time(0.25)
+        self.ber_test_display.set_title('BER test | latest complete block (0 until the first block ends)')
 
-        labels = ['Eb/N0 estimate from MER', '', '', '', '',
+        labels = ['BER over block', '', '', '', '',
             '', '', '', '', '']
-        units = ['dB', '', '', '', '',
+        units = ['errors/bit', '', '', '', '',
             '', '', '', '', '']
         colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
             ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
@@ -1474,33 +1269,28 @@ class n210_8ask(gr.top_block, Qt.QWidget):
             1, 1, 1, 1, 1]
 
         for i in range(1):
-            self.ebno_display.set_min(i, -100)
-            self.ebno_display.set_max(i, 100)
-            self.ebno_display.set_color(i, colors[i][0], colors[i][1])
+            self.ber_test_display.set_min(i, 0)
+            self.ber_test_display.set_max(i, 1)
+            self.ber_test_display.set_color(i, colors[i][0], colors[i][1])
             if len(labels[i]) == 0:
-                self.ebno_display.set_label(i, "Data {0}".format(i))
+                self.ber_test_display.set_label(i, "Data {0}".format(i))
             else:
-                self.ebno_display.set_label(i, labels[i])
-            self.ebno_display.set_unit(i, units[i])
-            self.ebno_display.set_factor(i, factor[i])
+                self.ber_test_display.set_label(i, labels[i])
+            self.ber_test_display.set_unit(i, units[i])
+            self.ber_test_display.set_factor(i, factor[i])
 
-        self.ebno_display.enable_autoscale(False)
-        self._ebno_display_win = sip.wrapinstance(self.ebno_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._ebno_display_win, 5, 0, 1, 1)
-        for r in range(5, 6):
+        self.ber_test_display.enable_autoscale(False)
+        self._ber_test_display_win = sip.wrapinstance(self.ber_test_display.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._ber_test_display_win, 2, 1, 1, 1)
+        for r in range(2, 3):
             self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
+        for c in range(1, 2):
             self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.diff_decoder = digital.diff_decoder_bb(8, digital.DIFF_DIFFERENTIAL)
-        self.delay = blocks.delay(gr.sizeof_char*1, data_period_bits)
-        self.decoder = digital.constellation_decoder_cb(const)
-        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 1.5, 1)
-        self.carrier_sync = digital.costas_loop_cc(carrier_loop_bw, 2, False)
         self.ber_scale = blocks.multiply_const_ff((0.5/ber_window))
         self.ber_history = qtgui.time_sink_f(
             128, #size
             bit_rate/ber_window, #samp_rate
-            'Self-referenced BER estimate per window', #name
+            'BER per window (preamble-trained, RX vs RX one period earlier)', #name
             1, #number of inputs
             None # parent
         )
@@ -1557,7 +1347,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
             None # parent
         )
         self.ber_display.set_update_time(0.10)
-        self.ber_display.set_title('BER estimate | RX vs RX one data period earlier, /2')
+        self.ber_display.set_title('BER | RX vs RX one data period earlier, /2 (preamble-trained)')
 
         labels = ['Bit error ratio', '', '', '', '',
             '', '', '', '', '']
@@ -1748,20 +1538,24 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.after_q, 0), (self.after_q_eye, 0))
         self.connect((self.ber_scale, 0), (self.ber_display, 0))
         self.connect((self.ber_scale, 0), (self.ber_history, 0))
-        self.connect((self.carrier_sync, 0), (self.rx_scale, 0))
+        self.connect((self.ber_test_scale, 0), (self.ber_test_display, 0))
+        self.connect((self.ber_test_sum, 0), (self.ber_test_scale, 0))
+        self.connect((self.ber_test_sum_10k, 0), (self.ber_test_sum, 0))
+        self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
-        self.connect((self.decoder, 0), (self.diff_decoder, 0))
+        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
+        self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
-        self.connect((self.diff_decoder, 0), (self.unpack_rx, 0))
-        self.connect((self.envelope_dbm, 0), (self.envelope_plot, 0))
-        self.connect((self.envelope_floor, 0), (self.envelope_dbm, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
         self.connect((self.eq_tap_magnitudes, 0), (self.eq_tap_plot, 0))
+        self.connect((self.equalizer, 0), (self.after_eye_reconstruction, 0))
+        self.connect((self.equalizer, 0), (self.constellation, 0))
+        self.connect((self.equalizer, 0), (self.decoder, 0))
         self.connect((self.equalizer, 1), (self.eq_tap_decimator, 0))
-        self.connect((self.equalizer, 0), (self.phase_fix, 0))
+        self.connect((self.equalizer, 0), (self.evm, 0))
+        self.connect((self.errors_float, 0), (self.ber_test_sum_10k, 0))
         self.connect((self.errors_float, 0), (self.integrate, 0))
         self.connect((self.evm, 0), (self.eq_error_trace, 0))
         self.connect((self.evm, 0), (self.evm_rms, 0))
@@ -1770,8 +1564,10 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.evm_rms, 0), (self.eq_evm_history, 0))
         self.connect((self.evm_rms, 0), (self.evm_display, 0))
         self.connect((self.evm_rms, 0), (self.evm_history, 0))
-        self.connect((self.evm_rms, 0), (self.rx_ebno, 0))
-        self.connect((self.evm_rms, 0), (self.rx_snr, 0))
+        self.connect((self.evm_rms, 0), (self.evm_table_rate, 0))
+        self.connect((self.evm_table_rate, 0), (self.link_rx_table, 3))
+        self.connect((self.evm_table_rate, 0), (self.rx_ebno, 0))
+        self.connect((self.evm_table_rate, 0), (self.rx_snr, 0))
         self.connect((self.eye_i, 0), (self.eye, 0))
         self.connect((self.eye_q, 0), (self.eye_quadrature, 0))
         self.connect((self.ideal_symbols, 0), (self.constellation, 1))
@@ -1782,15 +1578,11 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.middle_i, 0), (self.middle_i_eye, 0))
         self.connect((self.middle_q, 0), (self.middle_q_eye, 0))
         self.connect((self.modulator, 0), (self.tx_power, 0))
-        self.connect((self.phase_fix, 0), (self.after_eye_reconstruction, 0))
-        self.connect((self.phase_fix, 0), (self.constellation, 0))
-        self.connect((self.phase_fix, 0), (self.decoder, 0))
-        self.connect((self.phase_fix, 0), (self.evm, 0))
+        self.connect((self.preamble_detect, 0), (self.rx_scale, 0))
         self.connect((self.random_bytes, 0), (self.modulator, 0))
         self.connect((self.random_bytes, 0), (self.tx_symbol_chunks, 0))
-        self.connect((self.rx_dbm, 0), (self.power_history, 1))
-        self.connect((self.rx_dbm, 0), (self.rx_power_display, 0))
-        self.connect((self.rx_ebno, 0), (self.ebno_display, 0))
+        self.connect((self.rx_dbm, 0), (self.link_rx_table, 0))
+        self.connect((self.rx_ebno, 0), (self.link_rx_table, 2))
         self.connect((self.rx_level, 0), (self.clock_sync, 0))
         self.connect((self.rx_milliwatts, 0), (self.rx_power_sum, 0))
         self.connect((self.rx_power_mean, 0), (self.rx_dbm, 0))
@@ -1798,18 +1590,18 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.rx_scale, 0), (self.before_eq_constellation, 0))
         self.connect((self.rx_scale, 0), (self.equalizer, 0))
         self.connect((self.rx_scale, 0), (self.middle_eye_reconstruction, 0))
-        self.connect((self.rx_snr, 0), (self.power_reference_chart, 0))
-        self.connect((self.rx_snr, 0), (self.snr_display, 0))
+        self.connect((self.rx_snr, 0), (self.link_rx_table, 1))
         self.connect((self.skip_rx, 0), (self.xor, 0))
         self.connect((self.skip_tx, 0), (self.xor, 1))
-        self.connect((self.tx_dbm, 0), (self.power_history, 0))
-        self.connect((self.tx_dbm, 0), (self.tx_power_display, 0))
+        self.connect((self.tx_dbm, 0), (self.link_tx_table, 0))
+        self.connect((self.tx_dbm, 0), (self.tx_papr, 1))
         self.connect((self.tx_eye_i, 0), (self.tx_eye_i_eye, 0))
         self.connect((self.tx_eye_q, 0), (self.tx_eye_q_eye, 0))
-        self.connect((self.tx_milliwatts, 0), (self.envelope_floor, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_peak_vectors, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_power_sum, 0))
-        self.connect((self.tx_peak_dbm, 0), (self.peak_display, 0))
+        self.connect((self.tx_papr, 0), (self.link_tx_table, 2))
+        self.connect((self.tx_peak_dbm, 0), (self.link_tx_table, 1))
+        self.connect((self.tx_peak_dbm, 0), (self.tx_papr, 0))
         self.connect((self.tx_peak_mw, 0), (self.tx_peak_dbm, 0))
         self.connect((self.tx_peak_vectors, 0), (self.tx_peak_mw, 0))
         self.connect((self.tx_power, 0), (self.spectrum, 1))
@@ -1821,8 +1613,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.tx_power, 0), (self.waveform, 1))
         self.connect((self.tx_power_mean, 0), (self.tx_dbm, 0))
         self.connect((self.tx_power_sum, 0), (self.tx_power_mean, 0))
-        self.connect((self.tx_symbol_chunks, 0), (self.tx_symbol_diff, 0))
-        self.connect((self.tx_symbol_diff, 0), (self.tx_symbols, 0))
+        self.connect((self.tx_symbol_chunks, 0), (self.tx_symbols, 0))
         self.connect((self.tx_symbols, 0), (self.tx_constellation, 0))
         self.connect((self.unpack_rx, 0), (self.delay, 0))
         self.connect((self.unpack_rx, 0), (self.skip_rx, 0))
@@ -1884,11 +1675,25 @@ class n210_8ask(gr.top_block, Qt.QWidget):
     def set_eq_step(self, eq_step):
         self.eq_step = eq_step
 
-    def get_usrp_address(self):
-        return self.usrp_address
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
 
-    def set_usrp_address(self, usrp_address):
-        self.usrp_address = usrp_address
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + self.ber_test_bits) / self.bit_rate)
+
+    def get_tx_usrp_address(self):
+        return self.tx_usrp_address
+
+    def set_tx_usrp_address(self, tx_usrp_address):
+        self.tx_usrp_address = tx_usrp_address
+
+    def get_rx_usrp_address(self):
+        return self.rx_usrp_address
+
+    def set_rx_usrp_address(self, rx_usrp_address):
+        self.rx_usrp_address = rx_usrp_address
 
     def get_center_freq_hz(self):
         return self.center_freq_hz
@@ -1898,19 +1703,54 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_center_freq(self.center_freq_hz, 0)
         self.usrp_rx.set_center_freq(self.center_freq_hz, 0)
 
-    def get_rx_gain_db(self):
-        return self.rx_gain_db
-
-    def set_rx_gain_db(self, rx_gain_db):
-        self.rx_gain_db = rx_gain_db
-        self.rx_level.set_k(10**(self.rx_gain_db/20.0))
-
     def get_const(self):
         return self.const
 
     def set_const(self, const):
         self.const = const
         self.decoder.set_constellation(self.const)
+
+    def get_tx_data(self):
+        return self.tx_data
+
+    def set_tx_data(self, tx_data):
+        self.tx_data = tx_data
+        self.random_bytes.set_data(self.tx_data, [])
+        self.set_data_period_bits(8*len(self.tx_data))
+        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+
+    def get_k(self):
+        return self.k
+
+    def set_k(self, k):
+        self.k = k
+        self.set_bit_rate(self.symbol_rate*self.k)
+        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+
+    def get_warmup_bits(self):
+        return self.warmup_bits
+
+    def set_warmup_bits(self, warmup_bits):
+        self.warmup_bits = warmup_bits
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + self.ber_test_bits) / self.bit_rate)
+
+    def get_data_period_bits(self):
+        return self.data_period_bits
+
+    def set_data_period_bits(self, data_period_bits):
+        self.data_period_bits = data_period_bits
+        self.delay.set_dly(int(self.data_period_bits))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + self.ber_test_bits) / self.bit_rate)
+        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+
+    def get_bit_rate(self):
+        return self.bit_rate
+
+    def set_bit_rate(self, bit_rate):
+        self.bit_rate = bit_rate
+        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + self.ber_test_bits) / self.bit_rate)
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
 
     def get_symbol_rms(self):
         return self.symbol_rms
@@ -1937,6 +1777,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.after_q_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_i_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_q_eye.set_samp_per_symbol(self.sps)
+        self.evm_table_rate.set_n((4096//self.sps))
 
     def get_nfilts(self):
         return self.nfilts
@@ -1945,12 +1786,20 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.nfilts = nfilts
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
-    def get_k(self):
-        return self.k
+    def get_ber_test_seconds(self):
+        return self.ber_test_seconds
 
-    def set_k(self, k):
-        self.k = k
-        self.set_bit_rate(self.symbol_rate*self.k)
+    def set_ber_test_seconds(self, ber_test_seconds):
+        self.ber_test_seconds = ber_test_seconds
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
+
+    def get_ber_test_blocks(self):
+        return self.ber_test_blocks
+
+    def set_ber_test_blocks(self, ber_test_blocks):
+        self.ber_test_blocks = ber_test_blocks
+        self.set_ber_test_time('%d-bit blocks: first result after about %.2f s at %g Mbit/s' % (10000 * self.ber_test_blocks, self.ber_test_seconds, self.bit_rate / 1e6))
+        self.ber_test_scale.set_k((0.5/(10000*self.ber_test_blocks)))
 
     def get_alpha(self):
         return self.alpha
@@ -1960,12 +1809,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
         self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
         self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
-
-    def get_warmup_bits(self):
-        return self.warmup_bits
-
-    def set_warmup_bits(self, warmup_bits):
-        self.warmup_bits = warmup_bits
 
     def get_tx_gain_norm(self):
         return self.tx_gain_norm
@@ -1980,6 +1823,12 @@ class n210_8ask(gr.top_block, Qt.QWidget):
     def set_tx_amplitude(self, tx_amplitude):
         self.tx_amplitude = tx_amplitude
         self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
+
+    def get_training_symbols(self):
+        return self.training_symbols
+
+    def set_training_symbols(self, training_symbols):
+        self.training_symbols = training_symbols
 
     def get_timing_bw(self):
         return self.timing_bw
@@ -1996,8 +1845,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.spectrum.set_frequency_range(0, self.samp_rate)
         self.waveform.set_samp_rate(self.samp_rate)
         self.eye.set_samp_rate(self.samp_rate)
-        self.power_history.set_samp_rate(self.samp_rate/4096)
-        self.envelope_plot.set_samp_rate(self.samp_rate)
         self.eye_quadrature.set_samp_rate(self.samp_rate)
         self.middle_i_eye.set_samp_rate(self.samp_rate)
         self.middle_q_eye.set_samp_rate(self.samp_rate)
@@ -2007,7 +1854,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.tx_eye_q_eye.set_samp_rate(self.samp_rate)
         self.tx_waveform.set_samp_rate(self.samp_rate)
         self.spectrum_budget.set_frequency_range(0, self.samp_rate)
-        self.power_reference_chart.set_samp_rate(self.samp_rate/4096)
         self.usrp_tx.set_samp_rate(self.samp_rate)
         self.usrp_rx.set_samp_rate(self.samp_rate)
 
@@ -2031,12 +1877,11 @@ class n210_8ask(gr.top_block, Qt.QWidget):
     def set_rrc_bandwidth(self, rrc_bandwidth):
         self.rrc_bandwidth = rrc_bandwidth
 
-    def get_phase_fix_deg(self):
-        return self.phase_fix_deg
+    def get_preamble_len(self):
+        return self.preamble_len
 
-    def set_phase_fix_deg(self, phase_fix_deg):
-        self.phase_fix_deg = phase_fix_deg
-        self.phase_fix.set_k(complex(math.cos(math.radians(self.phase_fix_deg)),math.sin(math.radians(self.phase_fix_deg))))
+    def set_preamble_len(self, preamble_len):
+        self.preamble_len = preamble_len
 
     def get_eye_synthesis_taps(self):
         return self.eye_synthesis_taps
@@ -2051,19 +1896,13 @@ class n210_8ask(gr.top_block, Qt.QWidget):
 
     def set_eq_delay_symbols(self, eq_delay_symbols):
         self.eq_delay_symbols = eq_delay_symbols
+        self.preamble_detect.set_mark_delay((self.eq_delay_symbols+1))
 
     def get_eq_algorithm(self):
         return self.eq_algorithm
 
     def set_eq_algorithm(self, eq_algorithm):
         self.eq_algorithm = eq_algorithm
-
-    def get_data_period_bits(self):
-        return self.data_period_bits
-
-    def set_data_period_bits(self, data_period_bits):
-        self.data_period_bits = data_period_bits
-        self.delay.set_dly(int(self.data_period_bits))
 
     def get_carrier_loop_bw(self):
         return self.carrier_loop_bw
@@ -2072,13 +1911,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.carrier_loop_bw = carrier_loop_bw
         self.carrier_sync.set_loop_bandwidth(self.carrier_loop_bw)
 
-    def get_bit_rate(self):
-        return self.bit_rate
-
-    def set_bit_rate(self, bit_rate):
-        self.bit_rate = bit_rate
-        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
-
     def get_ber_window(self):
         return self.ber_window
 
@@ -2086,6 +1918,13 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.ber_window = ber_window
         self.ber_scale.set_k((0.5/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+
+    def get_ber_test_time(self):
+        return self.ber_test_time
+
+    def set_ber_test_time(self, ber_test_time):
+        self.ber_test_time = ber_test_time
+        Qt.QMetaObject.invokeMethod(self._ber_test_time_label, "setText", Qt.Q_ARG("QString", str(self._ber_test_time_formatter(self.ber_test_time))))
 
 
 
@@ -2107,14 +1946,17 @@ def argument_parser():
         "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
         help="Set NLMS adaptation step [default=%(default)r]")
     parser.add_argument(
-        "--usrp-address", dest="usrp_address", type=str, default='addr=192.168.10.2',
-        help="Set N210 device address [default=%(default)r]")
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
+    parser.add_argument(
+        "--tx-usrp-address", dest="tx_usrp_address", type=str, default='addr=192.168.10.2',
+        help="Set TX N210 device address [default=%(default)r]")
+    parser.add_argument(
+        "--rx-usrp-address", dest="rx_usrp_address", type=str, default='addr=192.168.10.3',
+        help="Set RX N210 device address [default=%(default)r]")
     parser.add_argument(
         "--center-freq-hz", dest="center_freq_hz", type=eng_float, default=eng_notation.num_to_str(float(915e6)),
         help="Set RF center frequency (Hz) [default=%(default)r]")
-    parser.add_argument(
-        "--rx-gain-db", dest="rx_gain_db", type=eng_float, default=eng_notation.num_to_str(float(75)),
-        help="Set Fixed RX digital gain (dB) = -(RX ADC dBFS) [default=%(default)r]")
     return parser
 
 
@@ -2124,7 +1966,7 @@ def main(top_block_cls=n210_8ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, usrp_address=options.usrp_address, center_freq_hz=options.center_freq_hz, rx_gain_db=options.rx_gain_db)
+    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, ber_test_bits=options.ber_test_bits, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

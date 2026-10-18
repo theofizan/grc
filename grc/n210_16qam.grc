@@ -22,7 +22,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: 16-QAM over the air | USRP N210 loopback
+    title: 16-QAM over the air | two USRP N210s
     window_size: (1000,1000)
   states:
     bus_sink: false
@@ -719,7 +719,7 @@ blocks:
     label9: ''
     max: '1'
     min: '0'
-    name: BER estimate | RX vs RX one data period earlier, /2
+    name: BER | RX vs RX one data period earlier, /2 (preamble-trained)
     nconnections: '1'
     type: float
     unit1: errors/bit
@@ -795,7 +795,7 @@ blocks:
     marker7: '-1'
     marker8: '-1'
     marker9: '-1'
-    name: Self-referenced BER estimate per window
+    name: BER per window (preamble-trained, RX vs RX one period earlier)
     nconnections: '1'
     size: '128'
     srate: bit_rate/ber_window
@@ -1125,244 +1125,6 @@ blocks:
     coordinate:
     - 330
     - 1094
-    rotation: 0
-    state: enabled
-- name: diff_decoder
-  id: digital_diff_decoder_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    coding: digital.DIFF_DIFFERENTIAL
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    modulus: '16'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 152
-    - 952.0
-    rotation: 0
-    state: enabled
-- name: ebno_display
-  id: qtgui_number_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    autoscale: 'False'
-    avg: '0'
-    color1: ("black", "black")
-    color10: ("black", "black")
-    color2: ("black", "black")
-    color3: ("black", "black")
-    color4: ("black", "black")
-    color5: ("black", "black")
-    color6: ("black", "black")
-    color7: ("black", "black")
-    color8: ("black", "black")
-    color9: ("black", "black")
-    comment: ''
-    factor1: '1'
-    factor10: '1'
-    factor2: '1'
-    factor3: '1'
-    factor4: '1'
-    factor5: '1'
-    factor6: '1'
-    factor7: '1'
-    factor8: '1'
-    factor9: '1'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    gui_hint: views@3:5,0,1,1
-    label1: Eb/N0 estimate from MER
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    max: '100'
-    min: '-100'
-    name: Eb/N0 estimate from MER
-    nconnections: '1'
-    type: float
-    unit1: dB
-    unit10: ''
-    unit2: ''
-    unit3: ''
-    unit4: ''
-    unit5: ''
-    unit6: ''
-    unit7: ''
-    unit8: ''
-    unit9: ''
-    update_time: '0.10'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 980
-    - 2854
-    rotation: 0
-    state: enabled
-- name: envelope_dbm
-  id: blocks_nlog10_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    k: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    n: '10'
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 400
-    - 2594
-    rotation: 0
-    state: enabled
-- name: envelope_floor
-  id: blocks_add_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: 1e-30
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 160
-    - 2594
-    rotation: 0
-    state: enabled
-- name: envelope_input
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: tx_power_mw
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 16
-    - 2594
-    rotation: 0
-    state: enabled
-- name: envelope_plot
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'True'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: views@3:1,1,1,1
-    label1: Signal 1
-    label10: Signal 10
-    label2: Signal 2
-    label3: Signal 3
-    label4: Signal 4
-    label5: Signal 5
-    label6: Signal 6
-    label7: Signal 7
-    label8: Signal 8
-    label9: Signal 9
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: TX sampled power envelope (dBFS)
-    nconnections: '1'
-    size: '512'
-    srate: samp_rate
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: float
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 580
-    - 2594
     rotation: 0
     state: enabled
 - name: eq_error_trace
@@ -1757,8 +1519,8 @@ blocks:
     minoutbuf: '0'
     num_taps: eq_taps
     sps: '1'
-    training_sequence: '[]'
-    training_start_tag: ''
+    training_sequence: training_symbols
+    training_start_tag: corr_est
   states:
     bus_sink: false
     bus_source: false
@@ -2730,7 +2492,7 @@ blocks:
     alias: ''
     comment: ''
     constellation: const
-    differential: 'True'
+    differential: 'False'
     excess_bw: alpha
     log: 'False'
     maxoutbuf: '0'
@@ -2747,71 +2509,6 @@ blocks:
     - 584
     rotation: 0
     state: enabled
-- name: peak_display
-  id: qtgui_number_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    autoscale: 'False'
-    avg: '0'
-    color1: ("black", "black")
-    color10: ("black", "black")
-    color2: ("black", "black")
-    color3: ("black", "black")
-    color4: ("black", "black")
-    color5: ("black", "black")
-    color6: ("black", "black")
-    color7: ("black", "black")
-    color8: ("black", "black")
-    color9: ("black", "black")
-    comment: ''
-    factor1: '1'
-    factor10: '1'
-    factor2: '1'
-    factor3: '1'
-    factor4: '1'
-    factor5: '1'
-    factor6: '1'
-    factor7: '1'
-    factor8: '1'
-    factor9: '1'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    gui_hint: views@3:4,0,1,1
-    label1: TX sampled peak (must stay below 0 dBFS)
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    max: '100'
-    min: '-200'
-    name: TX sampled peak (must stay below 0 dBFS)
-    nconnections: '1'
-    type: float
-    unit1: dBFS
-    unit10: ''
-    unit2: ''
-    unit3: ''
-    unit4: ''
-    unit5: ''
-    unit6: ''
-    unit7: ''
-    unit8: ''
-    unit9: ''
-    update_time: '0.10'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 760
-    - 2454
-    rotation: 0
-    state: enabled
 - name: peak_input
   id: virtual_source
   parameters:
@@ -2825,219 +2522,6 @@ blocks:
     coordinate:
     - 16
     - 2454
-    rotation: 0
-    state: enabled
-- name: power_history
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'True'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: views@3:1,0,1,1
-    label1: TX average (dBFS)
-    label10: Signal 10
-    label2: RX ADC total (dBFS)
-    label3: Signal 3
-    label4: Signal 4
-    label5: Signal 5
-    label6: Signal 6
-    label7: Signal 7
-    label8: Signal 8
-    label9: Signal 9
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: Digital levels | TX average and RX ADC (dBFS)
-    nconnections: '2'
-    size: '128'
-    srate: samp_rate/4096
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: float
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 1180
-    - 2244
-    rotation: 0
-    state: enabled
-- name: power_reference_chart
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'True'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: views@3:2,1,1,1
-    label1: Signal 1
-    label10: Signal 10
-    label2: Signal 2
-    label3: Signal 3
-    label4: Signal 4
-    label5: Signal 5
-    label6: Signal 6
-    label7: Signal 7
-    label8: Signal 8
-    label9: Signal 9
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: MER history (dB)
-    nconnections: '1'
-    size: '128'
-    srate: samp_rate/4096
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: float
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 800
-    - 4664
-    rotation: 0
-    state: enabled
-- name: power_reference_chart_input
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: snr_history
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 620
-    - 4664
     rotation: 0
     state: enabled
 - name: pre_eq_link
@@ -3056,18 +2540,13 @@ blocks:
     rotation: 0
     state: enabled
 - name: random_bytes
-  id: analog_random_source_x
+  id: blocks_vector_source_x
   parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    max: '256'
-    maxoutbuf: '0'
-    min: '0'
-    minoutbuf: '0'
-    num_samps: '32768'
-    repeat: 'True'
     type: byte
+    vector: tx_data
+    repeat: 'True'
+    vlen: '1'
+    tags: '[]'
   states:
     bus_sink: false
     bus_source: false
@@ -3127,21 +2606,6 @@ blocks:
     - 2854
     rotation: 0
     state: enabled
-- name: rx_ebno_input
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: evm_history
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 620
-    - 2854
-    rotation: 0
-    state: enabled
 - name: rx_iq_link
   id: virtual_sink
   parameters:
@@ -3158,16 +2622,14 @@ blocks:
     rotation: 0
     state: enabled
 - name: rx_level
-  id: blocks_multiply_const_vxx
+  id: analog_agc2_xx
   parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: 10**(rx_gain_db/20.0)
-    maxoutbuf: '0'
-    minoutbuf: '0'
     type: complex
-    vlen: '1'
+    attack_rate: 1e-3
+    decay_rate: 1e-3
+    reference: '1.0'
+    gain: '1.0'
+    max_gain: '65536'
   states:
     bus_sink: false
     bus_source: false
@@ -3207,71 +2669,6 @@ blocks:
     bus_structure: null
     coordinate:
     - 160
-    - 2314
-    rotation: 0
-    state: enabled
-- name: rx_power_display
-  id: qtgui_number_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    autoscale: 'False'
-    avg: '0'
-    color1: ("black", "black")
-    color10: ("black", "black")
-    color2: ("black", "black")
-    color3: ("black", "black")
-    color4: ("black", "black")
-    color5: ("black", "black")
-    color6: ("black", "black")
-    color7: ("black", "black")
-    color8: ("black", "black")
-    color9: ("black", "black")
-    comment: ''
-    factor1: '1'
-    factor10: '1'
-    factor2: '1'
-    factor3: '1'
-    factor4: '1'
-    factor5: '1'
-    factor6: '1'
-    factor7: '1'
-    factor8: '1'
-    factor9: '1'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    gui_hint: views@3:3,1,1,1
-    label1: 'RX ADC level: signal + noise'
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    max: '100'
-    min: '-200'
-    name: 'RX ADC level: signal + noise'
-    nconnections: '1'
-    type: float
-    unit1: dBFS
-    unit10: ''
-    unit2: ''
-    unit3: ''
-    unit4: ''
-    unit5: ''
-    unit6: ''
-    unit7: ''
-    unit8: ''
-    unit9: ''
-    update_time: '0.10'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 950
     - 2314
     rotation: 0
     state: enabled
@@ -3554,7 +2951,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_items: warmup_bits+data_period_bits
+    num_items: warmup_bits+2*data_period_bits
     type: byte
     vlen: '1'
   states:
@@ -3574,7 +2971,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_items: warmup_bits+data_period_bits
+    num_items: warmup_bits+2*data_period_bits
     type: byte
     vlen: '1'
   states:
@@ -3584,86 +2981,6 @@ blocks:
     coordinate:
     - 480
     - 1094
-    rotation: 0
-    state: enabled
-- name: snr_display
-  id: qtgui_number_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    autoscale: 'False'
-    avg: '0'
-    color1: ("black", "black")
-    color10: ("black", "black")
-    color2: ("black", "black")
-    color3: ("black", "black")
-    color4: ("black", "black")
-    color5: ("black", "black")
-    color6: ("black", "black")
-    color7: ("black", "black")
-    color8: ("black", "black")
-    color9: ("black", "black")
-    comment: ''
-    factor1: '1'
-    factor10: '1'
-    factor2: '1'
-    factor3: '1'
-    factor4: '1'
-    factor5: '1'
-    factor6: '1'
-    factor7: '1'
-    factor8: '1'
-    factor9: '1'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    gui_hint: views@3:4,1,1,1
-    label1: MER from decision-directed EVM (Es/N0 estimate)
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    max: '100'
-    min: '-100'
-    name: MER from decision-directed EVM (Es/N0 estimate)
-    nconnections: '1'
-    type: float
-    unit1: dB
-    unit10: ''
-    unit2: ''
-    unit3: ''
-    unit4: ''
-    unit5: ''
-    unit6: ''
-    unit7: ''
-    unit8: ''
-    unit9: ''
-    update_time: '0.10'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 350
-    - 2854
-    rotation: 0
-    state: enabled
-- name: snr_history_link
-  id: virtual_sink
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: snr_history
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 350
-    - 2934
     rotation: 0
     state: enabled
 - name: spectrum
@@ -3786,7 +3103,7 @@ blocks:
     grid: 'False'
     gui_hint: views@3:2,0,1,1
     label: Relative Gain
-    label1: ''
+    label1: RX
     label10: ''''''
     label2: ''''''
     label3: ''''''
@@ -4633,71 +3950,6 @@ blocks:
     - 160
     rotation: 0
     state: enabled
-- name: tx_power_display
-  id: qtgui_number_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    autoscale: 'False'
-    avg: '0'
-    color1: ("black", "black")
-    color10: ("black", "black")
-    color2: ("black", "black")
-    color3: ("black", "black")
-    color4: ("black", "black")
-    color5: ("black", "black")
-    color6: ("black", "black")
-    color7: ("black", "black")
-    color8: ("black", "black")
-    color9: ("black", "black")
-    comment: ''
-    factor1: '1'
-    factor10: '1'
-    factor2: '1'
-    factor3: '1'
-    factor4: '1'
-    factor5: '1'
-    factor6: '1'
-    factor7: '1'
-    factor8: '1'
-    factor9: '1'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    gui_hint: views@3:3,0,1,1
-    label1: TX digital average level
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    max: '100'
-    min: '-200'
-    name: TX digital average level
-    nconnections: '1'
-    type: float
-    unit1: dBFS
-    unit10: ''
-    unit2: ''
-    unit3: ''
-    unit4: ''
-    unit5: ''
-    unit6: ''
-    unit7: ''
-    unit8: ''
-    unit9: ''
-    update_time: '0.10'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 950
-    - 2184
-    rotation: 0
-    state: enabled
 - name: tx_power_mean
   id: blocks_multiply_const_vxx
   parameters:
@@ -4771,25 +4023,6 @@ blocks:
     bus_structure: null
     coordinate:
     - 160
-    - 3104
-    rotation: 0
-    state: enabled
-- name: tx_symbol_diff
-  id: digital_diff_encoder_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    coding: digital.DIFF_DIFFERENTIAL
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    modulus: '16'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate:
-    - 380
     - 3104
     rotation: 0
     state: enabled
@@ -5165,17 +4398,277 @@ blocks:
     - 1004
     rotation: 0
     state: enabled
-- name: usrp_address
+- name: tx_papr
+  id: blocks_sub_xx
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 980
+    - 2244
+    rotation: 0
+    state: enabled
+- name: link_tx_table
+  id: qtgui_number_sink
+  parameters:
+    name: Transmit (digital full scale)
+    type: float
+    nconnections: '3'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    update_time: '0.25'
+    gui_hint: views@3:1,0,1,1
+    label1: Average
+    unit1: dBFS
+    color1: ("black", "black")
+    factor1: '1'
+    label2: Sampled peak (keep < 0)
+    unit2: dBFS
+    color2: ("black", "black")
+    factor2: '1'
+    label3: Peak/average
+    unit3: dB
+    color3: ("black", "black")
+    factor3: '1'
+  states:
+    coordinate:
+    - 1180
+    - 2244
+    rotation: 0
+    state: enabled
+- name: link_rx_table
+  id: qtgui_number_sink
+  parameters:
+    name: Receive (fixed RF gain, uncalibrated)
+    type: float
+    nconnections: '4'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '-200'
+    max: '100'
+    update_time: '0.25'
+    gui_hint: views@3:1,1,1,1
+    label1: ADC level
+    unit1: dBFS
+    color1: ("black", "black")
+    factor1: '1'
+    label2: MER
+    unit2: dB
+    color2: ("black", "black")
+    factor2: '1'
+    label3: Eb/N0 est.
+    unit3: dB
+    color3: ("black", "black")
+    factor3: '1'
+    label4: EVM
+    unit4: '%'
+    color4: ("black", "black")
+    factor4: '1'
+  states:
+    coordinate:
+    - 1180
+    - 2384
+    rotation: 0
+    state: enabled
+- name: rx_snr_value_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_snr_value
+  states:
+    coordinate:
+    - 360
+    - 2914
+    rotation: 0
+    state: enabled
+- name: rx_snr_value_to_link_rx_table
+  id: virtual_source
+  parameters:
+    stream_id: rx_snr_value
+  states:
+    coordinate:
+    - 1020
+    - 2454
+    rotation: 0
+    state: enabled
+- name: rx_ebno_value_link
+  id: virtual_sink
+  parameters:
+    stream_id: rx_ebno_value
+  states:
+    coordinate:
+    - 980
+    - 2914
+    rotation: 0
+    state: enabled
+- name: rx_ebno_value_to_link_rx_table
+  id: virtual_source
+  parameters:
+    stream_id: rx_ebno_value
+  states:
+    coordinate:
+    - 1020
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_bits
+  id: parameter
+  parameters:
+    value: '1000000'
+    type: intx
+    label: BER test length (compared bits)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 1700
+    - 8
+    rotation: 0
+    state: enabled
+- name: ber_test_blocks
+  id: variable
+  parameters:
+    value: max(1, int(ber_test_bits) // 10000)
+  states:
+    coordinate:
+    - 1700
+    - 100
+    rotation: 0
+    state: enabled
+- name: ber_test_seconds
+  id: variable
+  parameters:
+    value: (warmup_bits + 3*data_period_bits + ber_test_bits) / bit_rate
+  states:
+    coordinate:
+    - 1700
+    - 170
+    rotation: 0
+    state: enabled
+- name: ber_test_time
+  id: variable_qtgui_label
+  parameters:
+    label: BER test
+    type: string
+    formatter: None
+    gui_hint: views@3:3,0,1,2
+    value: '''%d-bit blocks: first result after about %.2f s at %g Mbit/s'' % (10000 * ber_test_blocks, ber_test_seconds,
+      bit_rate / 1e6)'
+  states:
+    coordinate:
+    - 1700
+    - 240
+    rotation: 0
+    state: enabled
+- name: ber_test_sum_10k
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_sum
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: ber_test_blocks
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 2604
+    rotation: 0
+    state: enabled
+- name: ber_test_scale
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: 0.5/(10000*ber_test_blocks)
+    vlen: '1'
+  states:
+    coordinate:
+    - 1340
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_display
+  id: qtgui_number_sink
+  parameters:
+    name: BER test | latest complete block (0 until the first block ends)
+    type: float
+    nconnections: '1'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '0'
+    max: '1'
+    update_time: '0.25'
+    gui_hint: views@3:2,1,1,1
+    label1: BER over block
+    unit1: errors/bit
+    color1: ("black", "black")
+    factor1: '1'
+  states:
+    coordinate:
+    - 1520
+    - 2524
+    rotation: 0
+    state: enabled
+- name: bit_errors_link
+  id: virtual_sink
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 760
+    - 1074
+    rotation: 0
+    state: enabled
+- name: bit_errors_to_ber_test_sum_10k
+  id: virtual_source
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 980
+    - 2524
+    rotation: 0
+    state: enabled
+- name: tx_usrp_address
   id: parameter
   parameters:
     value: addr=192.168.10.2
     type: str
-    label: N210 device address
+    label: TX N210 device address
     short_id: ''
     hide: none
   states:
     coordinate:
     - 16
+    - 176
+    rotation: 0
+    state: enabled
+- name: rx_usrp_address
+  id: parameter
+  parameters:
+    value: addr=192.168.10.3
+    type: str
+    label: RX N210 device address
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 216
     - 176
     rotation: 0
     state: enabled
@@ -5189,7 +4682,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 216
+    - 416
     - 176
     rotation: 0
     state: enabled
@@ -5208,7 +4701,7 @@ blocks:
     gui_hint: ''
   states:
     coordinate:
-    - 416
+    - 616
     - 176
     rotation: 0
     state: enabled
@@ -5227,60 +4720,58 @@ blocks:
     gui_hint: ''
   states:
     coordinate:
-    - 616
-    - 176
-    rotation: 0
-    state: enabled
-- name: phase_fix_deg
-  id: variable_qtgui_range
-  parameters:
-    value: '0'
-    start: '0'
-    stop: '270'
-    step: '90'
-    label: Phase-ambiguity rotation (deg)
-    widget: counter_slider
-    rangeType: float
-    orient: QtCore.Qt.Horizontal
-    min_len: '200'
-    gui_hint: ''
-  states:
-    coordinate:
     - 816
-    - 176
-    rotation: 0
-    state: enabled
-- name: rx_gain_db
-  id: parameter
-  parameters:
-    value: '75'
-    type: eng_float
-    label: Fixed RX digital gain (dB) = -(RX ADC dBFS)
-    short_id: ''
-    hide: none
-  states:
-    coordinate:
-    - 1016
     - 176
     rotation: 0
     state: enabled
 - name: carrier_loop_bw
   id: variable
   parameters:
-    value: 2*math.pi/200
+    value: 2*math.pi/1600
   states:
     coordinate:
-    - 1216
+    - 1016
     - 176
     rotation: 0
     state: enabled
 - name: data_period_bits
   id: variable
   parameters:
-    value: 8*32768
+    value: 8*len(tx_data)
+  states:
+    coordinate:
+    - 1216
+    - 176
+    rotation: 0
+    state: enabled
+- name: tx_data
+  id: variable
+  parameters:
+    value: list(numpy.random.RandomState(42).randint(0, 256, 32766))
   states:
     coordinate:
     - 1416
+    - 176
+    rotation: 0
+    state: enabled
+- name: training_symbols
+  id: variable
+  parameters:
+    value: list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k),
+      dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()])
+  states:
+    coordinate:
+    - 1616
+    - 176
+    rotation: 0
+    state: enabled
+- name: preamble_len
+  id: variable
+  parameters:
+    value: '128'
+  states:
+    coordinate:
+    - 1816
     - 176
     rotation: 0
     state: enabled
@@ -5291,7 +4782,7 @@ blocks:
     otw: sc16
     stream_args: ''
     stream_chans: '[]'
-    dev_addr: usrp_address
+    dev_addr: tx_usrp_address
     dev_args: '""'
     sync: none
     start_time: '-1.0'
@@ -5324,7 +4815,7 @@ blocks:
     otw: sc16
     stream_args: ''
     stream_chans: '[]'
-    dev_addr: usrp_address
+    dev_addr: rx_usrp_address
     dev_args: '""'
     sync: none
     start_time: '-1.0'
@@ -5354,6 +4845,20 @@ blocks:
     - 760
     rotation: 0
     state: enabled
+- name: preamble_detect
+  id: digital_corr_est_cc
+  parameters:
+    symbols: list(numpy.array(training_symbols[:preamble_len])/symbol_rms)
+    sps: '1'
+    mark_delay: eq_delay_symbols+1
+    threshold: '0.9999'
+    threshold_method: digital.THRESHOLD_DYNAMIC
+  states:
+    coordinate:
+    - 1400
+    - 584
+    rotation: 0
+    state: enabled
 - name: carrier_sync
   id: digital_costas_loop_cc
   parameters:
@@ -5366,16 +4871,16 @@ blocks:
     - 584
     rotation: 0
     state: enabled
-- name: phase_fix
-  id: blocks_multiply_const_vxx
+- name: evm_table_rate
+  id: blocks_keep_one_in_n
   parameters:
-    type: complex
-    const: complex(math.cos(math.radians(phase_fix_deg)),math.sin(math.radians(phase_fix_deg)))
+    type: float
+    n: 4096//sps
     vlen: '1'
   states:
     coordinate:
-    - 1400
-    - 584
+    - 166
+    - 2854
     rotation: 0
     state: enabled
 connections:
@@ -5435,10 +4940,6 @@ connections:
   - '0'
   - constellation
   - '2'
-- - decoded_source
-  - '0'
-  - diff_decoder
-  - '0'
 - - decoder
   - '0'
   - decoded_link
@@ -5446,22 +4947,6 @@ connections:
 - - delay
   - '0'
   - skip_tx
-  - '0'
-- - diff_decoder
-  - '0'
-  - unpack_rx
-  - '0'
-- - envelope_dbm
-  - '0'
-  - envelope_plot
-  - '0'
-- - envelope_floor
-  - '0'
-  - envelope_dbm
-  - '0'
-- - envelope_input
-  - '0'
-  - envelope_floor
   - '0'
 - - eq_error_trace_input
   - '0'
@@ -5479,11 +4964,11 @@ connections:
   - '0'
   - eq_tap_plot
   - '0'
-- - phase_fix
+- - equalizer
   - '0'
   - decoder
   - '0'
-- - phase_fix
+- - equalizer
   - '0'
   - symbols_link
   - '0'
@@ -5579,10 +5064,6 @@ connections:
   - '0'
   - tx_peak_vectors
   - '0'
-- - power_reference_chart_input
-  - '0'
-  - power_reference_chart
-  - '0'
 - - random_bytes
   - '0'
   - modulator
@@ -5590,22 +5071,6 @@ connections:
 - - random_bytes
   - '0'
   - reference_link
-  - '0'
-- - rx_dbm
-  - '0'
-  - power_history
-  - '1'
-- - rx_dbm
-  - '0'
-  - rx_power_display
-  - '0'
-- - rx_ebno
-  - '0'
-  - ebno_display
-  - '0'
-- - rx_ebno_input
-  - '0'
-  - rx_ebno
   - '0'
 - - rx_level
   - '0'
@@ -5634,18 +5099,6 @@ connections:
 - - rx_scale
   - '0'
   - pre_eq_link
-  - '0'
-- - rx_snr
-  - '0'
-  - snr_display
-  - '0'
-- - rx_snr
-  - '0'
-  - snr_history_link
-  - '0'
-- - rx_snr_input
-  - '0'
-  - rx_snr
   - '0'
 - - skip_rx
   - '0'
@@ -5681,15 +5134,7 @@ connections:
   - '2'
 - - tx_dbm
   - '0'
-  - power_history
-  - '0'
-- - tx_dbm
-  - '0'
   - tx_dbm_link
-  - '0'
-- - tx_dbm
-  - '0'
-  - tx_power_display
   - '0'
 - - tx_eye_i
   - '0'
@@ -5719,10 +5164,6 @@ connections:
   - '0'
   - tx_power_sum
   - '0'
-- - tx_peak_dbm
-  - '0'
-  - peak_display
-  - '0'
 - - tx_peak_mw
   - '0'
   - tx_peak_dbm
@@ -5747,14 +5188,6 @@ connections:
   - '0'
   - spectrum
   - '1'
-- - tx_symbol_chunks
-  - '0'
-  - tx_symbol_diff
-  - '0'
-- - tx_symbol_diff
-  - '0'
-  - tx_symbols
-  - '0'
 - - tx_symbol_input
   - '0'
   - tx_symbol_chunks
@@ -5783,6 +5216,66 @@ connections:
   - '0'
   - errors_float
   - '0'
+- - tx_peak_dbm
+  - '0'
+  - tx_papr
+  - '0'
+- - tx_dbm
+  - '0'
+  - tx_papr
+  - '1'
+- - tx_dbm
+  - '0'
+  - link_tx_table
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - link_tx_table
+  - '1'
+- - tx_papr
+  - '0'
+  - link_tx_table
+  - '2'
+- - rx_dbm
+  - '0'
+  - link_rx_table
+  - '0'
+- - rx_snr
+  - '0'
+  - rx_snr_value_link
+  - '0'
+- - rx_snr_value_to_link_rx_table
+  - '0'
+  - link_rx_table
+  - '1'
+- - rx_ebno
+  - '0'
+  - rx_ebno_value_link
+  - '0'
+- - rx_ebno_value_to_link_rx_table
+  - '0'
+  - link_rx_table
+  - '2'
+- - errors_float
+  - '0'
+  - bit_errors_link
+  - '0'
+- - bit_errors_to_ber_test_sum_10k
+  - '0'
+  - ber_test_sum_10k
+  - '0'
+- - ber_test_sum_10k
+  - '0'
+  - ber_test_sum
+  - '0'
+- - ber_test_sum
+  - '0'
+  - ber_test_scale
+  - '0'
+- - ber_test_scale
+  - '0'
+  - ber_test_display
+  - '0'
 - - tx_power
   - '0'
   - usrp_tx
@@ -5801,16 +5294,40 @@ connections:
   - '0'
 - - carrier_sync
   - '0'
+  - preamble_detect
+  - '0'
+- - preamble_detect
+  - '0'
   - rx_scale
   - '0'
-- - equalizer
+- - decoded_source
   - '0'
-  - phase_fix
+  - unpack_rx
+  - '0'
+- - tx_symbol_chunks
+  - '0'
+  - tx_symbols
   - '0'
 - - unpack_rx
   - '0'
   - delay
   - '0'
+- - rx_snr_input
+  - '0'
+  - evm_table_rate
+  - '0'
+- - evm_table_rate
+  - '0'
+  - rx_snr
+  - '0'
+- - evm_table_rate
+  - '0'
+  - rx_ebno
+  - '0'
+- - evm_table_rate
+  - '0'
+  - link_rx_table
+  - '3'
 metadata:
   file_format: 1
   grc_version: 3.10.12.0
