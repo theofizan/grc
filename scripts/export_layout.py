@@ -5,7 +5,9 @@ import argparse
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--modulation", default="16qam")
-profile = parser.parse_args().modulation
+parser.add_argument("--file", help="any .grc to export instead (writes results/<stem>.png)")
+args = parser.parse_args()
+profile = args.modulation
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -36,13 +38,13 @@ from gnuradio.grc.gui.MainWindow import MainWindow
 
 main_window = MainWindow(app, platform)
 graph = platform.make_flow_graph()
-graph.import_data(
-    platform.parse_flow_graph(str(root / f"grc/single_carrier_{profile}.grc"))
-)
+source = Path(args.file) if args.file else root / f"grc/single_carrier_{profile}.grc"
+output = f"results/{source.stem}.png" if args.file else f"results/{profile}_flowchart.png"
+graph.import_data(platform.parse_flow_graph(str(source)))
 from gnuradio.grc.gui import Actions
 
 Actions.TOGGLE_HIDE_VARIABLES.set_active(False)
 Actions.TOGGLE_SHOW_BLOCK_IDS.set_active(False)
 graph.update()
-make_screenshot(graph, str(root / f"results/{profile}_flowchart.png"))
-print(f"Wrote results/{profile}_flowchart.png")
+make_screenshot(graph, str(root / output))
+print(f"Wrote {output}")

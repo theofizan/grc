@@ -243,6 +243,33 @@ Each test runs the actual flowchart and reads its built-in BER test. It cross-ch
 
 Run time is about 0.3 s per million bits for QPSK and 0.8 s per 10 million bits for 16-QAM. Eb/N₀ follows the flowcharts' convention: noise integrated over Fs, per uncoded bit.
 
+## BER-versus-Eb/N₀ flowcharts
+
+`grc/ber_curve_<modulation>.grc` (six files, built by `python scripts/build_ber_curves.py`) draw a live BER curve in GRC. Open one and press F6:
+
+```bash
+antenna-grc grc/ber_curve_qpsk.grc
+```
+
+How each flowchart is built (flat, stock blocks):
+- **One transmitter.** Its modulator, pulse shaping, power and receiver settings are copied from the matching single-carrier flowchart, so the curve describes the same modem.
+- **One channel and receiver row per Eb/N₀ point.** Each row has an AWGN Channel Model with its own noise seed, then the same timing recovery, LMS equalizer, decisions and differential decoding.
+- **A QT GUI Bercurve Sink** compares every row's bits with the delayed transmitted bits and plots log₁₀ BER against Eb/N₀.
+
+Controls at the top:
+- **ebno_db:** the 8 Eb/N₀ points, 2 dB apart, starting where each format leaves BER ≈ 0.5. You can change the values; the number of points is fixed.
+- **Bit errors to collect per point** (default 100): each point stops when it reaches this. Use 1000 for publication-quality points; 100 errors gives roughly ±20% at 95% confidence.
+- **Stop a point below BER 10^x** (default −7).
+- **Simulation speed limit** (default 100× real time, effectively as fast as the computer allows).
+
+Reading the plot:
+- **Points fill in from low to high Eb/N₀.** With 100 errors, points down to about 10⁻⁵ finish in under a minute. A point with no errors yet sits at the bottom of the plot.
+- **Labels:** GNU Radio labels the x-axis "ESNO". Here it carries **Eb/N₀ per uncoded bit**, using the same noise-over-Fs convention as the simulations.
+- **Red curve:** the sink always draws its "BPSK AWGN" curve. Plotted against Eb/N₀, that is textbook coherent BPSK/QPSK theory, a common reference for every format.
+- **Warm-up:** each row skips its first 50,000 bits while timing and equalizer settle.
+
+The curves match the measured sweep in `results/ber_sweep/` within that statistical spread.
+
 ## Paper figures
 
 `python scripts/sweep_ber.py` runs each saved flowchart at Eb/N₀ = 0, 1, 2, … dB (about 262,000 bits per point, stopping after two error-free points), then `python scripts/plot_results.py` and `python scripts/plot_equalizer.py` export the figures. Every figure is a vector PDF/SVG with embedded serif fonts plus a 600-dpi PNG, sized for an IEEE column (3.5 in) or page (7.16 in). Each modulation keeps one color, marker and line style, so figures also read in grayscale.

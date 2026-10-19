@@ -1,0 +1,2788 @@
+options:
+  parameters:
+    author: Antenna benchmark
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: ber_curve_4ask
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: 4-ASK BER vs Eb/N0 | stock blocks
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1600
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: const
+  id: variable_constellation_rect
+  parameters:
+    comment: ''
+    const_points: '[-3, -1, 1, 3]'
+    imag_sect: '1'
+    precision: '8'
+    real_sect: '4'
+    rot_sym: '1'
+    soft_dec_lut: None
+    sym_map: '[0, 1, 2, 3]'
+    w_imag_sect: '1'
+    w_real_sect: '2'
+  states:
+    coordinate:
+    - 16
+    - 60
+    rotation: 0
+    state: enabled
+- name: k
+  id: variable
+  parameters:
+    comment: ''
+    value: const.bits_per_symbol()
+  states:
+    coordinate:
+    - 206
+    - 60
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    coordinate:
+    - 396
+    - 60
+    rotation: 0
+    state: enabled
+- name: alpha
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.35'
+  states:
+    coordinate:
+    - 586
+    - 60
+    rotation: 0
+    state: enabled
+- name: nfilts
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    coordinate:
+    - 776
+    - 60
+    rotation: 0
+    state: enabled
+- name: rrc_taps
+  id: variable
+  parameters:
+    comment: ''
+    value: firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
+  states:
+    coordinate:
+    - 966
+    - 60
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: symbol_rate*sps
+  states:
+    coordinate:
+    - 1156
+    - 60
+    rotation: 0
+    state: enabled
+- name: symbol_rate
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Symbol rate (symbols/s)
+    short_id: ''
+    type: eng_float
+    value: 1e6
+  states:
+    coordinate:
+    - 1346
+    - 60
+    rotation: 0
+    state: enabled
+- name: bit_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: symbol_rate*k
+  states:
+    coordinate:
+    - 16
+    - 150
+    rotation: 0
+    state: enabled
+- name: symbol_rms
+  id: variable
+  parameters:
+    comment: ''
+    value: (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
+  states:
+    coordinate:
+    - 206
+    - 150
+    rotation: 0
+    state: enabled
+- name: timing_bw
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.0628'
+  states:
+    coordinate:
+    - 396
+    - 150
+    rotation: 0
+    state: enabled
+- name: eq_algorithm
+  id: variable_adaptive_algorithm
+  parameters:
+    comment: ''
+    cons: const
+    delta: '10.0'
+    ffactor: '0.99'
+    modulus: '2'
+    step_size: eq_step/(eq_taps*symbol_rms**2)
+    type: lms
+  states:
+    coordinate:
+    - 586
+    - 150
+    rotation: 0
+    state: enabled
+- name: eq_taps
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Adaptive equalizer taps
+    short_id: ''
+    type: intx
+    value: '11'
+  states:
+    coordinate:
+    - 776
+    - 150
+    rotation: 0
+    state: enabled
+- name: eq_step
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: NLMS adaptation step
+    short_id: ''
+    type: eng_float
+    value: '0.01'
+  states:
+    coordinate:
+    - 966
+    - 150
+    rotation: 0
+    state: enabled
+- name: eq_delay_symbols
+  id: variable
+  parameters:
+    comment: ''
+    value: (eq_taps-1)//2
+  states:
+    coordinate:
+    - 1156
+    - 150
+    rotation: 0
+    state: enabled
+- name: reference_delay
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: TX reference delay (bits)
+    short_id: ''
+    type: intx
+    value: '68'
+  states:
+    coordinate:
+    - 1346
+    - 150
+    rotation: 0
+    state: enabled
+- name: warmup_bits
+  id: variable
+  parameters:
+    comment: ''
+    value: '50000'
+  states:
+    coordinate:
+    - 16
+    - 240
+    rotation: 0
+    state: enabled
+- name: tx_power_dbm
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: TX average conducted power (dBm)
+    short_id: ''
+    type: eng_float
+    value: '0'
+  states:
+    coordinate:
+    - 206
+    - 240
+    rotation: 0
+    state: enabled
+- name: tx_amplitude
+  id: variable
+  parameters:
+    comment: ''
+    value: 10**(tx_power_dbm/20.0)
+  states:
+    coordinate:
+    - 396
+    - 240
+    rotation: 0
+    state: enabled
+- name: path_loss_db
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Net path loss including gains/losses (dB)
+    short_id: ''
+    type: eng_float
+    value: '0'
+  states:
+    coordinate:
+    - 586
+    - 240
+    rotation: 0
+    state: enabled
+- name: path_gain
+  id: variable
+  parameters:
+    comment: ''
+    value: 10**(-path_loss_db/20.0)
+  states:
+    coordinate:
+    - 776
+    - 240
+    rotation: 0
+    state: enabled
+- name: chart_math
+  id: import
+  parameters:
+    alias: ''
+    comment: ''
+    imports: 'import math
+
+      import numpy'
+  states:
+    coordinate:
+    - 966
+    - 240
+    rotation: 0
+    state: enabled
+- name: ebno_db
+  id: variable
+  parameters:
+    value: '[2, 4, 6, 8, 10, 12, 14, 16]'
+  states:
+    coordinate:
+    - 16
+    - 340
+    rotation: 0
+    state: enabled
+- name: noise_volts
+  id: variable
+  parameters:
+    value: list(tx_amplitude*path_gain*10**(-(numpy.array(ebno_db) - 10*math.log10(samp_rate/bit_rate))/20))
+  states:
+    coordinate:
+    - 206
+    - 340
+    rotation: 0
+    state: enabled
+- name: min_errors
+  id: parameter
+  parameters:
+    value: '100'
+    type: intx
+    label: Bit errors to collect per point
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 396
+    - 340
+    rotation: 0
+    state: enabled
+- name: ber_floor_log10
+  id: parameter
+  parameters:
+    value: '-7'
+    type: eng_float
+    label: Stop a point below BER 10^x
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 586
+    - 340
+    rotation: 0
+    state: enabled
+- name: sim_speed
+  id: parameter
+  parameters:
+    value: '100'
+    type: eng_float
+    label: Simulation speed limit (x real time)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 776
+    - 340
+    rotation: 0
+    state: enabled
+- name: section_controls
+  id: note
+  parameters:
+    note: 'CONTROLS: EB/N0 POINTS AND MODEM'
+  states:
+    coordinate:
+    - 16
+    - 8
+    rotation: 0
+    state: enabled
+- name: section_transmitter
+  id: note
+  parameters:
+    note: TRANSMITTER
+  states:
+    coordinate:
+    - 16
+    - 420
+    rotation: 0
+    state: enabled
+- name: random_bytes
+  id: analog_random_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max: '256'
+    maxoutbuf: '0'
+    min: '0'
+    minoutbuf: '0'
+    num_samps: '32768'
+    repeat: 'True'
+    type: byte
+  states:
+    coordinate:
+    - 16
+    - 470
+    rotation: 0
+    state: enabled
+- name: modulator
+  id: digital_constellation_modulator
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    differential: 'True'
+    excess_bw: alpha
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_symbol: sps
+    truncate: 'False'
+    verbose: 'False'
+  states:
+    coordinate:
+    - 246
+    - 470
+    rotation: 0
+    state: enabled
+- name: tx_power
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: tx_amplitude/symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 476
+    - 470
+    rotation: 0
+    state: enabled
+- name: throttle
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate*sim_speed
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 706
+    - 470
+    rotation: 0
+    state: enabled
+- name: tx_link
+  id: virtual_sink
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 936
+    - 470
+    rotation: 0
+    state: enabled
+- name: reference_link
+  id: virtual_sink
+  parameters:
+    stream_id: tx_bytes
+  states:
+    coordinate:
+    - 230
+    - 560
+    rotation: 0
+    state: enabled
+- name: reference_source
+  id: virtual_source
+  parameters:
+    stream_id: tx_bytes
+  states:
+    coordinate:
+    - 16
+    - 650
+    rotation: 0
+    state: enabled
+- name: unpack_tx
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: '8'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 200
+    - 650
+    rotation: 0
+    state: enabled
+- name: delay
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: reference_delay
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 650
+    rotation: 0
+    state: enabled
+- name: skip_tx
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 600
+    - 650
+    rotation: 0
+    state: enabled
+- name: pack_tx
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 800
+    - 650
+    rotation: 0
+    state: enabled
+- name: tx_bits_link
+  id: virtual_sink
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 980
+    - 650
+    rotation: 0
+    state: enabled
+- name: section_receivers
+  id: note
+  parameters:
+    note: CHANNEL AND RECEIVER, ONE ROW PER EB/N0 POINT
+  states:
+    coordinate:
+    - 16
+    - 740
+    rotation: 0
+    state: enabled
+- name: tx_in_0
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 790
+    rotation: 0
+    state: enabled
+- name: channel_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[0]
+    seed: '100'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 790
+    rotation: 0
+    state: enabled
+- name: rx_level_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 790
+    rotation: 0
+    state: enabled
+- name: clock_sync_0
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 790
+    rotation: 0
+    state: enabled
+- name: rx_scale_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 790
+    rotation: 0
+    state: enabled
+- name: equalizer_0
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 790
+    rotation: 0
+    state: enabled
+- name: decoder_0
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 790
+    rotation: 0
+    state: enabled
+- name: diff_decoder_0
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 790
+    rotation: 0
+    state: enabled
+- name: unpack_rx_0
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 790
+    rotation: 0
+    state: enabled
+- name: skip_rx_0
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 790
+    rotation: 0
+    state: enabled
+- name: pack_rx_0
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 790
+    rotation: 0
+    state: enabled
+- name: rx_bits_0
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_0
+  states:
+    coordinate:
+    - 2200
+    - 790
+    rotation: 0
+    state: enabled
+- name: tx_in_1
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 940
+    rotation: 0
+    state: enabled
+- name: channel_1
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[1]
+    seed: '101'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 940
+    rotation: 0
+    state: enabled
+- name: rx_level_1
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 940
+    rotation: 0
+    state: enabled
+- name: clock_sync_1
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 940
+    rotation: 0
+    state: enabled
+- name: rx_scale_1
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 940
+    rotation: 0
+    state: enabled
+- name: equalizer_1
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 940
+    rotation: 0
+    state: enabled
+- name: decoder_1
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 940
+    rotation: 0
+    state: enabled
+- name: diff_decoder_1
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 940
+    rotation: 0
+    state: enabled
+- name: unpack_rx_1
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 940
+    rotation: 0
+    state: enabled
+- name: skip_rx_1
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 940
+    rotation: 0
+    state: enabled
+- name: pack_rx_1
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 940
+    rotation: 0
+    state: enabled
+- name: rx_bits_1
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_1
+  states:
+    coordinate:
+    - 2200
+    - 940
+    rotation: 0
+    state: enabled
+- name: tx_in_2
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1090
+    rotation: 0
+    state: enabled
+- name: channel_2
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[2]
+    seed: '102'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1090
+    rotation: 0
+    state: enabled
+- name: rx_level_2
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1090
+    rotation: 0
+    state: enabled
+- name: clock_sync_2
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1090
+    rotation: 0
+    state: enabled
+- name: rx_scale_2
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1090
+    rotation: 0
+    state: enabled
+- name: equalizer_2
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1090
+    rotation: 0
+    state: enabled
+- name: decoder_2
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1090
+    rotation: 0
+    state: enabled
+- name: diff_decoder_2
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1090
+    rotation: 0
+    state: enabled
+- name: unpack_rx_2
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1090
+    rotation: 0
+    state: enabled
+- name: skip_rx_2
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1090
+    rotation: 0
+    state: enabled
+- name: pack_rx_2
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1090
+    rotation: 0
+    state: enabled
+- name: rx_bits_2
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_2
+  states:
+    coordinate:
+    - 2200
+    - 1090
+    rotation: 0
+    state: enabled
+- name: tx_in_3
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1240
+    rotation: 0
+    state: enabled
+- name: channel_3
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[3]
+    seed: '103'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1240
+    rotation: 0
+    state: enabled
+- name: rx_level_3
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1240
+    rotation: 0
+    state: enabled
+- name: clock_sync_3
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1240
+    rotation: 0
+    state: enabled
+- name: rx_scale_3
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1240
+    rotation: 0
+    state: enabled
+- name: equalizer_3
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1240
+    rotation: 0
+    state: enabled
+- name: decoder_3
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1240
+    rotation: 0
+    state: enabled
+- name: diff_decoder_3
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1240
+    rotation: 0
+    state: enabled
+- name: unpack_rx_3
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1240
+    rotation: 0
+    state: enabled
+- name: skip_rx_3
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1240
+    rotation: 0
+    state: enabled
+- name: pack_rx_3
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1240
+    rotation: 0
+    state: enabled
+- name: rx_bits_3
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_3
+  states:
+    coordinate:
+    - 2200
+    - 1240
+    rotation: 0
+    state: enabled
+- name: tx_in_4
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1390
+    rotation: 0
+    state: enabled
+- name: channel_4
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[4]
+    seed: '104'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1390
+    rotation: 0
+    state: enabled
+- name: rx_level_4
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1390
+    rotation: 0
+    state: enabled
+- name: clock_sync_4
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1390
+    rotation: 0
+    state: enabled
+- name: rx_scale_4
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1390
+    rotation: 0
+    state: enabled
+- name: equalizer_4
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1390
+    rotation: 0
+    state: enabled
+- name: decoder_4
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1390
+    rotation: 0
+    state: enabled
+- name: diff_decoder_4
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1390
+    rotation: 0
+    state: enabled
+- name: unpack_rx_4
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1390
+    rotation: 0
+    state: enabled
+- name: skip_rx_4
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1390
+    rotation: 0
+    state: enabled
+- name: pack_rx_4
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1390
+    rotation: 0
+    state: enabled
+- name: rx_bits_4
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_4
+  states:
+    coordinate:
+    - 2200
+    - 1390
+    rotation: 0
+    state: enabled
+- name: tx_in_5
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1540
+    rotation: 0
+    state: enabled
+- name: channel_5
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[5]
+    seed: '105'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1540
+    rotation: 0
+    state: enabled
+- name: rx_level_5
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1540
+    rotation: 0
+    state: enabled
+- name: clock_sync_5
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1540
+    rotation: 0
+    state: enabled
+- name: rx_scale_5
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1540
+    rotation: 0
+    state: enabled
+- name: equalizer_5
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1540
+    rotation: 0
+    state: enabled
+- name: decoder_5
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1540
+    rotation: 0
+    state: enabled
+- name: diff_decoder_5
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1540
+    rotation: 0
+    state: enabled
+- name: unpack_rx_5
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1540
+    rotation: 0
+    state: enabled
+- name: skip_rx_5
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1540
+    rotation: 0
+    state: enabled
+- name: pack_rx_5
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1540
+    rotation: 0
+    state: enabled
+- name: rx_bits_5
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_5
+  states:
+    coordinate:
+    - 2200
+    - 1540
+    rotation: 0
+    state: enabled
+- name: tx_in_6
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1690
+    rotation: 0
+    state: enabled
+- name: channel_6
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[6]
+    seed: '106'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1690
+    rotation: 0
+    state: enabled
+- name: rx_level_6
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1690
+    rotation: 0
+    state: enabled
+- name: clock_sync_6
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1690
+    rotation: 0
+    state: enabled
+- name: rx_scale_6
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1690
+    rotation: 0
+    state: enabled
+- name: equalizer_6
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1690
+    rotation: 0
+    state: enabled
+- name: decoder_6
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1690
+    rotation: 0
+    state: enabled
+- name: diff_decoder_6
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1690
+    rotation: 0
+    state: enabled
+- name: unpack_rx_6
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1690
+    rotation: 0
+    state: enabled
+- name: skip_rx_6
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1690
+    rotation: 0
+    state: enabled
+- name: pack_rx_6
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1690
+    rotation: 0
+    state: enabled
+- name: rx_bits_6
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_6
+  states:
+    coordinate:
+    - 2200
+    - 1690
+    rotation: 0
+    state: enabled
+- name: tx_in_7
+  id: virtual_source
+  parameters:
+    stream_id: tx_waveform
+  states:
+    coordinate:
+    - 16
+    - 1840
+    rotation: 0
+    state: enabled
+- name: channel_7
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_volts[7]
+    seed: '107'
+    taps: '[path_gain]'
+  states:
+    coordinate:
+    - 170
+    - 1840
+    rotation: 0
+    state: enabled
+- name: rx_level_7
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1.0/(tx_amplitude*path_gain)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 400
+    - 1840
+    rotation: 0
+    state: enabled
+- name: clock_sync_7
+  id: digital_pfb_clock_sync_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    filter_size: nfilts
+    init_phase: '16'
+    loop_bw: timing_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    osps: '1'
+    sps: sps
+    taps: rrc_taps
+    type: ccf
+  states:
+    coordinate:
+    - 600
+    - 1840
+    rotation: 0
+    state: enabled
+- name: rx_scale_7
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: symbol_rms
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1840
+    rotation: 0
+    state: enabled
+- name: equalizer_7
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: eq_algorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: eq_taps
+    sps: '1'
+    training_sequence: '[]'
+    training_start_tag: ''
+  states:
+    coordinate:
+    - 1000
+    - 1840
+    rotation: 0
+    state: enabled
+- name: decoder_7
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: const
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1200
+    - 1840
+    rotation: 0
+    state: enabled
+- name: diff_decoder_7
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    coordinate:
+    - 1400
+    - 1840
+    rotation: 0
+    state: enabled
+- name: unpack_rx_7
+  id: blocks_unpack_k_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    k: k
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    coordinate:
+    - 1600
+    - 1840
+    rotation: 0
+    state: enabled
+- name: skip_rx_7
+  id: blocks_skiphead
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: warmup_bits
+    type: byte
+    vlen: '1'
+  states:
+    coordinate:
+    - 1800
+    - 1840
+    rotation: 0
+    state: enabled
+- name: pack_rx_7
+  id: blocks_pack_k_bits_bb
+  parameters:
+    k: '8'
+  states:
+    coordinate:
+    - 2000
+    - 1840
+    rotation: 0
+    state: enabled
+- name: rx_bits_7
+  id: virtual_sink
+  parameters:
+    stream_id: rx_bytes_7
+  states:
+    coordinate:
+    - 2200
+    - 1840
+    rotation: 0
+    state: enabled
+- name: section_ber_curve
+  id: note
+  parameters:
+    note: BER CURVE
+  states:
+    coordinate:
+    - 16
+    - 2040
+    rotation: 0
+    state: enabled
+- name: ber_curve
+  id: qtgui_bercurve_sink
+  parameters:
+    esno: ebno_db
+    berminerrors: min_errors
+    berlimit: ber_floor_log10
+    num_curves: '1'
+    curvenames: '[]'
+    ymin: '-7'
+    ymax: '0'
+    update_time: '0.25'
+    gui_hint: ''
+    label1: '"4-ASK measured"'
+    width1: '2'
+    color1: '"blue"'
+    style1: '1'
+    marker1: '0'
+    alpha1: '1.0'
+    bus_structure_sink: '[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]]'
+  states:
+    coordinate:
+    - 600
+    - 2090
+    rotation: 0
+    state: enabled
+- name: tx_ref_0
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2090
+    rotation: 0
+    state: enabled
+- name: rx_out_0
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_0
+  states:
+    coordinate:
+    - 300
+    - 2090
+    rotation: 0
+    state: enabled
+- name: tx_ref_1
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2150
+    rotation: 0
+    state: enabled
+- name: rx_out_1
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_1
+  states:
+    coordinate:
+    - 300
+    - 2150
+    rotation: 0
+    state: enabled
+- name: tx_ref_2
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2210
+    rotation: 0
+    state: enabled
+- name: rx_out_2
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_2
+  states:
+    coordinate:
+    - 300
+    - 2210
+    rotation: 0
+    state: enabled
+- name: tx_ref_3
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2270
+    rotation: 0
+    state: enabled
+- name: rx_out_3
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_3
+  states:
+    coordinate:
+    - 300
+    - 2270
+    rotation: 0
+    state: enabled
+- name: tx_ref_4
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2330
+    rotation: 0
+    state: enabled
+- name: rx_out_4
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_4
+  states:
+    coordinate:
+    - 300
+    - 2330
+    rotation: 0
+    state: enabled
+- name: tx_ref_5
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2390
+    rotation: 0
+    state: enabled
+- name: rx_out_5
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_5
+  states:
+    coordinate:
+    - 300
+    - 2390
+    rotation: 0
+    state: enabled
+- name: tx_ref_6
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2450
+    rotation: 0
+    state: enabled
+- name: rx_out_6
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_6
+  states:
+    coordinate:
+    - 300
+    - 2450
+    rotation: 0
+    state: enabled
+- name: tx_ref_7
+  id: virtual_source
+  parameters:
+    stream_id: tx_reference_bytes
+  states:
+    coordinate:
+    - 16
+    - 2510
+    rotation: 0
+    state: enabled
+- name: rx_out_7
+  id: virtual_source
+  parameters:
+    stream_id: rx_bytes_7
+  states:
+    coordinate:
+    - 300
+    - 2510
+    rotation: 0
+    state: enabled
+- name: equalizer_initial_taps
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '0'
+    code: "# Start every row's adaptive equalizer at a centered identity filter.\nfor i in range(8):\n    getattr(self,\
+      \ 'equalizer_%d' % i).set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))"
+  states:
+    coordinate:
+    - 16
+    - 1950
+    rotation: 0
+    state: enabled
+- name: curve_title
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '0'
+    code: 'self.ber_curve.set_title(''4-ASK BER vs Eb/N0 (x axis: Eb/N0 in dB per bit). Red: BPSK/QPSK theory'')
+
+      self.resize(1000, 700)'
+  states:
+    coordinate:
+    - 300
+    - 1950
+    rotation: 0
+    state: enabled
+connections:
+- - random_bytes
+  - '0'
+  - modulator
+  - '0'
+- - modulator
+  - '0'
+  - tx_power
+  - '0'
+- - tx_power
+  - '0'
+  - throttle
+  - '0'
+- - throttle
+  - '0'
+  - tx_link
+  - '0'
+- - random_bytes
+  - '0'
+  - reference_link
+  - '0'
+- - reference_source
+  - '0'
+  - unpack_tx
+  - '0'
+- - unpack_tx
+  - '0'
+  - delay
+  - '0'
+- - delay
+  - '0'
+  - skip_tx
+  - '0'
+- - skip_tx
+  - '0'
+  - pack_tx
+  - '0'
+- - pack_tx
+  - '0'
+  - tx_bits_link
+  - '0'
+- - tx_in_0
+  - '0'
+  - channel_0
+  - '0'
+- - channel_0
+  - '0'
+  - rx_level_0
+  - '0'
+- - rx_level_0
+  - '0'
+  - clock_sync_0
+  - '0'
+- - clock_sync_0
+  - '0'
+  - rx_scale_0
+  - '0'
+- - rx_scale_0
+  - '0'
+  - equalizer_0
+  - '0'
+- - equalizer_0
+  - '0'
+  - decoder_0
+  - '0'
+- - decoder_0
+  - '0'
+  - diff_decoder_0
+  - '0'
+- - diff_decoder_0
+  - '0'
+  - unpack_rx_0
+  - '0'
+- - unpack_rx_0
+  - '0'
+  - skip_rx_0
+  - '0'
+- - skip_rx_0
+  - '0'
+  - pack_rx_0
+  - '0'
+- - pack_rx_0
+  - '0'
+  - rx_bits_0
+  - '0'
+- - tx_in_1
+  - '0'
+  - channel_1
+  - '0'
+- - channel_1
+  - '0'
+  - rx_level_1
+  - '0'
+- - rx_level_1
+  - '0'
+  - clock_sync_1
+  - '0'
+- - clock_sync_1
+  - '0'
+  - rx_scale_1
+  - '0'
+- - rx_scale_1
+  - '0'
+  - equalizer_1
+  - '0'
+- - equalizer_1
+  - '0'
+  - decoder_1
+  - '0'
+- - decoder_1
+  - '0'
+  - diff_decoder_1
+  - '0'
+- - diff_decoder_1
+  - '0'
+  - unpack_rx_1
+  - '0'
+- - unpack_rx_1
+  - '0'
+  - skip_rx_1
+  - '0'
+- - skip_rx_1
+  - '0'
+  - pack_rx_1
+  - '0'
+- - pack_rx_1
+  - '0'
+  - rx_bits_1
+  - '0'
+- - tx_in_2
+  - '0'
+  - channel_2
+  - '0'
+- - channel_2
+  - '0'
+  - rx_level_2
+  - '0'
+- - rx_level_2
+  - '0'
+  - clock_sync_2
+  - '0'
+- - clock_sync_2
+  - '0'
+  - rx_scale_2
+  - '0'
+- - rx_scale_2
+  - '0'
+  - equalizer_2
+  - '0'
+- - equalizer_2
+  - '0'
+  - decoder_2
+  - '0'
+- - decoder_2
+  - '0'
+  - diff_decoder_2
+  - '0'
+- - diff_decoder_2
+  - '0'
+  - unpack_rx_2
+  - '0'
+- - unpack_rx_2
+  - '0'
+  - skip_rx_2
+  - '0'
+- - skip_rx_2
+  - '0'
+  - pack_rx_2
+  - '0'
+- - pack_rx_2
+  - '0'
+  - rx_bits_2
+  - '0'
+- - tx_in_3
+  - '0'
+  - channel_3
+  - '0'
+- - channel_3
+  - '0'
+  - rx_level_3
+  - '0'
+- - rx_level_3
+  - '0'
+  - clock_sync_3
+  - '0'
+- - clock_sync_3
+  - '0'
+  - rx_scale_3
+  - '0'
+- - rx_scale_3
+  - '0'
+  - equalizer_3
+  - '0'
+- - equalizer_3
+  - '0'
+  - decoder_3
+  - '0'
+- - decoder_3
+  - '0'
+  - diff_decoder_3
+  - '0'
+- - diff_decoder_3
+  - '0'
+  - unpack_rx_3
+  - '0'
+- - unpack_rx_3
+  - '0'
+  - skip_rx_3
+  - '0'
+- - skip_rx_3
+  - '0'
+  - pack_rx_3
+  - '0'
+- - pack_rx_3
+  - '0'
+  - rx_bits_3
+  - '0'
+- - tx_in_4
+  - '0'
+  - channel_4
+  - '0'
+- - channel_4
+  - '0'
+  - rx_level_4
+  - '0'
+- - rx_level_4
+  - '0'
+  - clock_sync_4
+  - '0'
+- - clock_sync_4
+  - '0'
+  - rx_scale_4
+  - '0'
+- - rx_scale_4
+  - '0'
+  - equalizer_4
+  - '0'
+- - equalizer_4
+  - '0'
+  - decoder_4
+  - '0'
+- - decoder_4
+  - '0'
+  - diff_decoder_4
+  - '0'
+- - diff_decoder_4
+  - '0'
+  - unpack_rx_4
+  - '0'
+- - unpack_rx_4
+  - '0'
+  - skip_rx_4
+  - '0'
+- - skip_rx_4
+  - '0'
+  - pack_rx_4
+  - '0'
+- - pack_rx_4
+  - '0'
+  - rx_bits_4
+  - '0'
+- - tx_in_5
+  - '0'
+  - channel_5
+  - '0'
+- - channel_5
+  - '0'
+  - rx_level_5
+  - '0'
+- - rx_level_5
+  - '0'
+  - clock_sync_5
+  - '0'
+- - clock_sync_5
+  - '0'
+  - rx_scale_5
+  - '0'
+- - rx_scale_5
+  - '0'
+  - equalizer_5
+  - '0'
+- - equalizer_5
+  - '0'
+  - decoder_5
+  - '0'
+- - decoder_5
+  - '0'
+  - diff_decoder_5
+  - '0'
+- - diff_decoder_5
+  - '0'
+  - unpack_rx_5
+  - '0'
+- - unpack_rx_5
+  - '0'
+  - skip_rx_5
+  - '0'
+- - skip_rx_5
+  - '0'
+  - pack_rx_5
+  - '0'
+- - pack_rx_5
+  - '0'
+  - rx_bits_5
+  - '0'
+- - tx_in_6
+  - '0'
+  - channel_6
+  - '0'
+- - channel_6
+  - '0'
+  - rx_level_6
+  - '0'
+- - rx_level_6
+  - '0'
+  - clock_sync_6
+  - '0'
+- - clock_sync_6
+  - '0'
+  - rx_scale_6
+  - '0'
+- - rx_scale_6
+  - '0'
+  - equalizer_6
+  - '0'
+- - equalizer_6
+  - '0'
+  - decoder_6
+  - '0'
+- - decoder_6
+  - '0'
+  - diff_decoder_6
+  - '0'
+- - diff_decoder_6
+  - '0'
+  - unpack_rx_6
+  - '0'
+- - unpack_rx_6
+  - '0'
+  - skip_rx_6
+  - '0'
+- - skip_rx_6
+  - '0'
+  - pack_rx_6
+  - '0'
+- - pack_rx_6
+  - '0'
+  - rx_bits_6
+  - '0'
+- - tx_in_7
+  - '0'
+  - channel_7
+  - '0'
+- - channel_7
+  - '0'
+  - rx_level_7
+  - '0'
+- - rx_level_7
+  - '0'
+  - clock_sync_7
+  - '0'
+- - clock_sync_7
+  - '0'
+  - rx_scale_7
+  - '0'
+- - rx_scale_7
+  - '0'
+  - equalizer_7
+  - '0'
+- - equalizer_7
+  - '0'
+  - decoder_7
+  - '0'
+- - decoder_7
+  - '0'
+  - diff_decoder_7
+  - '0'
+- - diff_decoder_7
+  - '0'
+  - unpack_rx_7
+  - '0'
+- - unpack_rx_7
+  - '0'
+  - skip_rx_7
+  - '0'
+- - skip_rx_7
+  - '0'
+  - pack_rx_7
+  - '0'
+- - pack_rx_7
+  - '0'
+  - rx_bits_7
+  - '0'
+- - tx_ref_0
+  - '0'
+  - ber_curve
+  - '0'
+- - rx_out_0
+  - '0'
+  - ber_curve
+  - '1'
+- - tx_ref_1
+  - '0'
+  - ber_curve
+  - '2'
+- - rx_out_1
+  - '0'
+  - ber_curve
+  - '3'
+- - tx_ref_2
+  - '0'
+  - ber_curve
+  - '4'
+- - rx_out_2
+  - '0'
+  - ber_curve
+  - '5'
+- - tx_ref_3
+  - '0'
+  - ber_curve
+  - '6'
+- - rx_out_3
+  - '0'
+  - ber_curve
+  - '7'
+- - tx_ref_4
+  - '0'
+  - ber_curve
+  - '8'
+- - rx_out_4
+  - '0'
+  - ber_curve
+  - '9'
+- - tx_ref_5
+  - '0'
+  - ber_curve
+  - '10'
+- - rx_out_5
+  - '0'
+  - ber_curve
+  - '11'
+- - tx_ref_6
+  - '0'
+  - ber_curve
+  - '12'
+- - rx_out_6
+  - '0'
+  - ber_curve
+  - '13'
+- - tx_ref_7
+  - '0'
+  - ber_curve
+  - '14'
+- - rx_out_7
+  - '0'
+  - ber_curve
+  - '15'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
