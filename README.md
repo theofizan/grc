@@ -238,7 +238,7 @@ What changes from the simulation, in RF terms:
   - The equalizer then trains on the block's known symbols. That fixes the absolute carrier phase, so a Costas loop locked to a rotated state still gives correct bits.
 - **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD warns that odd decimation adds slight CIC passband droop.
 
-### Running a BER test (e.g. 1,000,000 bits)
+### Scripted BER test with a saved record
 
 ```bash
 python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.3 --freq 915e6 --tx-gain 0.5 --rx-gain 0.5
@@ -255,7 +255,22 @@ What the runner does:
 
 Add `--simulate --esno-db 12` to try the whole procedure through a software channel with no radios.
 
-In GRC, `ber_test_bits` sets the length of the **BER test** readout on the RF levels tab. It shows the BER of each consecutive block of that many bits and never stops the radios. A label underneath shows when the first block will finish.
+### Running a BER test in GNU Radio Companion
+
+Every flowchart, both simulation and N210, has a **BER test** on its Link budget / RF levels tab:
+
+1. Set **BER test length** (`ber_test_bits`, default 1,000,000) at the top of the flowchart.
+2. Press Run. The label under the tables shows the test length and roughly how long it takes: 0.33 s for 10⁶ 8-PSK bits, after the receiver warm-up.
+3. Watch the BER test table count up: bits compared, bit errors and BER.
+4. At exactly N bits the table **freezes on the final result**. It holds that result while the flowgraph keeps running, and the radios keep transmitting. Read it off, then close the window.
+
+How it works, all with stock blocks:
+- Errors are summed per 10,000 bits, so N is rounded to a multiple of 10,000.
+- A window counter and a Threshold gate the running sums, which stop counting after N bits.
+- The result was checked against an independent XOR count: 32 errors in 1,000,000 bits, exactly.
+- On the N210 flowcharts, errors are counted against the RX bits one data block earlier. Each real error shows up twice there, so the count is halved.
+
+For a saved record of each antenna run (95% confidence interval, RX level, MER, settings), use `run_n210_ber.py` above. It compares directly against the transmitted data.
 
 ### Validation without hardware
 

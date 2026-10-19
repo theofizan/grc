@@ -241,9 +241,9 @@ def build(profile):
         name="Transmit (digital full scale)", unit1="dBFS", label2="Sampled peak (keep < 0)",
         unit2="dBFS")
     # Self-referenced error count: each real bit error appears twice.
-    blocks["ber_test_scale"]["parameters"]["const"] = "0.5/(10000*ber_test_blocks)"
+    blocks["ber_error_weight"]["parameters"]["value"] = "0.5"
     blocks["ber_test_seconds"]["parameters"]["value"] = (
-        "(warmup_bits + 3*data_period_bits + ber_test_bits) / bit_rate")
+        "(warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate")
     blocks["views"]["parameters"]["label3"] = "RF levels"
     for name, axis in [("eye", "I"), ("eye_quadrature", "Q")]:
         blocks[name]["parameters"]["label1"] = f"RX {axis} | raw N210 RX output"

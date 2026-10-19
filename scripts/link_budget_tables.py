@@ -8,16 +8,19 @@ values with units. All inputs of a table run at the same rate (one value per
 
 Link-budget tab (2x2):
     Transmit table    | Receive table
-    RX spectrum       | BER test result
-plus a text label under the tables with the BER test's estimated duration.
+    RX spectrum       | BER test table
+plus a text label under the tables with the BER test's length and duration.
 
-BER test: the stock error stream (XOR -> UChar to Float) also feeds
-Integrate(10000) -> Integrate(ber_test_bits/10000) -> Multiply, so the BER
-test readout shows the BER of each consecutive block of ber_test_bits compared
-bits (rounded to a multiple of 10,000; a single huge Integrate overflows the
-scheduler). There is deliberately no Head block: a finished Head stops the
-whole flowgraph, radios included. scripts/run_n210_ber.py runs exactly N bits
-and saves the result. The rolling 10,000-bit BER display is unchanged.
+BER test (press Run in GRC): the stock error stream (XOR -> UChar to Float,
+after the warm-up skip) is summed per 10,000 bits (Integrate). A window
+counter (IIR filter used as a running sum) and a Threshold make a gate that
+is 1 for the first N/10000 windows and 0 afterwards. Gated running sums give
+    bits compared, bit errors, and BER = errors / bits,
+which count up during the test and then hold exactly the N-bit result on
+screen while the flowgraph keeps running (close the window when done). N is
+rounded to a multiple of 10,000. There is no auto-stop: a Head on this branch
+cannot end the flowgraph while the other branches keep running. The rolling 10,000-bit BER display is
+unchanged.
 
 Run on the six saved simulation flowcharts (DSP settings and other layout are
 kept): python scripts/link_budget_tables.py
@@ -59,7 +62,7 @@ def apply(graph):
     blocks = {b["name"]: b for b in graph["blocks"]}
     if converted:
         blocks["spectrum_budget"]["parameters"].update(gui_hint="views@3:2,0,1,1", label1="RX")
-        return graph
+        return ber_test(graph)
     anchor = [anchor[0] - 200, anchor[1]]
     x0, y0 = anchor
 
@@ -107,41 +110,101 @@ def apply(graph):
         link(source, f"{source}_value", (sx + 200, sy + 60), "link_rx_table", port,
              (40, 140 + 70 * port))
 
-    # Fixed-length BER test on the same stock error stream as the BER display.
-    # Its control and derived variables go with the other controls at the top.
-    def top(name, kind, x, y, **parameters):
-        add(name, kind, 0, 0, **parameters)
-        blocks[name]["states"]["coordinate"] = [x, y]
-
-    top("ber_test_bits", "parameter", 1700, 8, value="1000000", type="intx",
-        label="BER test length (compared bits)", short_id="", hide="none")
-    top("ber_test_blocks", "variable", 1700, 100,
-        value="max(1, int(ber_test_bits) // 10000)")
-    top("ber_test_seconds", "variable", 1700, 170,
-        value="(warmup_bits + ber_test_bits) / bit_rate")
-    top("ber_test_time", "variable_qtgui_label", 1700, 240,
-        label="BER test", type="string", formatter="None", gui_hint="views@3:3,0,1,2",
-        value="'%d-bit blocks: first result after about %.2f s at %g Mbit/s' "
-              "% (10000 * ber_test_blocks, ber_test_seconds, bit_rate / 1e6)")
-    add("ber_test_sum_10k", "blocks_integrate_xx", 180, 280, type="float", decim="10000",
-        vlen="1")
-    add("ber_test_sum", "blocks_integrate_xx", 180, 360, type="float",
-        decim="ber_test_blocks", vlen="1")
-    add("ber_test_scale", "blocks_multiply_const_vxx", 360, 280, type="float",
-        const="1.0/(10000*ber_test_blocks)", vlen="1")
-    add("ber_test_display", "qtgui_number_sink", 540, 280,
-        name="BER test | latest complete block (0 until the first block ends)",
-        type="float",
-        nconnections="1", autoscale="False", avg="0", graph_type="qtgui.NUM_GRAPH_NONE",
-        min="0", max="1", update_time="0.25", gui_hint="views@3:2,1,1,1",
-        label1="BER over block", unit1="errors/bit", color1='("black", "black")',
-        factor1="1")
-    ex, ey = blocks["errors_float"]["states"]["coordinate"]
-    link("errors_float", "bit_errors", (ex, ey + 70), "ber_test_sum_10k", 0, (0, 280))
-    wire("ber_test_sum_10k", "ber_test_sum")
-    wire("ber_test_sum", "ber_test_scale")
-    wire("ber_test_scale", "ber_test_display")
     blocks["spectrum_budget"]["parameters"].update(gui_hint="views@3:2,0,1,1", label1="RX")
+    return ber_test(graph)
+
+
+def ber_test(graph, error_weight="1.0"):
+    """(Re)build the fixed-length BER test. Safe to run repeatedly."""
+    graph["blocks"][:] = [b for b in graph["blocks"]
+                          if not b["name"].startswith(("ber_test", "bit_errors_"))
+                          and b["name"] not in ("stop_after_ber_test", "ber_error_weight")]
+    # (stop_after_ber_test is removed from older builds of this test.)
+    names = {b["name"] for b in graph["blocks"]}
+    graph["connections"][:] = [c for c in graph["connections"]
+                               if c[0] in names and c[2] in names]
+    blocks = {b["name"]: b for b in graph["blocks"]}
+    x0, y0 = blocks["link_tx_table"]["states"]["coordinate"]
+    x0, y0 = x0 - 200, y0 + 280
+
+    def add(block_name, kind, x, y, **parameters):
+        node = dict(name=block_name, id=kind,
+                    parameters={k: str(v) for k, v in parameters.items()},
+                    states=dict(coordinate=[x, y], rotation=0, state="enabled"))
+        graph["blocks"].append(node)
+        blocks[block_name] = node
+
+    def wire(src, dst, dst_port=0):
+        graph["connections"].append([src, "0", dst, str(dst_port)])
+
+    # Controls and derived values, with the other controls at the top.
+    add("ber_test_bits", "parameter", 1700, 8, value="1000000", type="intx",
+        label="BER test length (compared bits)", short_id="", hide="none")
+    add("ber_test_blocks", "variable", 1700, 192, value="max(1, int(ber_test_bits) // 10000)")
+    add("ber_error_weight", "variable", 1700, 332, value=error_weight)
+    add("ber_test_seconds", "variable", 1700, 402,
+        value="(warmup_bits + 10000*ber_test_blocks) / bit_rate")
+    add("ber_test_time", "variable_qtgui_label", 1700, 472, label="BER test",
+        type="string", formatter="None", gui_hint="views@3:3,0,1,2",
+        value="'%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' "
+              "% (10000*ber_test_blocks, ber_test_seconds, bit_rate/1e6)")
+
+    # Error stream comes over a short virtual link from the BER section.
+    ex, ey = blocks["errors_float"]["states"]["coordinate"]
+    add("bit_errors_link", "virtual_sink", ex, ey + 70, stream_id="bit_errors")
+    wire("errors_float", "bit_errors_link")
+    add("bit_errors_to_ber_test", "virtual_source", x0, y0, stream_id="bit_errors")
+    add("ber_test_sum_10k", "blocks_integrate_xx", x0 + 160, y0, type="float",
+        decim="10000", vlen="1")
+    # Gate: 1 for the first ber_test_blocks windows, then 0.
+    add("ber_test_zero", "blocks_multiply_const_vxx", x0 + 330, y0 + 100, type="float",
+        const="0", vlen="1")
+    add("ber_test_unit", "blocks_add_const_vxx", x0 + 500, y0 + 100, type="float",
+        const="1", vlen="1")
+    add("ber_test_index", "iir_filter_xxx", x0 + 670, y0 + 100, type="ffd",
+        fftaps="[1.0]", fbtaps="[0.0, 1.0]", oldstyle="True")
+    add("ber_test_done", "blocks_threshold_ff", x0 + 840, y0 + 100,
+        low="ber_test_blocks + 0.5", high="ber_test_blocks + 0.5", init="0")
+    add("ber_test_not_done", "blocks_multiply_const_vxx", x0 + 1010, y0 + 100,
+        type="float", const="-1", vlen="1")
+    add("ber_test_gate", "blocks_add_const_vxx", x0 + 1180, y0 + 100, type="float",
+        const="1", vlen="1")
+    # Gated running sums (IIR running sum = y[n] = x[n] + y[n-1]).
+    add("ber_test_gated_errors", "blocks_multiply_xx", x0 + 500, y0, type="float",
+        num_inputs="2", vlen="1")
+    add("ber_test_error_sum", "iir_filter_xxx", x0 + 670, y0, type="ffd",
+        fftaps="[1.0]", fbtaps="[0.0, 1.0]", oldstyle="True")
+    add("ber_test_errors", "blocks_multiply_const_vxx", x0 + 840, y0, type="float",
+        const="ber_error_weight", vlen="1")
+    add("ber_test_window_sum", "iir_filter_xxx", x0 + 1350, y0 + 100, type="ffd",
+        fftaps="[1.0]", fbtaps="[0.0, 1.0]", oldstyle="True")
+    add("ber_test_count", "blocks_multiply_const_vxx", x0 + 1520, y0 + 100,
+        type="float", const="10000", vlen="1")
+    add("ber_test_ratio", "blocks_divide_xx", x0 + 1010, y0, type="float", vlen="1",
+        num_inputs="2")
+    add("ber_test_display", "qtgui_number_sink", x0 + 1040, y0,
+        **number_table("ber_test_display", "BER test",
+                       [(None, "Bits compared", "bits"), (None, "Bit errors", "errors"),
+                        (None, "BER", "errors/bit")], "views@3:2,1,1,1"))
+    blocks["ber_test_display"]["parameters"].update(min="0", max="1e12")
+    wire("bit_errors_to_ber_test", "ber_test_sum_10k")
+    wire("ber_test_sum_10k", "ber_test_zero")
+    wire("ber_test_zero", "ber_test_unit")
+    wire("ber_test_unit", "ber_test_index")
+    wire("ber_test_index", "ber_test_done")
+    wire("ber_test_done", "ber_test_not_done")
+    wire("ber_test_not_done", "ber_test_gate")
+    wire("ber_test_sum_10k", "ber_test_gated_errors", 0)
+    wire("ber_test_gate", "ber_test_gated_errors", 1)
+    wire("ber_test_gated_errors", "ber_test_error_sum")
+    wire("ber_test_error_sum", "ber_test_errors")
+    wire("ber_test_gate", "ber_test_window_sum")
+    wire("ber_test_window_sum", "ber_test_count")
+    wire("ber_test_errors", "ber_test_ratio", 0)
+    wire("ber_test_count", "ber_test_ratio", 1)
+    wire("ber_test_count", "ber_test_display", 0)
+    wire("ber_test_errors", "ber_test_display", 1)
+    wire("ber_test_ratio", "ber_test_display", 2)
     return graph
 
 

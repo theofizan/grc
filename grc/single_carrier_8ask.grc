@@ -2281,17 +2281,27 @@ blocks:
   states:
     coordinate:
     - 1700
-    - 100
+    - 192
+    rotation: 0
+    state: enabled
+- name: ber_error_weight
+  id: variable
+  parameters:
+    value: '1.0'
+  states:
+    coordinate:
+    - 1700
+    - 332
     rotation: 0
     state: enabled
 - name: ber_test_seconds
   id: variable
   parameters:
-    value: (warmup_bits + ber_test_bits) / bit_rate
+    value: (warmup_bits + 10000*ber_test_blocks) / bit_rate
   states:
     coordinate:
     - 1700
-    - 170
+    - 402
     rotation: 0
     state: enabled
 - name: ber_test_time
@@ -2301,71 +2311,12 @@ blocks:
     type: string
     formatter: None
     gui_hint: views@3:3,0,1,2
-    value: '''%d-bit blocks: first result after about %.2f s at %g Mbit/s'' % (10000 * ber_test_blocks, ber_test_seconds,
-      bit_rate / 1e6)'
+    value: '''%d-bit test: result after about %.2f s at %g Mbit/s, then it holds'' % (10000*ber_test_blocks, ber_test_seconds,
+      bit_rate/1e6)'
   states:
     coordinate:
     - 1700
-    - 240
-    rotation: 0
-    state: enabled
-- name: ber_test_sum_10k
-  id: blocks_integrate_xx
-  parameters:
-    type: float
-    decim: '10000'
-    vlen: '1'
-  states:
-    coordinate:
-    - 1160
-    - 2524
-    rotation: 0
-    state: enabled
-- name: ber_test_sum
-  id: blocks_integrate_xx
-  parameters:
-    type: float
-    decim: ber_test_blocks
-    vlen: '1'
-  states:
-    coordinate:
-    - 1160
-    - 2604
-    rotation: 0
-    state: enabled
-- name: ber_test_scale
-  id: blocks_multiply_const_vxx
-  parameters:
-    type: float
-    const: 1.0/(10000*ber_test_blocks)
-    vlen: '1'
-  states:
-    coordinate:
-    - 1340
-    - 2524
-    rotation: 0
-    state: enabled
-- name: ber_test_display
-  id: qtgui_number_sink
-  parameters:
-    name: BER test | latest complete block (0 until the first block ends)
-    type: float
-    nconnections: '1'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '0'
-    max: '1'
-    update_time: '0.25'
-    gui_hint: views@3:2,1,1,1
-    label1: BER over block
-    unit1: errors/bit
-    color1: ("black", "black")
-    factor1: '1'
-  states:
-    coordinate:
-    - 1520
-    - 2524
+    - 472
     rotation: 0
     state: enabled
 - name: bit_errors_link
@@ -2378,13 +2329,203 @@ blocks:
     - 1074
     rotation: 0
     state: enabled
-- name: bit_errors_to_ber_test_sum_10k
+- name: bit_errors_to_ber_test
   id: virtual_source
   parameters:
     stream_id: bit_errors
   states:
     coordinate:
     - 980
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_sum_10k
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1140
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_zero
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1310
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_unit
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    const: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1480
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_index
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 1650
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_done
+  id: blocks_threshold_ff
+  parameters:
+    low: ber_test_blocks + 0.5
+    high: ber_test_blocks + 0.5
+    init: '0'
+  states:
+    coordinate:
+    - 1820
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_not_done
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '-1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1990
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_gate
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    const: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 2160
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_gated_errors
+  id: blocks_multiply_xx
+  parameters:
+    type: float
+    num_inputs: '2'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1480
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_error_sum
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 1650
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_errors
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: ber_error_weight
+    vlen: '1'
+  states:
+    coordinate:
+    - 1820
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_window_sum
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 2330
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_count
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 2500
+    - 2624
+    rotation: 0
+    state: enabled
+- name: ber_test_ratio
+  id: blocks_divide_xx
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 1990
+    - 2524
+    rotation: 0
+    state: enabled
+- name: ber_test_display
+  id: qtgui_number_sink
+  parameters:
+    name: BER test
+    type: float
+    nconnections: '3'
+    autoscale: 'False'
+    avg: '0'
+    graph_type: qtgui.NUM_GRAPH_NONE
+    min: '0'
+    max: 1e12
+    update_time: '0.25'
+    gui_hint: views@3:2,1,1,1
+    label1: Bits compared
+    unit1: bits
+    color1: ("black", "black")
+    factor1: '1'
+    label2: Bit errors
+    unit2: errors
+    color2: ("black", "black")
+    factor2: '1'
+    label3: BER
+    unit3: errors/bit
+    color3: ("black", "black")
+    factor3: '1'
+  states:
+    coordinate:
+    - 2020
     - 2524
     rotation: 0
     state: enabled
@@ -2817,22 +2958,78 @@ connections:
   - '0'
   - bit_errors_link
   - '0'
-- - bit_errors_to_ber_test_sum_10k
+- - bit_errors_to_ber_test
   - '0'
   - ber_test_sum_10k
   - '0'
 - - ber_test_sum_10k
   - '0'
-  - ber_test_sum
+  - ber_test_zero
   - '0'
-- - ber_test_sum
+- - ber_test_zero
   - '0'
-  - ber_test_scale
+  - ber_test_unit
   - '0'
-- - ber_test_scale
+- - ber_test_unit
+  - '0'
+  - ber_test_index
+  - '0'
+- - ber_test_index
+  - '0'
+  - ber_test_done
+  - '0'
+- - ber_test_done
+  - '0'
+  - ber_test_not_done
+  - '0'
+- - ber_test_not_done
+  - '0'
+  - ber_test_gate
+  - '0'
+- - ber_test_sum_10k
+  - '0'
+  - ber_test_gated_errors
+  - '0'
+- - ber_test_gate
+  - '0'
+  - ber_test_gated_errors
+  - '1'
+- - ber_test_gated_errors
+  - '0'
+  - ber_test_error_sum
+  - '0'
+- - ber_test_error_sum
+  - '0'
+  - ber_test_errors
+  - '0'
+- - ber_test_gate
+  - '0'
+  - ber_test_window_sum
+  - '0'
+- - ber_test_window_sum
+  - '0'
+  - ber_test_count
+  - '0'
+- - ber_test_errors
+  - '0'
+  - ber_test_ratio
+  - '0'
+- - ber_test_count
+  - '0'
+  - ber_test_ratio
+  - '1'
+- - ber_test_count
   - '0'
   - ber_test_display
   - '0'
+- - ber_test_errors
+  - '0'
+  - ber_test_display
+  - '1'
+- - ber_test_ratio
+  - '0'
+  - ber_test_display
+  - '2'
 metadata:
   file_format: 1
   grc_version: 3.10.12.0
