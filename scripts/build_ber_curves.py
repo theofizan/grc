@@ -184,5 +184,13 @@ def build(profile):
 
 
 if __name__ == "__main__":
+    import subprocess
+    import sys
+
     for profile in LABELS:
-        print("wrote", build(profile).relative_to(ROOT))
+        target = build(profile)
+        # Pack the controls by GRC's real block sizes (own process per file:
+        # the canvas renderer starts a GTK application).
+        subprocess.run([sys.executable, str(ROOT / "scripts/pack_ber_curve_controls.py"),
+                        str(target)], check=True, stdout=subprocess.DEVNULL)
+        print("wrote", target.relative_to(ROOT))

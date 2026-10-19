@@ -7,7 +7,7 @@ options:
     author: Antenna benchmark
   states:
     coordinate:
-    - 1600
+    - 1640
     - 8
     rotation: 0
     state: enabled
@@ -24,8 +24,8 @@ blocks:
     w_imag_sect: '1'
   states:
     coordinate:
-    - 16
-    - 60
+    - 136
+    - 128
     rotation: 0
     state: enabled
 - name: k
@@ -34,8 +34,8 @@ blocks:
     value: const.bits_per_symbol()
   states:
     coordinate:
-    - 206
-    - 60
+    - 16
+    - 128
     rotation: 0
     state: enabled
 - name: sps
@@ -44,8 +44,8 @@ blocks:
     value: '4'
   states:
     coordinate:
-    - 396
-    - 60
+    - 1248
+    - 56
     rotation: 0
     state: enabled
 - name: alpha
@@ -54,8 +54,8 @@ blocks:
     value: '0.35'
   states:
     coordinate:
-    - 586
-    - 60
+    - 400
+    - 128
     rotation: 0
     state: enabled
 - name: nfilts
@@ -64,8 +64,8 @@ blocks:
     value: '32'
   states:
     coordinate:
-    - 776
-    - 60
+    - 464
+    - 128
     rotation: 0
     state: enabled
 - name: rrc_taps
@@ -74,8 +74,8 @@ blocks:
     value: firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
   states:
     coordinate:
-    - 966
-    - 60
+    - 520
+    - 128
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -84,8 +84,8 @@ blocks:
     value: symbol_rate*sps
   states:
     coordinate:
-    - 1156
-    - 60
+    - 1296
+    - 56
     rotation: 0
     state: enabled
 - name: symbol_rate
@@ -98,8 +98,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1346
-    - 60
+    - 1128
+    - 56
     rotation: 0
     state: enabled
 - name: bit_rate
@@ -108,8 +108,8 @@ blocks:
     value: symbol_rate*k
   states:
     coordinate:
-    - 16
-    - 150
+    - 1408
+    - 56
     rotation: 0
     state: enabled
 - name: symbol_rms
@@ -118,8 +118,8 @@ blocks:
     value: (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
   states:
     coordinate:
-    - 206
-    - 150
+    - 256
+    - 128
     rotation: 0
     state: enabled
 - name: timing_bw
@@ -128,8 +128,8 @@ blocks:
     value: '0.0628'
   states:
     coordinate:
-    - 396
-    - 150
+    - 696
+    - 128
     rotation: 0
     state: enabled
 - name: eq_algorithm
@@ -140,8 +140,8 @@ blocks:
     step_size: eq_step/(eq_taps*symbol_rms**2)
   states:
     coordinate:
-    - 586
-    - 150
+    - 1088
+    - 128
     rotation: 0
     state: enabled
 - name: eq_taps
@@ -154,8 +154,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 776
-    - 150
+    - 760
+    - 128
     rotation: 0
     state: enabled
 - name: eq_step
@@ -168,8 +168,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 966
-    - 150
+    - 872
+    - 128
     rotation: 0
     state: enabled
 - name: eq_delay_symbols
@@ -178,8 +178,8 @@ blocks:
     value: (eq_taps-1)//2
   states:
     coordinate:
-    - 1156
-    - 150
+    - 992
+    - 128
     rotation: 0
     state: enabled
 - name: reference_delay
@@ -192,8 +192,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1346
-    - 150
+    - 1240
+    - 128
     rotation: 0
     state: enabled
 - name: warmup_bits
@@ -202,8 +202,8 @@ blocks:
     value: '50000'
   states:
     coordinate:
-    - 16
-    - 240
+    - 1352
+    - 128
     rotation: 0
     state: enabled
 - name: tx_power_dbm
@@ -216,8 +216,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 206
-    - 240
+    - 648
+    - 56
     rotation: 0
     state: enabled
 - name: tx_amplitude
@@ -226,8 +226,8 @@ blocks:
     value: 10**(tx_power_dbm/20.0)
   states:
     coordinate:
-    - 396
-    - 240
+    - 768
+    - 56
     rotation: 0
     state: enabled
 - name: path_loss_db
@@ -240,8 +240,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 586
-    - 240
+    - 888
+    - 56
     rotation: 0
     state: enabled
 - name: path_gain
@@ -250,8 +250,8 @@ blocks:
     value: 10**(-path_loss_db/20.0)
   states:
     coordinate:
-    - 776
-    - 240
+    - 1008
+    - 56
     rotation: 0
     state: enabled
 - name: chart_math
@@ -262,8 +262,8 @@ blocks:
       import numpy'
   states:
     coordinate:
-    - 966
-    - 240
+    - 1424
+    - 128
     rotation: 0
     state: enabled
 - name: ebno_db
@@ -273,7 +273,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 340
+    - 56
     rotation: 0
     state: enabled
 - name: noise_volts
@@ -282,8 +282,8 @@ blocks:
     value: list(tx_amplitude*path_gain*10**(-(numpy.array(ebno_db) - 10*math.log10(samp_rate/bit_rate))/20))
   states:
     coordinate:
-    - 206
-    - 340
+    - 464
+    - 56
     rotation: 0
     state: enabled
 - name: min_errors
@@ -296,8 +296,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 396
-    - 340
+    - 128
+    - 56
     rotation: 0
     state: enabled
 - name: ber_floor_log10
@@ -310,8 +310,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 586
-    - 340
+    - 232
+    - 56
     rotation: 0
     state: enabled
 - name: sim_speed
@@ -324,8 +324,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 776
-    - 340
+    - 352
+    - 56
     rotation: 0
     state: enabled
 - name: section_controls
@@ -345,7 +345,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 420
+    - 336
     rotation: 0
     state: enabled
 - name: random_bytes
@@ -359,7 +359,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 470
+    - 386
     rotation: 0
     state: enabled
 - name: modulator
@@ -373,7 +373,7 @@ blocks:
   states:
     coordinate:
     - 246
-    - 470
+    - 386
     rotation: 0
     state: enabled
 - name: tx_power
@@ -385,7 +385,7 @@ blocks:
   states:
     coordinate:
     - 476
-    - 470
+    - 386
     rotation: 0
     state: enabled
 - name: throttle
@@ -399,7 +399,7 @@ blocks:
   states:
     coordinate:
     - 706
-    - 470
+    - 386
     rotation: 0
     state: enabled
 - name: tx_link
@@ -409,7 +409,7 @@ blocks:
   states:
     coordinate:
     - 936
-    - 470
+    - 386
     rotation: 0
     state: enabled
 - name: reference_link
@@ -419,7 +419,7 @@ blocks:
   states:
     coordinate:
     - 230
-    - 560
+    - 476
     rotation: 0
     state: enabled
 - name: reference_source
@@ -429,7 +429,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: unpack_tx
@@ -439,7 +439,7 @@ blocks:
   states:
     coordinate:
     - 200
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: delay
@@ -451,7 +451,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: skip_tx
@@ -463,7 +463,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: pack_tx
@@ -473,7 +473,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: tx_bits_link
@@ -483,7 +483,7 @@ blocks:
   states:
     coordinate:
     - 980
-    - 650
+    - 566
     rotation: 0
     state: enabled
 - name: section_receivers
@@ -493,7 +493,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 740
+    - 656
     rotation: 0
     state: enabled
 - name: tx_in_0
@@ -503,7 +503,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: channel_0
@@ -518,7 +518,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: rx_level_0
@@ -530,7 +530,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: clock_sync_0
@@ -547,7 +547,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: rx_scale_0
@@ -559,7 +559,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: equalizer_0
@@ -574,7 +574,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: decoder_0
@@ -584,7 +584,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: diff_decoder_0
@@ -595,7 +595,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: unpack_rx_0
@@ -605,7 +605,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: skip_rx_0
@@ -617,7 +617,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: pack_rx_0
@@ -627,7 +627,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: rx_bits_0
@@ -637,7 +637,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 790
+    - 706
     rotation: 0
     state: enabled
 - name: tx_in_1
@@ -647,7 +647,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: channel_1
@@ -662,7 +662,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: rx_level_1
@@ -674,7 +674,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: clock_sync_1
@@ -691,7 +691,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: rx_scale_1
@@ -703,7 +703,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: equalizer_1
@@ -718,7 +718,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: decoder_1
@@ -728,7 +728,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: diff_decoder_1
@@ -739,7 +739,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: unpack_rx_1
@@ -749,7 +749,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: skip_rx_1
@@ -761,7 +761,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: pack_rx_1
@@ -771,7 +771,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: rx_bits_1
@@ -781,7 +781,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 940
+    - 856
     rotation: 0
     state: enabled
 - name: tx_in_2
@@ -791,7 +791,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: channel_2
@@ -806,7 +806,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: rx_level_2
@@ -818,7 +818,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: clock_sync_2
@@ -835,7 +835,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: rx_scale_2
@@ -847,7 +847,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: equalizer_2
@@ -862,7 +862,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: decoder_2
@@ -872,7 +872,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: diff_decoder_2
@@ -883,7 +883,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: unpack_rx_2
@@ -893,7 +893,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: skip_rx_2
@@ -905,7 +905,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: pack_rx_2
@@ -915,7 +915,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: rx_bits_2
@@ -925,7 +925,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1090
+    - 1006
     rotation: 0
     state: enabled
 - name: tx_in_3
@@ -935,7 +935,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: channel_3
@@ -950,7 +950,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: rx_level_3
@@ -962,7 +962,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: clock_sync_3
@@ -979,7 +979,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: rx_scale_3
@@ -991,7 +991,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: equalizer_3
@@ -1006,7 +1006,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: decoder_3
@@ -1016,7 +1016,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: diff_decoder_3
@@ -1027,7 +1027,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: unpack_rx_3
@@ -1037,7 +1037,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: skip_rx_3
@@ -1049,7 +1049,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: pack_rx_3
@@ -1059,7 +1059,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: rx_bits_3
@@ -1069,7 +1069,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1240
+    - 1156
     rotation: 0
     state: enabled
 - name: tx_in_4
@@ -1079,7 +1079,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: channel_4
@@ -1094,7 +1094,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: rx_level_4
@@ -1106,7 +1106,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: clock_sync_4
@@ -1123,7 +1123,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: rx_scale_4
@@ -1135,7 +1135,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: equalizer_4
@@ -1150,7 +1150,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: decoder_4
@@ -1160,7 +1160,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: diff_decoder_4
@@ -1171,7 +1171,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: unpack_rx_4
@@ -1181,7 +1181,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: skip_rx_4
@@ -1193,7 +1193,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: pack_rx_4
@@ -1203,7 +1203,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: rx_bits_4
@@ -1213,7 +1213,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1390
+    - 1306
     rotation: 0
     state: enabled
 - name: tx_in_5
@@ -1223,7 +1223,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: channel_5
@@ -1238,7 +1238,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: rx_level_5
@@ -1250,7 +1250,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: clock_sync_5
@@ -1267,7 +1267,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: rx_scale_5
@@ -1279,7 +1279,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: equalizer_5
@@ -1294,7 +1294,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: decoder_5
@@ -1304,7 +1304,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: diff_decoder_5
@@ -1315,7 +1315,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: unpack_rx_5
@@ -1325,7 +1325,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: skip_rx_5
@@ -1337,7 +1337,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: pack_rx_5
@@ -1347,7 +1347,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: rx_bits_5
@@ -1357,7 +1357,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1540
+    - 1456
     rotation: 0
     state: enabled
 - name: tx_in_6
@@ -1367,7 +1367,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: channel_6
@@ -1382,7 +1382,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: rx_level_6
@@ -1394,7 +1394,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: clock_sync_6
@@ -1411,7 +1411,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: rx_scale_6
@@ -1423,7 +1423,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: equalizer_6
@@ -1438,7 +1438,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: decoder_6
@@ -1448,7 +1448,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: diff_decoder_6
@@ -1459,7 +1459,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: unpack_rx_6
@@ -1469,7 +1469,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: skip_rx_6
@@ -1481,7 +1481,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: pack_rx_6
@@ -1491,7 +1491,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: rx_bits_6
@@ -1501,7 +1501,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1690
+    - 1606
     rotation: 0
     state: enabled
 - name: tx_in_7
@@ -1511,7 +1511,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: channel_7
@@ -1526,7 +1526,7 @@ blocks:
   states:
     coordinate:
     - 170
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: rx_level_7
@@ -1538,7 +1538,7 @@ blocks:
   states:
     coordinate:
     - 400
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: clock_sync_7
@@ -1555,7 +1555,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: rx_scale_7
@@ -1567,7 +1567,7 @@ blocks:
   states:
     coordinate:
     - 800
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: equalizer_7
@@ -1582,7 +1582,7 @@ blocks:
   states:
     coordinate:
     - 1000
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: decoder_7
@@ -1592,7 +1592,7 @@ blocks:
   states:
     coordinate:
     - 1200
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: diff_decoder_7
@@ -1603,7 +1603,7 @@ blocks:
   states:
     coordinate:
     - 1400
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: unpack_rx_7
@@ -1613,7 +1613,7 @@ blocks:
   states:
     coordinate:
     - 1600
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: skip_rx_7
@@ -1625,7 +1625,7 @@ blocks:
   states:
     coordinate:
     - 1800
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: pack_rx_7
@@ -1635,7 +1635,7 @@ blocks:
   states:
     coordinate:
     - 2000
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: rx_bits_7
@@ -1645,7 +1645,7 @@ blocks:
   states:
     coordinate:
     - 2200
-    - 1840
+    - 1756
     rotation: 0
     state: enabled
 - name: section_ber_curve
@@ -1655,7 +1655,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2040
+    - 1956
     rotation: 0
     state: enabled
 - name: ber_curve
@@ -1680,7 +1680,7 @@ blocks:
   states:
     coordinate:
     - 600
-    - 2090
+    - 2006
     rotation: 0
     state: enabled
 - name: tx_ref_0
@@ -1690,7 +1690,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2090
+    - 2006
     rotation: 0
     state: enabled
 - name: rx_out_0
@@ -1700,7 +1700,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2090
+    - 2006
     rotation: 0
     state: enabled
 - name: tx_ref_1
@@ -1710,7 +1710,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2150
+    - 2066
     rotation: 0
     state: enabled
 - name: rx_out_1
@@ -1720,7 +1720,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2150
+    - 2066
     rotation: 0
     state: enabled
 - name: tx_ref_2
@@ -1730,7 +1730,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2210
+    - 2126
     rotation: 0
     state: enabled
 - name: rx_out_2
@@ -1740,7 +1740,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2210
+    - 2126
     rotation: 0
     state: enabled
 - name: tx_ref_3
@@ -1750,7 +1750,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2270
+    - 2186
     rotation: 0
     state: enabled
 - name: rx_out_3
@@ -1760,7 +1760,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2270
+    - 2186
     rotation: 0
     state: enabled
 - name: tx_ref_4
@@ -1770,7 +1770,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2330
+    - 2246
     rotation: 0
     state: enabled
 - name: rx_out_4
@@ -1780,7 +1780,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2330
+    - 2246
     rotation: 0
     state: enabled
 - name: tx_ref_5
@@ -1790,7 +1790,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2390
+    - 2306
     rotation: 0
     state: enabled
 - name: rx_out_5
@@ -1800,7 +1800,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2390
+    - 2306
     rotation: 0
     state: enabled
 - name: tx_ref_6
@@ -1810,7 +1810,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2450
+    - 2366
     rotation: 0
     state: enabled
 - name: rx_out_6
@@ -1820,7 +1820,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2450
+    - 2366
     rotation: 0
     state: enabled
 - name: tx_ref_7
@@ -1830,7 +1830,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2510
+    - 2426
     rotation: 0
     state: enabled
 - name: rx_out_7
@@ -1840,7 +1840,7 @@ blocks:
   states:
     coordinate:
     - 300
-    - 2510
+    - 2426
     rotation: 0
     state: enabled
 - name: equalizer_initial_taps
@@ -1853,7 +1853,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1950
+    - 248
     rotation: 0
     state: enabled
 - name: curve_title
@@ -1866,8 +1866,8 @@ blocks:
       self.resize(1000, 700)'
   states:
     coordinate:
-    - 300
-    - 1950
+    - 168
+    - 248
     rotation: 0
     state: enabled
 connections:
