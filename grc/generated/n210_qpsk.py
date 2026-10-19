@@ -15,7 +15,6 @@ from PyQt5 import QtCore
 from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import digital
-from gnuradio import eng_notation
 from gnuradio import filter
 from gnuradio.filter import firdes
 from gnuradio import gr
@@ -25,6 +24,7 @@ import signal
 from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
+from gnuradio import eng_notation
 from gnuradio import uhd
 import time
 import math
@@ -55,8 +55,73 @@ def snipfcn_square_plot_panels(self):
 def snipfcn_equalizer_initial_taps(self):
     self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
 
+def snipfcn_link_table(self):
+    # Link budget and BER test as a spreadsheet-style table (display only).
+    # Values come from stock Probe Signal blocks; edit rows here to change it.
+    rows = [
+        ('Transmit', 'Average level', self.probe_tx_dbm, 'dBFS', 'dB'),
+        ('', 'Sampled peak (keep < 0)', self.probe_tx_peak_dbm, 'dBFS', 'dB'),
+        ('', 'Peak / average', self.probe_tx_papr, 'dB', 'dB'),
+        ('Receive', 'ADC level, fixed RF gain', self.probe_rx_dbm, 'dBFS', 'dB'),
+        ('', 'MER (decision-directed)', self.probe_rx_snr, 'dB', 'dB'),
+        ('', 'Eb/N0 estimate', self.probe_rx_ebno, 'dB', 'dB'),
+        ('', 'EVM (decision-directed)', self.probe_evm_rms, '%', 'dB'),
+        ('BER', 'Latest 10,000 bits', self.probe_ber_scale, 'errors/bit', 'ber'),
+        ('BER test', 'Test length', None, 'bits', "f'{10000 * self.ber_test_blocks:,}'"),
+        ('', 'Estimated time', None, 's', "f'{self.ber_test_seconds:.2f}'"),
+        ('', 'Status', self.probe_ber_test_count, '', 'status'),
+        ('', 'Bits compared', self.probe_ber_test_count, 'bits', 'count'),
+        ('', 'Bit errors (mismatches / 2)', self.probe_ber_test_errors, 'errors', 'count'),
+        ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'ber'),
+    ]
+    table = Qt.QTableWidget(len(rows), 4)
+    table.setHorizontalHeaderLabels(["Section", "Quantity", "Value", "Unit"])
+    table.verticalHeader().setVisible(False)
+    table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
+    table.setSelectionMode(Qt.QAbstractItemView.NoSelection)
+    table.setAlternatingRowColors(True)
+    table.setShowGrid(True)
+    bold = Qt.QFont(table.font())
+    bold.setBold(True)
+    for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
+        for column, text in ((0, section), (1, quantity), (3, unit)):
+            item = Qt.QTableWidgetItem(text)
+            if column == 0:
+                item.setFont(bold)
+            table.setItem(row, column, item)
+        value = Qt.QTableWidgetItem("" if probe else str(eval(fmt)))
+        value.setTextAlignment(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
+        table.setItem(row, 2, value)
+    header = table.horizontalHeader()
+    header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)
+    header.setStretchLastSection(True)
+    test_bits = 10000 * self.ber_test_blocks
+
+    def refresh_link_table():
+        for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
+            if probe is None:
+                continue
+            level = probe.level()
+            if fmt == "dB":
+                text = f"{level:.2f}"
+            elif fmt == "count":
+                text = f"{level:,.0f}"
+            elif fmt == "ber":
+                text = f"{level:.3e}"
+            else:
+                text = "complete" if level >= test_bits else (
+                    "counting" if level > 0 else "waiting for warm-up")
+            table.item(row, 2).setText(text)
+
+    self.link_table = table
+    self.link_table_timer = Qt.QTimer()
+    self.link_table_timer.timeout.connect(refresh_link_table)
+    self.link_table_timer.start(250)
+    self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
+
 
 def snippets_main_after_init(tb):
+    snipfcn_link_table(tb)
     snipfcn_square_plot_panels(tb)
     snipfcn_equalizer_initial_taps(tb)
 
@@ -114,13 +179,12 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.tx_data = tx_data = list(numpy.random.RandomState(42).randint(0, 256, 32766))
         self.k = k = const.bits_per_symbol()
         self.warmup_bits = warmup_bits = 4096
-        self.data_period_bits = data_period_bits = 8*len(tx_data)
-        self.bit_rate = bit_rate = symbol_rate*k
-        self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
         self.sps = sps = 4
         self.nfilts = nfilts = 32
-        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate
+        self.data_period_bits = data_period_bits = 8*len(tx_data)
+        self.bit_rate = bit_rate = symbol_rate*k
+        self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.alpha = alpha = 0.35
         self.tx_gain_norm = tx_gain_norm = 0.5
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
@@ -136,7 +200,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/200
         self.ber_window = ber_window = 10000
-        self.ber_test_time = ber_test_time = '%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' % (10000*ber_test_blocks, ber_test_seconds, bit_rate/1e6)
+        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate
         self.ber_error_weight = ber_error_weight = 0.5
 
         ##################################################
@@ -177,10 +241,18 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.top_layout.addWidget(self.views)
         self._tx_gain_norm_range = qtgui.Range(0, 1, 0.01, 0.5, 200)
         self._tx_gain_norm_win = qtgui.RangeWidget(self._tx_gain_norm_range, self.set_tx_gain_norm, "TX gain (normalized 0-1)", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._tx_gain_norm_win)
+        self.views_grid_layout_3.addWidget(self._tx_gain_norm_win, 0, 0, 1, 1)
+        for r in range(0, 1):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self._rx_gain_norm_range = qtgui.Range(0, 1, 0.01, 0.5, 200)
         self._rx_gain_norm_win = qtgui.RangeWidget(self._rx_gain_norm_range, self.set_rx_gain_norm, "RX gain (normalized 0-1)", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._rx_gain_norm_win)
+        self.views_grid_layout_3.addWidget(self._rx_gain_norm_win, 0, 1, 1, 1)
+        for r in range(0, 1):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(1, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.constellation = qtgui.const_sink_c(
             1024, #size
             'After adaptive LMS equalization | symbols and guides', #name
@@ -626,10 +698,10 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
             self.spectrum_budget.set_line_alpha(i, alphas[i])
 
         self._spectrum_budget_win = sip.wrapinstance(self.spectrum_budget.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._spectrum_budget_win, 2, 0, 1, 1)
-        for r in range(2, 3):
+        self.views_grid_layout_3.addWidget(self._spectrum_budget_win, 1, 1, 1, 1)
+        for r in range(1, 2):
             self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
+        for c in range(1, 2):
             self.views_grid_layout_3.setColumnStretch(c, 1)
         self.spectrum = qtgui.freq_sink_c(
             1024, #size
@@ -687,7 +759,64 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.rx_level = analog.agc2_cc((1e-3), (1e-3), 1.0, 1.0, 65536)
         self.rx_ebno = blocks.nlog10_ff((-20), 1, (40-10*math.log10(k)))
         self.rx_dbm = blocks.nlog10_ff(10, 1, 0)
+        self.rf_constellation = qtgui.const_sink_c(
+            1024, #size
+            'Received symbols (after equalizer)', #name
+            1, #number of inputs
+            None # parent
+        )
+        self.rf_constellation.set_update_time(0.10)
+        self.rf_constellation.set_y_axis((-2), 2)
+        self.rf_constellation.set_x_axis((-2), 2)
+        self.rf_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
+        self.rf_constellation.enable_autoscale(False)
+        self.rf_constellation.enable_grid(True)
+        self.rf_constellation.enable_axis_labels(True)
+
+        self.rf_constellation.disable_legend()
+
+        labels = ['RX', '', '', '', '',
+            '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+            "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        styles = [0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0]
+        markers = [0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0]
+        alphas = [0.4, 1.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0, 1.0]
+
+        for i in range(1):
+            if len(labels[i]) == 0:
+                self.rf_constellation.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.rf_constellation.set_line_label(i, labels[i])
+            self.rf_constellation.set_line_width(i, widths[i])
+            self.rf_constellation.set_line_color(i, colors[i])
+            self.rf_constellation.set_line_style(i, styles[i])
+            self.rf_constellation.set_line_marker(i, markers[i])
+            self.rf_constellation.set_line_alpha(i, alphas[i])
+
+        self._rf_constellation_win = sip.wrapinstance(self.rf_constellation.qwidget(), Qt.QWidget)
+        self.views_grid_layout_3.addWidget(self._rf_constellation_win, 2, 1, 1, 1)
+        for r in range(2, 3):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(1, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.random_bytes = blocks.vector_source_b(tx_data, True, 1, [])
+        self.probe_tx_peak_dbm = blocks.probe_signal_f()
+        self.probe_tx_papr = blocks.probe_signal_f()
+        self.probe_tx_dbm = blocks.probe_signal_f()
+        self.probe_rx_snr = blocks.probe_signal_f()
+        self.probe_rx_ebno = blocks.probe_signal_f()
+        self.probe_rx_dbm = blocks.probe_signal_f()
+        self.probe_evm_rms = blocks.probe_signal_f()
+        self.probe_ber_test_ratio = blocks.probe_signal_f()
+        self.probe_ber_test_errors = blocks.probe_signal_f()
+        self.probe_ber_test_count = blocks.probe_signal_f()
+        self.probe_ber_scale = blocks.probe_signal_f()
         self.preamble_detect = digital.corr_est_cc(list(numpy.array(training_symbols[:preamble_len])/symbol_rms), 1, (eq_delay_symbols+1), 0.9999, digital.THRESHOLD_DYNAMIC)
         self.modulator = digital.generic_mod(
             constellation=const,
@@ -804,80 +933,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.middle_i = blocks.complex_to_real(1)
         self.middle_eye_reconstruction = filter.interp_fir_filter_ccf(sps, eye_synthesis_taps)
         self.middle_eye_reconstruction.declare_sample_delay(0)
-        self.link_tx_table = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            3,
-            None # parent
-        )
-        self.link_tx_table.set_update_time(0.25)
-        self.link_tx_table.set_title('Transmit (digital full scale)')
-
-        labels = ['Average', 'Sampled peak (keep < 0)', 'Peak/average', '', '',
-            '', '', '', '', '']
-        units = ['dBFS', 'dBFS', 'dB', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(3):
-            self.link_tx_table.set_min(i, -200)
-            self.link_tx_table.set_max(i, 100)
-            self.link_tx_table.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.link_tx_table.set_label(i, "Data {0}".format(i))
-            else:
-                self.link_tx_table.set_label(i, labels[i])
-            self.link_tx_table.set_unit(i, units[i])
-            self.link_tx_table.set_factor(i, factor[i])
-
-        self.link_tx_table.enable_autoscale(False)
-        self._link_tx_table_win = sip.wrapinstance(self.link_tx_table.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._link_tx_table_win, 1, 0, 1, 1)
-        for r in range(1, 2):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
-        self.link_rx_table = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            4,
-            None # parent
-        )
-        self.link_rx_table.set_update_time(0.25)
-        self.link_rx_table.set_title('Receive (fixed RF gain, uncalibrated)')
-
-        labels = ['ADC level', 'MER', 'Eb/N0 est.', 'EVM', '',
-            '', '', '', '', '']
-        units = ['dBFS', 'dB', 'dB', '%', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(4):
-            self.link_rx_table.set_min(i, -200)
-            self.link_rx_table.set_max(i, 100)
-            self.link_rx_table.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.link_rx_table.set_label(i, "Data {0}".format(i))
-            else:
-                self.link_rx_table.set_label(i, labels[i])
-            self.link_rx_table.set_unit(i, units[i])
-            self.link_rx_table.set_factor(i, factor[i])
-
-        self.link_rx_table.enable_autoscale(False)
-        self._link_rx_table_win = sip.wrapinstance(self.link_rx_table.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._link_rx_table_win, 1, 1, 1, 1)
-        for r in range(1, 2):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.integrate = blocks.integrate_ff(ber_window, 1)
         self.ideal_symbols = blocks.vector_source_c(const.points(), True, 1, [])
         self.eye_quadrature = qtgui.eye_sink_f(
@@ -1235,21 +1290,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.ber_test_zero = blocks.multiply_const_ff(0)
         self.ber_test_window_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_unit = blocks.add_const_ff(1)
-        self._ber_test_time_tool_bar = Qt.QToolBar(self)
-
-        if None:
-            self._ber_test_time_formatter = None
-        else:
-            self._ber_test_time_formatter = lambda x: str(x)
-
-        self._ber_test_time_tool_bar.addWidget(Qt.QLabel("BER test"))
-        self._ber_test_time_label = Qt.QLabel(str(self._ber_test_time_formatter(self.ber_test_time)))
-        self._ber_test_time_tool_bar.addWidget(self._ber_test_time_label)
-        self.views_grid_layout_3.addWidget(self._ber_test_time_tool_bar, 3, 0, 1, 2)
-        for r in range(3, 4):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(0, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.ber_test_sum_10k = blocks.integrate_ff(10000, 1)
         self.ber_test_ratio = blocks.divide_ff(1)
         self.ber_test_not_done = blocks.multiply_const_ff((-1))
@@ -1259,43 +1299,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.ber_test_errors = blocks.multiply_const_ff(ber_error_weight)
         self.ber_test_error_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_done = blocks.threshold_ff((ber_test_blocks + 0.5), (ber_test_blocks + 0.5), 0)
-        self.ber_test_display = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_NONE,
-            3,
-            None # parent
-        )
-        self.ber_test_display.set_update_time(0.25)
-        self.ber_test_display.set_title('BER test')
-
-        labels = ['Bits compared', 'Bit errors', 'BER', '', '',
-            '', '', '', '', '']
-        units = ['bits', 'errors', 'errors/bit', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(3):
-            self.ber_test_display.set_min(i, 0)
-            self.ber_test_display.set_max(i, 1e12)
-            self.ber_test_display.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.ber_test_display.set_label(i, "Data {0}".format(i))
-            else:
-                self.ber_test_display.set_label(i, labels[i])
-            self.ber_test_display.set_unit(i, units[i])
-            self.ber_test_display.set_factor(i, factor[i])
-
-        self.ber_test_display.enable_autoscale(False)
-        self._ber_test_display_win = sip.wrapinstance(self.ber_test_display.qwidget(), Qt.QWidget)
-        self.views_grid_layout_3.addWidget(self._ber_test_display_win, 2, 1, 1, 1)
-        for r in range(2, 3):
-            self.views_grid_layout_3.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.ber_test_count = blocks.multiply_const_ff(10000)
         self.ber_scale = blocks.multiply_const_ff((0.5/ber_window))
         self.ber_history = qtgui.time_sink_f(
@@ -1549,18 +1552,19 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.after_q, 0), (self.after_q_eye, 0))
         self.connect((self.ber_scale, 0), (self.ber_display, 0))
         self.connect((self.ber_scale, 0), (self.ber_history, 0))
-        self.connect((self.ber_test_count, 0), (self.ber_test_display, 0))
+        self.connect((self.ber_scale, 0), (self.probe_ber_scale, 0))
         self.connect((self.ber_test_count, 0), (self.ber_test_ratio, 1))
+        self.connect((self.ber_test_count, 0), (self.probe_ber_test_count, 0))
         self.connect((self.ber_test_done, 0), (self.ber_test_not_done, 0))
         self.connect((self.ber_test_error_sum, 0), (self.ber_test_errors, 0))
-        self.connect((self.ber_test_errors, 0), (self.ber_test_display, 1))
         self.connect((self.ber_test_errors, 0), (self.ber_test_ratio, 0))
+        self.connect((self.ber_test_errors, 0), (self.probe_ber_test_errors, 0))
         self.connect((self.ber_test_gate, 0), (self.ber_test_gated_errors, 1))
         self.connect((self.ber_test_gate, 0), (self.ber_test_window_sum, 0))
         self.connect((self.ber_test_gated_errors, 0), (self.ber_test_error_sum, 0))
         self.connect((self.ber_test_index, 0), (self.ber_test_done, 0))
         self.connect((self.ber_test_not_done, 0), (self.ber_test_gate, 0))
-        self.connect((self.ber_test_ratio, 0), (self.ber_test_display, 2))
+        self.connect((self.ber_test_ratio, 0), (self.probe_ber_test_ratio, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_gated_errors, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_zero, 0))
         self.connect((self.ber_test_unit, 0), (self.ber_test_index, 0))
@@ -1569,8 +1573,8 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
+        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
@@ -1580,6 +1584,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.equalizer, 0), (self.decoder, 0))
         self.connect((self.equalizer, 1), (self.eq_tap_decimator, 0))
         self.connect((self.equalizer, 0), (self.evm, 0))
+        self.connect((self.equalizer, 0), (self.rf_constellation, 0))
         self.connect((self.errors_float, 0), (self.ber_test_sum_10k, 0))
         self.connect((self.errors_float, 0), (self.integrate, 0))
         self.connect((self.evm, 0), (self.eq_error_trace, 0))
@@ -1590,7 +1595,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.evm_rms, 0), (self.evm_display, 0))
         self.connect((self.evm_rms, 0), (self.evm_history, 0))
         self.connect((self.evm_rms, 0), (self.evm_table_rate, 0))
-        self.connect((self.evm_table_rate, 0), (self.link_rx_table, 3))
+        self.connect((self.evm_rms, 0), (self.probe_evm_rms, 0))
         self.connect((self.evm_table_rate, 0), (self.rx_ebno, 0))
         self.connect((self.evm_table_rate, 0), (self.rx_snr, 0))
         self.connect((self.eye_i, 0), (self.eye, 0))
@@ -1606,8 +1611,8 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.preamble_detect, 0), (self.rx_scale, 0))
         self.connect((self.random_bytes, 0), (self.modulator, 0))
         self.connect((self.random_bytes, 0), (self.tx_symbol_chunks, 0))
-        self.connect((self.rx_dbm, 0), (self.link_rx_table, 0))
-        self.connect((self.rx_ebno, 0), (self.link_rx_table, 2))
+        self.connect((self.rx_dbm, 0), (self.probe_rx_dbm, 0))
+        self.connect((self.rx_ebno, 0), (self.probe_rx_ebno, 0))
         self.connect((self.rx_level, 0), (self.clock_sync, 0))
         self.connect((self.rx_milliwatts, 0), (self.rx_power_sum, 0))
         self.connect((self.rx_power_mean, 0), (self.rx_dbm, 0))
@@ -1615,17 +1620,17 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.rx_scale, 0), (self.before_eq_constellation, 0))
         self.connect((self.rx_scale, 0), (self.equalizer, 0))
         self.connect((self.rx_scale, 0), (self.middle_eye_reconstruction, 0))
-        self.connect((self.rx_snr, 0), (self.link_rx_table, 1))
+        self.connect((self.rx_snr, 0), (self.probe_rx_snr, 0))
         self.connect((self.skip_rx, 0), (self.xor, 0))
         self.connect((self.skip_tx, 0), (self.xor, 1))
-        self.connect((self.tx_dbm, 0), (self.link_tx_table, 0))
+        self.connect((self.tx_dbm, 0), (self.probe_tx_dbm, 0))
         self.connect((self.tx_dbm, 0), (self.tx_papr, 1))
         self.connect((self.tx_eye_i, 0), (self.tx_eye_i_eye, 0))
         self.connect((self.tx_eye_q, 0), (self.tx_eye_q_eye, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_peak_vectors, 0))
         self.connect((self.tx_milliwatts, 0), (self.tx_power_sum, 0))
-        self.connect((self.tx_papr, 0), (self.link_tx_table, 2))
-        self.connect((self.tx_peak_dbm, 0), (self.link_tx_table, 1))
+        self.connect((self.tx_papr, 0), (self.probe_tx_papr, 0))
+        self.connect((self.tx_peak_dbm, 0), (self.probe_tx_peak_dbm, 0))
         self.connect((self.tx_peak_dbm, 0), (self.tx_papr, 0))
         self.connect((self.tx_peak_mw, 0), (self.tx_peak_dbm, 0))
         self.connect((self.tx_peak_vectors, 0), (self.tx_peak_mw, 0))
@@ -1758,34 +1763,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.warmup_bits = warmup_bits
         self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
 
-    def get_data_period_bits(self):
-        return self.data_period_bits
-
-    def set_data_period_bits(self, data_period_bits):
-        self.data_period_bits = data_period_bits
-        self.delay.set_dly(int(self.data_period_bits))
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
-
-    def get_bit_rate(self):
-        return self.bit_rate
-
-    def set_bit_rate(self, bit_rate):
-        self.bit_rate = bit_rate
-        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.set_ber_test_time('%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' % (10000*self.ber_test_blocks, self.ber_test_seconds, self.bit_rate/1e6))
-
-    def get_ber_test_blocks(self):
-        return self.ber_test_blocks
-
-    def set_ber_test_blocks(self, ber_test_blocks):
-        self.ber_test_blocks = ber_test_blocks
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.set_ber_test_time('%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' % (10000*self.ber_test_blocks, self.ber_test_seconds, self.bit_rate/1e6))
-        self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
-        self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
-
     def get_symbol_rms(self):
         return self.symbol_rms
 
@@ -1820,12 +1797,31 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.nfilts = nfilts
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
-    def get_ber_test_seconds(self):
-        return self.ber_test_seconds
+    def get_data_period_bits(self):
+        return self.data_period_bits
 
-    def set_ber_test_seconds(self, ber_test_seconds):
-        self.ber_test_seconds = ber_test_seconds
-        self.set_ber_test_time('%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' % (10000*self.ber_test_blocks, self.ber_test_seconds, self.bit_rate/1e6))
+    def set_data_period_bits(self, data_period_bits):
+        self.data_period_bits = data_period_bits
+        self.delay.set_dly(int(self.data_period_bits))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+
+    def get_bit_rate(self):
+        return self.bit_rate
+
+    def set_bit_rate(self, bit_rate):
+        self.bit_rate = bit_rate
+        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+
+    def get_ber_test_blocks(self):
+        return self.ber_test_blocks
+
+    def set_ber_test_blocks(self, ber_test_blocks):
+        self.ber_test_blocks = ber_test_blocks
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
 
     def get_alpha(self):
         return self.alpha
@@ -1945,12 +1941,11 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.ber_scale.set_k((0.5/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
 
-    def get_ber_test_time(self):
-        return self.ber_test_time
+    def get_ber_test_seconds(self):
+        return self.ber_test_seconds
 
-    def set_ber_test_time(self, ber_test_time):
-        self.ber_test_time = ber_test_time
-        Qt.QMetaObject.invokeMethod(self._ber_test_time_label, "setText", Qt.Q_ARG("QString", str(self._ber_test_time_formatter(self.ber_test_time))))
+    def set_ber_test_seconds(self, ber_test_seconds):
+        self.ber_test_seconds = ber_test_seconds
 
     def get_ber_error_weight(self):
         return self.ber_error_weight

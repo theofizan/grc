@@ -36,6 +36,8 @@ import math
 import re
 import yaml
 
+from link_budget_tables import spreadsheet
+
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ["bpsk", "qpsk", "8psk", "4ask", "8ask", "16qam"]
 # Costas order = number of phase states its detector expects.
@@ -50,6 +52,23 @@ COSTAS_BW_DIVISOR = {"bpsk": 200, "qpsk": 200, "8psk": 200, "4ask": 800, "8ask":
 # every block. (With 32,768 bytes, 3-bit formats repeat the bits shifted by one
 # bit every third of a block, which falsely matches the preamble.)
 DATA_BYTES = 32766
+# Spreadsheet rows for the RF levels tab (see link_budget_tables.spreadsheet).
+N210_ROWS = [
+    ("Transmit", "Average level", "tx_dbm", "dBFS", "dB"),
+    ("", "Sampled peak (keep < 0)", "tx_peak_dbm", "dBFS", "dB"),
+    ("", "Peak / average", "tx_papr", "dB", "dB"),
+    ("Receive", "ADC level, fixed RF gain", "rx_dbm", "dBFS", "dB"),
+    ("", "MER (decision-directed)", "rx_snr", "dB", "dB"),
+    ("", "Eb/N0 estimate", "rx_ebno", "dB", "dB"),
+    ("", "EVM (decision-directed)", "evm_rms", "%", "dB"),
+    ("BER", "Latest 10,000 bits", "ber_scale", "errors/bit", "ber"),
+    ("BER test", "Test length", None, "bits", "f'{10000 * self.ber_test_blocks:,}'"),
+    ("", "Estimated time", None, "s", "f'{self.ber_test_seconds:.2f}'"),
+    ("", "Status", "ber_test_count", "", "status"),
+    ("", "Bits compared", "ber_test_count", "bits", "count"),
+    ("", "Bit errors (mismatches / 2)", "ber_test_errors", "errors", "count"),
+    ("", "BER", "ber_test_ratio", "errors/bit", "ber"),
+]
 LABELS = {"bpsk": "BPSK", "qpsk": "QPSK", "8psk": "8-PSK", "4ask": "4-ASK",
           "8ask": "8-ASK", "16qam": "16-QAM"}
 # Simulation-only link-budget items with no meaning on real hardware.
@@ -107,7 +126,8 @@ def build(profile):
     def unwire(src, dst):
         edges[:] = [c for c in edges if not (c[0] == src and c[2] == dst)]
 
-    # --- Controls (top row, beside the existing ones) -----------------------
+    # --- Controls (top row, beside the existing ones). The live gain sliders
+    # sit in row 0 of the RF levels tab, next to the levels they change. -----
     blocks["tx_level_dbfs"]["parameters"].update(
         value="-15", label="TX digital RMS level (dBFS, keep peaks < 0)"
     )
@@ -121,11 +141,11 @@ def build(profile):
         ("tx_gain_norm", "variable_qtgui_range", dict(value="0.5", start="0", stop="1",
          step="0.01", label="TX gain (normalized 0-1)", widget="counter_slider",
          rangeType="float", orient="QtCore.Qt.Horizontal", min_len="200",
-         gui_hint="")),
+         gui_hint="views@3:0,0,1,1")),
         ("rx_gain_norm", "variable_qtgui_range", dict(value="0.5", start="0", stop="1",
          step="0.01", label="RX gain (normalized 0-1)", widget="counter_slider",
          rangeType="float", orient="QtCore.Qt.Horizontal", min_len="200",
-         gui_hint="")),
+         gui_hint="views@3:0,1,1,1")),
         ("carrier_loop_bw", "variable",
          dict(value=f"2*math.pi/{COSTAS_BW_DIVISOR[profile]}")),
         ("data_period_bits", "variable", dict(value="8*len(tx_data)")),
@@ -231,19 +251,11 @@ def build(profile):
         blocks[name]["id"] = "blocks_nlog10_ff"
         blocks[name]["parameters"] = dict(n="-20", k=offset, vlen="1")
         wire("evm_table_rate", name)
-    rx_table = blocks["link_rx_table"]["parameters"]
-    rx_table.update(name="Receive (fixed RF gain, uncalibrated)", nconnections="4",
-                    label1="ADC level", unit1="dBFS", label2="MER", unit2="dB",
-                    label3="Eb/N0 est.", unit3="dB", label4="EVM", unit4="%",
-                    color4='("black", "black")', factor4="1")
-    wire("evm_table_rate", "link_rx_table", 0, 3)
-    blocks["link_tx_table"]["parameters"].update(
-        name="Transmit (digital full scale)", unit1="dBFS", label2="Sampled peak (keep < 0)",
-        unit2="dBFS")
     # Self-referenced error count: each real bit error appears twice.
     blocks["ber_error_weight"]["parameters"]["value"] = "0.5"
     blocks["ber_test_seconds"]["parameters"]["value"] = (
         "(warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate")
+    spreadsheet(graph, N210_ROWS)
     blocks["views"]["parameters"]["label3"] = "RF levels"
     for name, axis in [("eye", "I"), ("eye_quadrature", "Q")]:
         blocks[name]["parameters"]["label1"] = f"RX {axis} | raw N210 RX output"

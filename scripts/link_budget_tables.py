@@ -1,15 +1,12 @@
 """Replace the link-budget tab's time charts with readout tables and add a
 fixed-length BER test. Only stock GNU Radio blocks are used.
 
-GRC has no table widget, so each table is one stock QT GUI Number Sink with
-several labelled inputs, rendered as a header row of names over a row of
-values with units. All inputs of a table run at the same rate (one value per
-4096 samples), so the readouts update together.
+GRC has no table block, so the table is a Qt table widget created by a stock
+Python Snippet and filled from stock Probe Signal blocks (display only).
 
-Link-budget tab (2x2):
-    Transmit table    | Receive table
-    RX spectrum       | BER test table
-plus a text label under the tables with the BER test's length and duration.
+Link-budget tab (2x2): one spreadsheet-style table on the left (Transmit,
+Receive, BER, BER test rows), the RX spectrum and received constellation on
+the right. See spreadsheet() below.
 
 BER test (press Run in GRC): the stock error stream (XOR -> UChar to Float,
 after the warm-up skip) is summed per 10,000 bits (Integrate). A window
@@ -35,82 +32,25 @@ REMOVED = [
     "power_reference_chart", "power_reference_chart_input", "snr_history_link",
     "tx_power_display", "rx_power_display", "peak_display", "snr_display", "ebno_display",
 ]
-TX_ROWS = [("tx_dbm", "Average", "dBm"), ("tx_peak_dbm", "Sampled peak", "dBm"),
-           ("tx_papr", "Peak/average", "dB")]
-RX_ROWS = [("rx_dbm", "Signal + noise", "dBm"), ("rx_snr", "SNR over Fs", "dB"),
-           ("rx_ebno", "Eb/N0 per bit", "dB")]
-
-
-def number_table(name, title, rows, gui_hint):
-    parameters = dict(name=title, type="float", nconnections=str(len(rows)),
-                      autoscale="False", avg="0", graph_type="qtgui.NUM_GRAPH_NONE",
-                      min="-200", max="100", update_time="0.25", gui_hint=gui_hint)
-    for index, (_, label, unit) in enumerate(rows, start=1):
-        parameters.update({f"label{index}": label, f"unit{index}": unit,
-                           f"color{index}": '("black", "black")', f"factor{index}": "1"})
-    return parameters
 
 
 def apply(graph):
     blocks = {b["name"]: b for b in graph["blocks"]}
-    converted = "link_tx_table" in blocks
-    anchor = blocks["link_tx_table" if converted else "power_history"]["states"]["coordinate"]
+    converted = "tx_papr" in blocks
+    anchor = blocks["tx_papr" if converted else "power_history"]["states"]["coordinate"]
     # Safe to re-run: layout tools may recreate old charts; always strip them.
     graph["blocks"][:] = [b for b in graph["blocks"] if b["name"] not in REMOVED]
     graph["connections"][:] = [c for c in graph["connections"]
                                if c[0] not in REMOVED and c[2] not in REMOVED]
-    blocks = {b["name"]: b for b in graph["blocks"]}
-    if converted:
-        blocks["spectrum_budget"]["parameters"].update(gui_hint="views@3:2,0,1,1", label1="RX")
-        return ber_test(graph)
-    anchor = [anchor[0] - 200, anchor[1]]
-    x0, y0 = anchor
-
-    def add(block_name, kind, dx, dy, **parameters):
-        node = dict(name=block_name, id=kind, parameters={k: str(v) for k, v in parameters.items()},
-                    states=dict(coordinate=[x0 + dx, y0 + dy], rotation=0, state="enabled"))
-        graph["blocks"].append(node)
-        blocks[block_name] = node
-
-    def wire(src, dst, dst_port=0):
-        graph["connections"].append([src, "0", dst, str(dst_port)])
-
-    def link(source, stream, sink_xy, target, target_port, source_xy):
-        """Short stock virtual link instead of a long canvas wire."""
-        sink_name, source_name = f"{stream}_link", f"{stream}_to_{target}"
-        if sink_name not in blocks:
-            graph["blocks"].append(dict(
-                name=sink_name, id="virtual_sink", parameters=dict(stream_id=stream),
-                states=dict(coordinate=list(sink_xy), rotation=0, state="enabled")))
-            blocks[sink_name] = graph["blocks"][-1]
-            graph["connections"].append([source, "0", sink_name, "0"])
+    if not converted:
+        # Peak-to-average for the table: sampled peak dBm minus average dBm.
         graph["blocks"].append(dict(
-            name=source_name, id="virtual_source", parameters=dict(stream_id=stream),
-            states=dict(coordinate=[x0 + source_xy[0], y0 + source_xy[1]], rotation=0,
+            name="tx_papr", id="blocks_sub_xx",
+            parameters=dict(type="float", vlen="1", num_inputs="2"),
+            states=dict(coordinate=[anchor[0] - 200, anchor[1]], rotation=0,
                         state="enabled")))
-        blocks[source_name] = graph["blocks"][-1]
-        graph["connections"].append([source_name, "0", target, str(target_port)])
-
-    add("tx_papr", "blocks_sub_xx", 0, 0, type="float", vlen="1", num_inputs="2")
-    wire("tx_peak_dbm", "tx_papr", 0)
-    wire("tx_dbm", "tx_papr", 1)
-    add("link_tx_table", "qtgui_number_sink", 200, 0,
-        **number_table("link_tx_table", "Transmit (conducted, nominal)", TX_ROWS,
-                       "views@3:1,0,1,1"))
-    add("link_rx_table", "qtgui_number_sink", 200, 140,
-        **number_table("link_rx_table", "Receive (noise over Fs)", RX_ROWS,
-                       "views@3:1,1,1,1"))
-    for port, (source, _, _) in enumerate(TX_ROWS):
-        wire(source, "link_tx_table", port)
-    wire("rx_dbm", "link_rx_table", 0)
-    # SNR / Eb/N0 readouts sit elsewhere on the canvas; bring them over with
-    # short virtual links.
-    for port, source in ((1, "rx_snr"), (2, "rx_ebno")):
-        sx, sy = blocks[source]["states"]["coordinate"]
-        link(source, f"{source}_value", (sx + 200, sy + 60), "link_rx_table", port,
-             (40, 140 + 70 * port))
-
-    blocks["spectrum_budget"]["parameters"].update(gui_hint="views@3:2,0,1,1", label1="RX")
+        graph["connections"] += [["tx_peak_dbm", "0", "tx_papr", "0"],
+                                 ["tx_dbm", "0", "tx_papr", "1"]]
     return ber_test(graph)
 
 
@@ -124,8 +64,8 @@ def ber_test(graph, error_weight="1.0"):
     graph["connections"][:] = [c for c in graph["connections"]
                                if c[0] in names and c[2] in names]
     blocks = {b["name"]: b for b in graph["blocks"]}
-    x0, y0 = blocks["link_tx_table"]["states"]["coordinate"]
-    x0, y0 = x0 - 200, y0 + 280
+    x0, y0 = blocks["tx_papr"]["states"]["coordinate"]
+    y0 += 280
 
     def add(block_name, kind, x, y, **parameters):
         node = dict(name=block_name, id=kind,
@@ -144,11 +84,6 @@ def ber_test(graph, error_weight="1.0"):
     add("ber_error_weight", "variable", 1700, 332, value=error_weight)
     add("ber_test_seconds", "variable", 1700, 402,
         value="(warmup_bits + 10000*ber_test_blocks) / bit_rate")
-    add("ber_test_time", "variable_qtgui_label", 1700, 472, label="BER test",
-        type="string", formatter="None", gui_hint="views@3:3,0,1,2",
-        value="'%d-bit test: result after about %.2f s at %g Mbit/s, then it holds' "
-              "% (10000*ber_test_blocks, ber_test_seconds, bit_rate/1e6)")
-
     # Error stream comes over a short virtual link from the BER section.
     ex, ey = blocks["errors_float"]["states"]["coordinate"]
     add("bit_errors_link", "virtual_sink", ex, ey + 70, stream_id="bit_errors")
@@ -182,11 +117,6 @@ def ber_test(graph, error_weight="1.0"):
         type="float", const="10000", vlen="1")
     add("ber_test_ratio", "blocks_divide_xx", x0 + 1010, y0, type="float", vlen="1",
         num_inputs="2")
-    add("ber_test_display", "qtgui_number_sink", x0 + 1040, y0,
-        **number_table("ber_test_display", "BER test",
-                       [(None, "Bits compared", "bits"), (None, "Bit errors", "errors"),
-                        (None, "BER", "errors/bit")], "views@3:2,1,1,1"))
-    blocks["ber_test_display"]["parameters"].update(min="0", max="1e12")
     wire("bit_errors_to_ber_test", "ber_test_sum_10k")
     wire("ber_test_sum_10k", "ber_test_zero")
     wire("ber_test_zero", "ber_test_unit")
@@ -202,9 +132,134 @@ def ber_test(graph, error_weight="1.0"):
     wire("ber_test_window_sum", "ber_test_count")
     wire("ber_test_errors", "ber_test_ratio", 0)
     wire("ber_test_count", "ber_test_ratio", 1)
-    wire("ber_test_count", "ber_test_display", 0)
-    wire("ber_test_errors", "ber_test_display", 1)
-    wire("ber_test_ratio", "ber_test_display", 2)
+    return spreadsheet(graph)
+
+
+# --- Spreadsheet-style table --------------------------------------------------
+# (section, quantity, source block or None, unit, format). Formats: "dB" two
+# decimals, "count" with thousands separators, "ber" scientific, "status"
+# (BER test progress), or a Python expression on `self` for fixed values.
+SIM_ROWS = [
+    ("Transmit", "Average power", "tx_dbm", "dBm", "dB"),
+    ("", "Sampled peak power", "tx_peak_dbm", "dBm", "dB"),
+    ("", "Peak / average", "tx_papr", "dB", "dB"),
+    ("Receive", "Signal + noise power", "rx_dbm", "dBm", "dB"),
+    ("", "SNR (noise over Fs)", "rx_snr", "dB", "dB"),
+    ("", "Eb/N0 per uncoded bit", "rx_ebno", "dB", "dB"),
+    ("", "EVM (decision-directed)", "evm_rms", "%", "dB"),
+    ("BER", "Latest 10,000 bits", "ber_scale", "errors/bit", "ber"),
+    ("BER test", "Test length", None, "bits", "f'{10000 * self.ber_test_blocks:,}'"),
+    ("", "Estimated time", None, "s", "f'{self.ber_test_seconds:.2f}'"),
+    ("", "Status", "ber_test_count", "", "status"),
+    ("", "Bits compared", "ber_test_count", "bits", "count"),
+    ("", "Bit errors", "ber_test_errors", "errors", "count"),
+    ("", "BER", "ber_test_ratio", "errors/bit", "ber"),
+]
+REPLACED_TABLES = ["link_tx_table", "link_rx_table", "ber_test_display", "ber_test_time",
+                   "rx_snr_value_link", "rx_ebno_value_link",
+                   "rx_snr_value_to_link_rx_table", "rx_ebno_value_to_link_rx_table"]
+
+
+def spreadsheet(graph, rows=SIM_ROWS):
+    """Show the link budget and BER test as one spreadsheet-style table.
+
+    Stock Probe Signal blocks hold the latest value of each stream; a stock
+    Python Snippet builds a Qt table (gridlines, header row) on the link-budget
+    tab and refreshes it four times a second. Display only: no DSP changes.
+    Safe to run repeatedly.
+    """
+    drop = set(REPLACED_TABLES) | {b["name"] for b in graph["blocks"]
+                                   if b["name"].startswith("probe_")
+                                   or b["name"] in ("link_table", "rf_constellation",
+                                                    "rf_constellation_input")}
+    graph["blocks"][:] = [b for b in graph["blocks"] if b["name"] not in drop]
+    graph["connections"][:] = [c for c in graph["connections"]
+                               if c[0] not in drop and c[2] not in drop]
+    blocks = {b["name"]: b for b in graph["blocks"]}
+
+    def add(block_name, kind, x, y, **parameters):
+        node = dict(name=block_name, id=kind,
+                    parameters={k: str(v) for k, v in parameters.items()},
+                    states=dict(coordinate=[x, y], rotation=0, state="enabled"))
+        graph["blocks"].append(node)
+        blocks[block_name] = node
+
+    probes = []
+    for _, _, source, _, _ in rows:
+        if source and f"probe_{source}" not in blocks:
+            sx, sy = blocks[source]["states"]["coordinate"]
+            add(f"probe_{source}", "blocks_probe_signal_x", sx + 40, sy + 90, type="float")
+            graph["connections"].append([source, "0", f"probe_{source}", "0"])
+            probes.append(source)
+
+    table_rows = ",\n".join(
+        f"    ({section!r}, {quantity!r}, {('self.probe_' + source) if source else 'None'}, "
+        f"{unit!r}, {fmt!r})" for section, quantity, source, unit, fmt in rows)
+    code = f'''# Link budget and BER test as a spreadsheet-style table (display only).
+# Values come from stock Probe Signal blocks; edit rows here to change it.
+rows = [
+{table_rows},
+]
+table = Qt.QTableWidget(len(rows), 4)
+table.setHorizontalHeaderLabels(["Section", "Quantity", "Value", "Unit"])
+table.verticalHeader().setVisible(False)
+table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
+table.setSelectionMode(Qt.QAbstractItemView.NoSelection)
+table.setAlternatingRowColors(True)
+table.setShowGrid(True)
+bold = Qt.QFont(table.font())
+bold.setBold(True)
+for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
+    for column, text in ((0, section), (1, quantity), (3, unit)):
+        item = Qt.QTableWidgetItem(text)
+        if column == 0:
+            item.setFont(bold)
+        table.setItem(row, column, item)
+    value = Qt.QTableWidgetItem("" if probe else str(eval(fmt)))
+    value.setTextAlignment(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
+    table.setItem(row, 2, value)
+header = table.horizontalHeader()
+header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)
+header.setStretchLastSection(True)
+test_bits = 10000 * self.ber_test_blocks
+
+def refresh_link_table():
+    for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
+        if probe is None:
+            continue
+        level = probe.level()
+        if fmt == "dB":
+            text = f"{{level:.2f}}"
+        elif fmt == "count":
+            text = f"{{level:,.0f}}"
+        elif fmt == "ber":
+            text = f"{{level:.3e}}"
+        else:
+            text = "complete" if level >= test_bits else (
+                "counting" if level > 0 else "waiting for warm-up")
+        table.item(row, 2).setText(text)
+
+self.link_table = table
+self.link_table_timer = Qt.QTimer()
+self.link_table_timer.timeout.connect(refresh_link_table)
+self.link_table_timer.start(250)
+self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
+'''
+    x, y = blocks["ber_test_seconds"]["states"]["coordinate"]
+    add("link_table", "snippet", x, y + 90, section="main_after_init", priority="1",
+        code=code)
+    # Right column: RX spectrum and a received constellation for quick checks.
+    blocks["spectrum_budget"]["parameters"]["gui_hint"] = "views@3:1,1,1,1"
+    sx, sy = blocks["spectrum_budget"]["states"]["coordinate"]
+    add("rf_constellation_input", "virtual_source", sx, sy + 140, stream_id="rx_symbols")
+    add("rf_constellation", "qtgui_const_sink_x", sx + 180, sy + 140, type="complex",
+        name="Received symbols (after equalizer)", size="1024", nconnections="1",
+        grid="True", autoscale="False", xmin="-2", xmax="2", ymin="-2", ymax="2",
+        gui_hint="views@3:2,1,1,1", label1="RX", color1='"blue"', marker1="0",
+        style1="0", alpha1="0.4", width1="1", update_time="0.10",
+        tr_mode="qtgui.TRIG_MODE_FREE", tr_slope="qtgui.TRIG_SLOPE_POS", tr_level="0.0",
+        tr_chan="0", tr_tag='""', legend="False", axislabels="True")
+    graph["connections"].append(["rf_constellation_input", "0", "rf_constellation", "0"])
     return graph
 
 

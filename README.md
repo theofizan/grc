@@ -105,11 +105,18 @@ Measured average power (dBm) = 10 log10(mean(|IQ|²))
 
 For a normal link budget, use `net_loss = propagation_loss + cable_losses + other_losses - TX_gain_dBi - RX_gain_dBi`. The reference planes are the conducted TX output and receiver input. This input is **not EIRP**. Add antenna gain and subtract feeder loss explicitly in the net-loss calculation.
 
-The **Link budget** tab shows two readout tables, built from stock Number Sinks because GRC has no table widget:
+The **Link budget** tab shows one spreadsheet-style table (Section | Quantity | Value | Unit):
 - **Transmit:** average, sampled peak and peak-to-average.
-- **Receive:** total power (signal **plus noise**), SNR over Fs and Eb/N₀.
+- **Receive:** total power (signal **plus noise**), SNR over Fs, Eb/N₀ and EVM.
+- **BER:** the latest 10,000 bits.
+- **BER test:** test length, estimated time, status, bits compared, bit errors and BER.
 
-The tab also shows the RX spectrum and the fixed-length BER test. Averages and peaks use 4096-sample windows (1.024 ms at 4 Msamples/s). Average linear power is converted to dBm after averaging; averaging dBm samples would give a different result.
+How it's built:
+- GRC has no table block. Stock **Probe Signal** blocks hold each latest value, and a stock **Python Snippet** (`link_table`) draws the table and refreshes it four times a second.
+- It's display only and touches no DSP.
+- To add or remove a row, edit the `rows` list at the top of that snippet's code.
+
+The right half of the tab shows the RX spectrum and the received constellation. Averages and peaks use 4096-sample windows (1.024 ms at 4 Msamples/s). Average linear power is converted to dBm after averaging; averaging dBm samples would give a different result.
 
 Average power and peak envelope power are different. `PEP_dBm = average_dBm + PAPR_dB`. The average setting is nominal for random symbols through the selected pulse-shaping filter; finite measured averages can differ slightly. The sampled peak depends on modulation, RRC rolloff, data and observation length. At four samples/symbol it can miss a continuous-time peak. The simulation has no PA clipping, compression or receiver saturation.
 
@@ -141,7 +148,7 @@ At 1 Msymbol/s, gross uncoded rates are **1, 2, 3, 2, 3, and 4 Mbit/s** for BPSK
 
 ## RX SNR, Eb/N₀, and constellation guides
 
-The **Link budget** tab's Receive table includes RX SNR and Eb/N₀. These use the **measured TX average power**, known path loss, and configured receiver noise. They are known-reference link-budget quantities; RX total power alone cannot separate signal from noise.
+The **Link budget** table's Receive rows include RX SNR and Eb/N₀. These use the **measured TX average power**, known path loss, and configured receiver noise. They are known-reference link-budget quantities; RX total power alone cannot separate signal from noise.
 
 ```text
 RX SNR over Fs (dB) = measured_TX_dBm - net_loss_dB - noise_dBm
@@ -230,7 +237,7 @@ Data: [ber_sweep.csv](results/ber_sweep/ber_sweep.csv), [ideal_reference.csv](re
 
 What changes from the simulation, in RF terms:
 - **TX level is in dBFS** (0 dBFS = DAC full scale). The default −15 dBFS RMS keeps sampled peaks between −7 and −11 dBFS, below clipping. Conducted dBm depends on the daughterboard and TX gain; the N210 is not power-calibrated.
-- **RX level is measured before any AGC.** The Receive table's ADC level (dBFS) comes straight from the RX N210 at fixed RF gain. With the same gain settings, it moves 1:1 with antenna gain and path loss.
+- **RX level is measured before any AGC.** The table's Receive ADC level (dBFS) comes straight from the RX N210 at fixed RF gain. With the same gain settings, it moves 1:1 with antenna gain and path loss.
 - **Demodulation:** AGC (for the demodulator only) → polyphase timing recovery → Costas loop → known-preamble detector → LMS equalizer trained on the known data.
   - The Costas loop pulls in the few-kHz offset between two free-running N210 oscillators. Its bandwidth is 2π/200 rad/symbol for PSK, 2π/800 for ASK and 2π/1600 for 16-QAM.
 - **Known data:** differential coding is off. The TX repeats a fixed block of 32,766 random bytes, which is a whole number of symbols for every format.
@@ -260,9 +267,9 @@ Add `--simulate --esno-db 12` to try the whole procedure through a software chan
 Every flowchart, both simulation and N210, has a **BER test** on its Link budget / RF levels tab:
 
 1. Set **BER test length** (`ber_test_bits`, default 1,000,000) at the top of the flowchart.
-2. Press Run. The label under the tables shows the test length and roughly how long it takes: 0.33 s for 10⁶ 8-PSK bits, after the receiver warm-up.
-3. Watch the BER test table count up: bits compared, bit errors and BER.
-4. At exactly N bits the table **freezes on the final result**. It holds that result while the flowgraph keeps running, and the radios keep transmitting. Read it off, then close the window.
+2. Press Run. The table's BER test rows show the test length and roughly how long it takes: 0.33 s for 10⁶ 8-PSK bits, after the receiver warm-up.
+3. Watch Status go from *waiting for warm-up* to *counting*, while bits compared, bit errors and BER count up.
+4. At exactly N bits, Status reads *complete* and the rows **freeze on the final result**. It holds that result while the flowgraph keeps running, and the radios keep transmitting. Read it off, then close the window.
 
 How it works, all with stock blocks:
 - Errors are summed per 10,000 bits, so N is rounded to a multiple of 10,000.

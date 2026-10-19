@@ -1673,7 +1673,7 @@ blocks:
     type: complex
     name: RX spectrum | relative level
     nconnections: '1'
-    gui_hint: views@3:2,0,1,1
+    gui_hint: views@3:1,1,1,1
     fftsize: '1024'
     wintype: window.WIN_HANN
     fc: '0'
@@ -1950,112 +1950,6 @@ blocks:
     - 2244
     rotation: 0
     state: enabled
-- name: link_tx_table
-  id: qtgui_number_sink
-  parameters:
-    name: Transmit (digital full scale)
-    type: float
-    nconnections: '3'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-200'
-    max: '100'
-    update_time: '0.25'
-    gui_hint: views@3:1,0,1,1
-    label1: Average
-    unit1: dBFS
-    color1: ("black", "black")
-    factor1: '1'
-    label2: Sampled peak (keep < 0)
-    unit2: dBFS
-    color2: ("black", "black")
-    factor2: '1'
-    label3: Peak/average
-    unit3: dB
-    color3: ("black", "black")
-    factor3: '1'
-  states:
-    coordinate:
-    - 1180
-    - 2244
-    rotation: 0
-    state: enabled
-- name: link_rx_table
-  id: qtgui_number_sink
-  parameters:
-    name: Receive (fixed RF gain, uncalibrated)
-    type: float
-    nconnections: '4'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '-200'
-    max: '100'
-    update_time: '0.25'
-    gui_hint: views@3:1,1,1,1
-    label1: ADC level
-    unit1: dBFS
-    color1: ("black", "black")
-    factor1: '1'
-    label2: MER
-    unit2: dB
-    color2: ("black", "black")
-    factor2: '1'
-    label3: Eb/N0 est.
-    unit3: dB
-    color3: ("black", "black")
-    factor3: '1'
-    label4: EVM
-    unit4: '%'
-    color4: ("black", "black")
-    factor4: '1'
-  states:
-    coordinate:
-    - 1180
-    - 2384
-    rotation: 0
-    state: enabled
-- name: rx_snr_value_link
-  id: virtual_sink
-  parameters:
-    stream_id: rx_snr_value
-  states:
-    coordinate:
-    - 360
-    - 2914
-    rotation: 0
-    state: enabled
-- name: rx_snr_value_to_link_rx_table
-  id: virtual_source
-  parameters:
-    stream_id: rx_snr_value
-  states:
-    coordinate:
-    - 1020
-    - 2454
-    rotation: 0
-    state: enabled
-- name: rx_ebno_value_link
-  id: virtual_sink
-  parameters:
-    stream_id: rx_ebno_value
-  states:
-    coordinate:
-    - 980
-    - 2914
-    rotation: 0
-    state: enabled
-- name: rx_ebno_value_to_link_rx_table
-  id: virtual_source
-  parameters:
-    stream_id: rx_ebno_value
-  states:
-    coordinate:
-    - 1020
-    - 2524
-    rotation: 0
-    state: enabled
 - name: ber_test_bits
   id: parameter
   parameters:
@@ -2098,21 +1992,6 @@ blocks:
     coordinate:
     - 1700
     - 402
-    rotation: 0
-    state: enabled
-- name: ber_test_time
-  id: variable_qtgui_label
-  parameters:
-    label: BER test
-    type: string
-    formatter: None
-    gui_hint: views@3:3,0,1,2
-    value: '''%d-bit test: result after about %.2f s at %g Mbit/s, then it holds'' % (10000*ber_test_blocks, ber_test_seconds,
-      bit_rate/1e6)'
-  states:
-    coordinate:
-    - 1700
-    - 472
     rotation: 0
     state: enabled
 - name: bit_errors_link
@@ -2294,37 +2173,6 @@ blocks:
     - 2524
     rotation: 0
     state: enabled
-- name: ber_test_display
-  id: qtgui_number_sink
-  parameters:
-    name: BER test
-    type: float
-    nconnections: '3'
-    autoscale: 'False'
-    avg: '0'
-    graph_type: qtgui.NUM_GRAPH_NONE
-    min: '0'
-    max: 1e12
-    update_time: '0.25'
-    gui_hint: views@3:2,1,1,1
-    label1: Bits compared
-    unit1: bits
-    color1: ("black", "black")
-    factor1: '1'
-    label2: Bit errors
-    unit2: errors
-    color2: ("black", "black")
-    factor2: '1'
-    label3: BER
-    unit3: errors/bit
-    color3: ("black", "black")
-    factor3: '1'
-  states:
-    coordinate:
-    - 2020
-    - 2524
-    rotation: 0
-    state: enabled
 - name: tx_usrp_address
   id: parameter
   parameters:
@@ -2379,7 +2227,7 @@ blocks:
     rangeType: float
     orient: QtCore.Qt.Horizontal
     min_len: '200'
-    gui_hint: ''
+    gui_hint: views@3:0,0,1,1
   states:
     coordinate:
     - 616
@@ -2398,7 +2246,7 @@ blocks:
     rangeType: float
     orient: QtCore.Qt.Horizontal
     min_len: '200'
-    gui_hint: ''
+    gui_hint: views@3:0,1,1,1
   states:
     coordinate:
     - 816
@@ -2562,6 +2410,198 @@ blocks:
     coordinate:
     - 166
     - 2854
+    rotation: 0
+    state: enabled
+- name: probe_tx_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 820
+    - 2274
+    rotation: 0
+    state: enabled
+- name: probe_tx_peak_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 620
+    - 2544
+    rotation: 0
+    state: enabled
+- name: probe_tx_papr
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1020
+    - 2334
+    rotation: 0
+    state: enabled
+- name: probe_rx_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 820
+    - 2404
+    rotation: 0
+    state: enabled
+- name: probe_rx_snr
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 200
+    - 2944
+    rotation: 0
+    state: enabled
+- name: probe_rx_ebno
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 820
+    - 2944
+    rotation: 0
+    state: enabled
+- name: probe_evm_rms
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 380
+    - 1614
+    rotation: 0
+    state: enabled
+- name: probe_ber_scale
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1110
+    - 1094
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_count
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 2540
+    - 2714
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_errors
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1860
+    - 2614
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_ratio
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 2030
+    - 2614
+    rotation: 0
+    state: enabled
+- name: link_table
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '1'
+    code: "# Link budget and BER test as a spreadsheet-style table (display only).\n# Values come from stock Probe\
+      \ Signal blocks; edit rows here to change it.\nrows = [\n    ('Transmit', 'Average level', self.probe_tx_dbm,\
+      \ 'dBFS', 'dB'),\n    ('', 'Sampled peak (keep < 0)', self.probe_tx_peak_dbm, 'dBFS', 'dB'),\n    ('', 'Peak\
+      \ / average', self.probe_tx_papr, 'dB', 'dB'),\n    ('Receive', 'ADC level, fixed RF gain', self.probe_rx_dbm,\
+      \ 'dBFS', 'dB'),\n    ('', 'MER (decision-directed)', self.probe_rx_snr, 'dB', 'dB'),\n    ('', 'Eb/N0 estimate',\
+      \ self.probe_rx_ebno, 'dB', 'dB'),\n    ('', 'EVM (decision-directed)', self.probe_evm_rms, '%', 'dB'),\n\
+      \    ('BER', 'Latest 10,000 bits', self.probe_ber_scale, 'errors/bit', 'ber'),\n    ('BER test', 'Test length',\
+      \ None, 'bits', \"f'{10000 * self.ber_test_blocks:,}'\"),\n    ('', 'Estimated time', None, 's', \"f'{self.ber_test_seconds:.2f}'\"\
+      ),\n    ('', 'Status', self.probe_ber_test_count, '', 'status'),\n    ('', 'Bits compared', self.probe_ber_test_count,\
+      \ 'bits', 'count'),\n    ('', 'Bit errors (mismatches / 2)', self.probe_ber_test_errors, 'errors', 'count'),\n\
+      \    ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'ber'),\n]\ntable = Qt.QTableWidget(len(rows), 4)\n\
+      table.setHorizontalHeaderLabels([\"Section\", \"Quantity\", \"Value\", \"Unit\"])\ntable.verticalHeader().setVisible(False)\n\
+      table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)\ntable.setSelectionMode(Qt.QAbstractItemView.NoSelection)\n\
+      table.setAlternatingRowColors(True)\ntable.setShowGrid(True)\nbold = Qt.QFont(table.font())\nbold.setBold(True)\n\
+      for row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n    for column, text in ((0, section),\
+      \ (1, quantity), (3, unit)):\n        item = Qt.QTableWidgetItem(text)\n        if column == 0:\n        \
+      \    item.setFont(bold)\n        table.setItem(row, column, item)\n    value = Qt.QTableWidgetItem(\"\" if\
+      \ probe else str(eval(fmt)))\n    value.setTextAlignment(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)\n    table.setItem(row,\
+      \ 2, value)\nheader = table.horizontalHeader()\nheader.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)\n\
+      header.setStretchLastSection(True)\ntest_bits = 10000 * self.ber_test_blocks\n\ndef refresh_link_table():\n\
+      \    for row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n        if probe is None:\n     \
+      \       continue\n        level = probe.level()\n        if fmt == \"dB\":\n            text = f\"{level:.2f}\"\
+      \n        elif fmt == \"count\":\n            text = f\"{level:,.0f}\"\n        elif fmt == \"ber\":\n   \
+      \         text = f\"{level:.3e}\"\n        else:\n            text = \"complete\" if level >= test_bits else\
+      \ (\n                \"counting\" if level > 0 else \"waiting for warm-up\")\n        table.item(row, 2).setText(text)\n\
+      \nself.link_table = table\nself.link_table_timer = Qt.QTimer()\nself.link_table_timer.timeout.connect(refresh_link_table)\n\
+      self.link_table_timer.start(250)\nself.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)\n"
+  states:
+    coordinate:
+    - 1700
+    - 492
+    rotation: 0
+    state: enabled
+- name: rf_constellation_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 200
+    - 4804
+    rotation: 0
+    state: enabled
+- name: rf_constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: Received symbols (after equalizer)
+    size: '1024'
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2'
+    xmax: '2'
+    ymin: '-2'
+    ymax: '2'
+    gui_hint: views@3:2,1,1,1
+    label1: RX
+    color1: '"blue"'
+    marker1: '0'
+    style1: '0'
+    alpha1: '0.4'
+    width1: '1'
+    update_time: '0.10'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_level: '0.0'
+    tr_chan: '0'
+    tr_tag: '""'
+    legend: 'False'
+    axislabels: 'True'
+  states:
+    coordinate:
+    - 380
+    - 4804
     rotation: 0
     state: enabled
 connections:
@@ -2905,38 +2945,6 @@ connections:
   - '0'
   - tx_papr
   - '1'
-- - tx_dbm
-  - '0'
-  - link_tx_table
-  - '0'
-- - tx_peak_dbm
-  - '0'
-  - link_tx_table
-  - '1'
-- - tx_papr
-  - '0'
-  - link_tx_table
-  - '2'
-- - rx_dbm
-  - '0'
-  - link_rx_table
-  - '0'
-- - rx_snr
-  - '0'
-  - rx_snr_value_link
-  - '0'
-- - rx_snr_value_to_link_rx_table
-  - '0'
-  - link_rx_table
-  - '1'
-- - rx_ebno
-  - '0'
-  - rx_ebno_value_link
-  - '0'
-- - rx_ebno_value_to_link_rx_table
-  - '0'
-  - link_rx_table
-  - '2'
 - - errors_float
   - '0'
   - bit_errors_link
@@ -3001,18 +3009,6 @@ connections:
   - '0'
   - ber_test_ratio
   - '1'
-- - ber_test_count
-  - '0'
-  - ber_test_display
-  - '0'
-- - ber_test_errors
-  - '0'
-  - ber_test_display
-  - '1'
-- - ber_test_ratio
-  - '0'
-  - ber_test_display
-  - '2'
 - - tx_power
   - '0'
   - usrp_tx
@@ -3061,10 +3057,54 @@ connections:
   - '0'
   - rx_ebno
   - '0'
-- - evm_table_rate
+- - tx_dbm
   - '0'
-  - link_rx_table
-  - '3'
+  - probe_tx_dbm
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - probe_tx_peak_dbm
+  - '0'
+- - tx_papr
+  - '0'
+  - probe_tx_papr
+  - '0'
+- - rx_dbm
+  - '0'
+  - probe_rx_dbm
+  - '0'
+- - rx_snr
+  - '0'
+  - probe_rx_snr
+  - '0'
+- - rx_ebno
+  - '0'
+  - probe_rx_ebno
+  - '0'
+- - evm_rms
+  - '0'
+  - probe_evm_rms
+  - '0'
+- - ber_scale
+  - '0'
+  - probe_ber_scale
+  - '0'
+- - ber_test_count
+  - '0'
+  - probe_ber_test_count
+  - '0'
+- - ber_test_errors
+  - '0'
+  - probe_ber_test_errors
+  - '0'
+- - ber_test_ratio
+  - '0'
+  - probe_ber_test_ratio
+  - '0'
+- - rf_constellation_input
+  - '0'
+  - rf_constellation
+  - '0'
 metadata:
   file_format: 1
   grc_version: 3.10.12.0
