@@ -243,6 +243,18 @@ Each test runs the actual flowchart and reads its built-in BER test. It cross-ch
 
 Run time is about 0.3 s per million bits for QPSK and 0.8 s per 10 million bits for 16-QAM. Eb/N₀ follows the flowcharts' convention: noise integrated over Fs, per uncoded bit.
 
+## BER validation report
+
+`python scripts/ber_validation.py` runs the BER tests across Eb/N₀ for all six simulation flowcharts. It takes about 15 minutes, and each point gets at least ~300 errors or 20 million bits. It checks the results against:
+- an ideal receiver with identical mapping and differential coding
+- Gray theory
+- the earlier sweep
+- the noise-off behaviour
+
+The findings lead [results/REPORT.md](results/REPORT.md): the "BER test results and sanity checks" section.
+
+Afterwards, `python scripts/plot_ber_validation.py` and `python scripts/write_report.py` refresh the figures and the report.
+
 ## BER-versus-Eb/N₀ flowcharts
 
 `grc/ber_curve_<modulation>.grc` (six files, built by `python scripts/build_ber_curves.py`) draw a live BER curve in GRC. Open one and press F6:

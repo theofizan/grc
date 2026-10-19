@@ -1,0 +1,26 @@
+{
+  "bpsk": {
+    "bits": 10000000,
+    "errors": 0
+  },
+  "qpsk": {
+    "bits": 10000000,
+    "errors": 0
+  },
+  "8psk": {
+    "bits": 10000000,
+    "errors": 0
+  },
+  "4ask": {
+    "bits": 10000000,
+    "errors": 0
+  },
+  "8ask": {
+    "bits": 10000000,
+    "errors": 0
+  },
+  "16qam": {
+    "bits": 10000000,
+    "errors": 0
+  }
+}

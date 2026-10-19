@@ -38,9 +38,139 @@ for row in rows:
     )
 text += [
     "\nEach case verifies every XOR output bit against an independent TX/RX comparison and checks each Integrate/Multiply BER window. All six noiseless cases must have zero bit errors. The first 4096 output bits are excluded for filter and timing-loop startup.\n",
-    "BER is the fraction of errors in each nonoverlapping 10,000-bit window. It is not a cumulative counter. Differential encoding is enabled. Receiver noise is input-referred and integrated across Fs. Nominal energy ratios can be computed from the documented bandwidth convention; theoretical BER agreement is not claimed here.\n",
+    "BER is the fraction of errors in each nonoverlapping 10,000-bit window. It is not a cumulative counter. Differential encoding is enabled. Receiver noise is input-referred and integrated across Fs. Comparison with theory is in the BER test section above.\n",
     "The stock EVM block is decision-directed. Its RMS-smoothed display can underestimate error at poor SNR because the nearest constellation point can be the wrong transmitted point. The exported data-aided constellation figures additionally compare the actual transmitted and received symbols without decision bias.\n",
 ]
+def ber_validation_section():
+    """BER-test results and sanity checks (from scripts/ber_validation.py)."""
+    folder = ROOT / "results/ber_tests"
+    if not (folder / "summary.json").exists():
+        return []
+    import csv
+
+    summary = json.loads((folder / "summary.json").read_text())
+    with (folder / "ber_validation.csv").open() as file:
+        points = list(csv.DictReader(file))
+    names = {"bpsk": "BPSK", "qpsk": "QPSK", "8psk": "8-PSK", "4ask": "4-ASK",
+             "8ask": "8-ASK", "16qam": "16-QAM"}
+    formats = summary["formats"]
+    total = sum(f["total_bits"] for f in formats.values())
+    clean = summary["noiseless"]
+
+    def db(value):
+        return "—" if value is None else f"{value:.2f}"
+
+    def signed(value):
+        return "—" if value is None else f"{value:+.2f}"
+
+    out = [
+        "## BER test results and sanity checks\n",
+        f"These results come from the BER test built into each single-carrier flowchart, run by [scripts/ber_validation.py](../scripts/ber_validation.py) (the same test you get with [run_ber_test.py](../scripts/run_ber_test.py) or by pressing Run in GRC). In total {total:,} bits were compared across {sum(f['points'] for f in formats.values())} Eb/N0 points. Each point ran until it had at least ~300 bit errors, or until it reached 20 million bits. Every error count was cross-checked against the flowchart's raw 10,000-bit error sums. Eb/N0 is per uncoded bit, with receiver noise integrated over Fs = 4 MHz. TX is 0 dBm with 80 dB net loss.\n",
+        "Two references:\n",
+        "- **Ideal sync, same coding:** a NumPy receiver with perfect timing and gain, the same constellation, the same bit mapping and the same differential coding. A correctly working receiver should match it; any excess is implementation loss.\n",
+        "- **Coherent Gray theory:** the textbook curve. The gap between it and the ideal-sync reference is the known cost of differential coding, and for ASK, of the stock natural (non-Gray) symbol order.\n",
+        "![BER test results with references](ber_test_validation.png)\n",
+        "![Equivalent Eb/N0 loss against the ideal-sync reference](ber_test_ratio.png)\n",
+        "### Do the results make sense?\n",
+    ]
+    zero_ok = all(v["errors"] == 0 for v in clean.values())
+    out.append(f"- **Noise off:** {'PASS' if zero_ok else 'FAIL'}. "
+               + ", ".join(f"{names[p]} {v['errors']} errors in {v['bits']:,} bits"
+                           for p, v in clean.items()) + ".")
+    mono = all(f["monotonic"] for f in formats.values())
+    out.append(f"- **BER falls as Eb/N0 rises:** {'PASS' if mono else 'CHECK'} for every format, "
+               "within 95% confidence intervals (excluding the loss-of-lock points below).")
+    out.append("- **Close to the ideal-sync reference:** each point's equivalent Eb/N0 loss "
+               "(how far the ideal receiver could back off and still reach the same BER) is "
+               + ", ".join(f"{names[p]} {f['equivalent_loss_db_range'][0]:.2f}–"
+                           f"{f['equivalent_loss_db_range'][1]:.2f} dB"
+                           for p, f in formats.items() if f["equivalent_loss_db_range"])
+               + ". A working timing loop and LMS equalizer should cost a few tenths of a dB, "
+               "which PSK and 16-QAM do across the whole curve. The larger ASK values sit at "
+               "two edges explained below: next to the loss-of-lock threshold, and for 8-ASK "
+               "at high Eb/N0.")
+    out.append("- **Agreement with the earlier, independently scored 250,000-bit sweep:** "
+               + ", ".join(f"{names[p]} {f['agree_with_250k_sweep']}" for p, f in formats.items())
+               + " points with at least 10 sweep errors (95% intervals overlap; because "
+               "differential decoding produces errors in pairs, intervals use half counts). "
+               "The few exceptions differ by about 20%.")
+    lock = {p: f["low_snr_lock_loss_points"] for p, f in formats.items()
+            if f["low_snr_lock_loss_points"]}
+    if lock:
+        out.append("- **Loss of lock at the lowest Eb/N0:** "
+                   + "; ".join(f"{names[p]} at {', '.join(f'{e:g}' for e in v)} dB"
+                               for p, v in lock.items())
+                   + ". BER reads about 0.5 while an ideal receiver would still be below 0.2. "
+                   "There the timing loop and decision-directed equalizer cannot hold lock, so "
+                   "every bit is random. This is real receiver behaviour, not a counting error, "
+                   "and it is below any useful operating point. Loss of lock starts at a random "
+                   "moment, so these long runs catch it at slightly higher Eb/N0 than the "
+                   "earlier 250,000-bit sweep did (BPSK at 2 dB read 0.08 there).")
+    out.append("- **Why ASK loses more at high Eb/N0.** With noise off, every format decodes "
+               "error-free, but specific symbol patterns leave a small steady-state residual "
+               "(timing and equalizer pattern noise), about 0.1 of the RMS amplitude at worst. "
+               "PSK and 16-QAM have plenty of distance to their decision boundaries, so it costs "
+               "them little. 8-ASK puts eight levels on one axis, only 0.22 RMS from each "
+               "boundary, so those rare patterns close its eye noticeably. At low BER only those "
+               "patterns fail, which is why 8-ASK's loss rises from about 0.3 dB at 14 dB to "
+               "about 0.9 dB at 20 dB. This is a real receiver property, not a counting error. "
+               "A narrower timing loop would reduce it.")
+    out.append("\n| Modulation | Noise-off RMS EVM | Half decision spacing (× RMS) | "
+               "Worst residual, 99.99% (× RMS) | Eye closure | Asymptotic loss limit (dB) |")
+    out.append("| --- | ---: | ---: | ---: | ---: | ---: |")
+    for p, f in formats.items():
+        r = f["noise_off_residual"]
+        out.append(f"| {names[p]} | {r['rms_evm_percent']:.2f}% | {r['half_spacing_rms']:.3f} | "
+                   f"{r['worst_error_rms']:.4f} | {r['eye_closure_percent']:.1f}% | "
+                   f"{r['asymptotic_loss_db']:.2f} |")
+    out.append("\nThe last column is the loss approached only at extremely low BER, if the "
+               "worst residual pattern lined up with the noise. The measured losses down to "
+               "10⁻⁶ stay well below it.")
+    out.append("\n### Required Eb/N0 and implementation loss\n")
+    out.append("| Modulation | BER | GRC BER test (dB) | Ideal sync, same coding (dB) | "
+               "Gray theory (dB) | Implementation loss (dB) | Coding + mapping penalty (dB) |")
+    out.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
+    for p, f in formats.items():
+        for tag in ("1e-03", "1e-04"):
+            v = f[f"ebno_at_{tag}"]
+            out.append(f"| {names[p]} | {tag.replace('e-0', 'e-')} | {db(v['measured'])} | "
+                       f"{db(v['ideal_same_coding'])} | {db(v['gray_theory'])} | "
+                       f"{signed(v['implementation_loss_db'])} | "
+                       f"{signed(v['coding_and_mapping_penalty_db'])} |")
+    bpsk = formats["bpsk"]["ebno_at_1e-04"]
+    out.append("\nSpacing at BER 1e-4, relative to BPSK. The measured spacing should track "
+               "the ideal-sync spacing; Gray theory is listed for comparison:\n")
+    out.append("| Modulation | GRC BER test (dB) | Ideal sync, same coding (dB) | Gray theory (dB) |")
+    out.append("| --- | ---: | ---: | ---: |")
+    for p, f in formats.items():
+        v = f["ebno_at_1e-04"]
+        rel = [None if None in (v[key], bpsk[key]) else v[key] - bpsk[key]
+               for key in ("measured", "ideal_same_coding", "gray_theory")]
+        out.append(f"| {names[p]} | {signed(rel[0])} | {signed(rel[1])} | {signed(rel[2])} |")
+    out.append("\nExpected physics, all visible above:\n")
+    out.append("- BPSK and QPSK need the same Eb/N0 per bit.")
+    out.append("- 8-PSK, 16-QAM and 4-ASK need roughly 3.5–4 dB more.")
+    out.append("- 8-ASK needs about 8 dB more, because its levels are packed onto one axis.")
+    out.append("- Differential coding roughly doubles the BER at high Eb/N0, because each symbol error corrupts two decoded symbols.")
+    out.append("- For 16-QAM and ASK, differential coding on symbol indices also undoes Gray labelling, and the stock ASK constellations use natural order. Each symbol error therefore costs more bits.")
+    out.append("- Together, the coding + mapping penalty is about 0.4–0.8 dB for PSK and up to 1.2 dB for 16-QAM, as in the table.")
+    out.append("\n### Every point\n")
+    out.append("| Modulation | Eb/N0 (dB) | Bits | Errors | BER | 95% CI | Ideal sync | Measured / ideal | Gray theory |")
+    out.append("| --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: |")
+    for r in points:
+        ratio = r["ratio_to_ideal"]
+        out.append(
+            f"| {names[r['modulation']]} | {float(r['ebno_db']):g} | {int(float(r['bits'])):,} | "
+            f"{int(float(r['errors'])):,} | {float(r['ber']):.3e} | "
+            f"{float(r['ci_low']):.2e} – {float(r['ci_high']):.2e} | {float(r['ideal_ber']):.3e} | "
+            f"{'—' if ratio in ('', 'None') else format(float(ratio), '.2f')} | "
+            f"{float(r['gray_theory_ber']):.2e} |")
+    out.append("\n[All points (CSV)](ber_tests/ber_validation.csv), [summary (JSON)](ber_tests/summary.json).\n")
+    return out
+
+
+# BER results first: they are what the report is mainly read for.
+text[1:1] = ber_validation_section() + ["## Flowchart validation cases\n"]
 canvas_text = ["## Actual GRC canvas exports\n"]
 for profile in profiles:
     canvas_text.append(

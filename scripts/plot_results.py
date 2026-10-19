@@ -10,48 +10,21 @@ import csv
 import json
 import numpy as np
 from scipy.io import loadmat
-from scipy.special import erfc
-from scipy.stats import beta
 from matplotlib.patches import Circle
 from matplotlib.lines import Line2D
 from matplotlib.ticker import LogLocator, MultipleLocator, NullFormatter
 
+from ber_theory import BITS, clopper_pearson, coherent_gray_ber
 from paper_style import (ROOT, SINGLE_COLUMN_IN, DOUBLE_COLUMN_IN, PROFILES, LABELS,
                          COLORS, MARKERS, LINESTYLES, MUTED, plt, save)
 
 RESULTS = ROOT / "results"
-BITS = {"bpsk": 1, "qpsk": 2, "8psk": 3, "4ask": 2, "8ask": 3, "16qam": 4}
 ROLLOFF = 0.35
 records = {p: json.loads((RESULTS / f"{p}_noise_0.3.json").read_text()) for p in PROFILES}
 
 
-def clopper_pearson(errors, n, confidence=0.95):
-    a = 1 - confidence
-    low = 0.0 if errors == 0 else beta.ppf(a / 2, errors, n - errors + 1)
-    high = 1.0 if errors == n else beta.ppf(1 - a / 2, errors + 1, n - errors)
-    return low, high
-
-
 def zero_error_bound(n, confidence=0.95):
     return 1 - (1 - confidence) ** (1 / n)  # ≈ 3/n
-
-
-def q(x):
-    return 0.5 * erfc(x / np.sqrt(2))
-
-
-def coherent_gray_ber(profile, ebno_db):
-    """Textbook coherent, Gray-coded, non-differential AWGN BER (reference only)."""
-    g = 10 ** (np.asarray(ebno_db) / 10)
-    k = BITS[profile]
-    m = 2 ** k
-    if profile in ("bpsk", "qpsk"):
-        return q(np.sqrt(2 * g))
-    if profile == "8psk":
-        return 2 / k * q(np.sqrt(2 * k * g) * np.sin(np.pi / m))
-    if profile in ("4ask", "8ask"):
-        return 2 * (m - 1) / (m * k) * q(np.sqrt(6 * k * g / (m**2 - 1)))
-    return 4 / k * (1 - 1 / np.sqrt(m)) * q(np.sqrt(3 * k * g / (m - 1)))
 
 
 def read_rows(name):

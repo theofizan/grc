@@ -50,7 +50,11 @@ def ideal_reference(points, ebno_db, bits=2_000_000, seed=1):
     rx = points[encoded] + np.sqrt(n0 / 2) * (
         rng.standard_normal(encoded.size) + 1j * rng.standard_normal(encoded.size)
     )
-    decided = np.argmin(abs(rx[:, None] - points[None, :]), axis=1)
+    # Nearest constellation point (k-d tree: same decision as a full search).
+    from scipy.spatial import cKDTree
+
+    tree = cKDTree(np.column_stack([points.real, points.imag]))
+    decided = tree.query(np.column_stack([rx.real, rx.imag]))[1]
     decoded = np.diff(decided, prepend=0) % m  # digital.diff_decoder_bb(M)
     shifts = np.arange(k - 1, -1, -1)
     tx_bits = (symbols_in[1:, None] >> shifts) & 1

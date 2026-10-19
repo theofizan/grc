@@ -1,0 +1,305 @@
+{
+  "noiseless": {
+    "bpsk": {
+      "bits": 10000000,
+      "errors": 0
+    },
+    "qpsk": {
+      "bits": 10000000,
+      "errors": 0
+    },
+    "8psk": {
+      "bits": 10000000,
+      "errors": 0
+    },
+    "4ask": {
+      "bits": 10000000,
+      "errors": 0
+    },
+    "8ask": {
+      "bits": 10000000,
+      "errors": 0
+    },
+    "16qam": {
+      "bits": 10000000,
+      "errors": 0
+    }
+  },
+  "formats": {
+    "bpsk": {
+      "points": 13,
+      "total_bits": 73500000,
+      "ebno_at_1e-03": {
+        "measured": 7.4839544820617006,
+        "ideal_same_coding": 7.27982658505614,
+        "gray_theory": 6.78952212669126,
+        "implementation_loss_db": 0.20412789700556022,
+        "coding_and_mapping_penalty_db": 0.49030445836488035
+      },
+      "ebno_at_1e-04": {
+        "measured": 8.954739230877937,
+        "ideal_same_coding": 8.768922941382936,
+        "gray_theory": 8.39826054998769,
+        "implementation_loss_db": 0.18581628949500129,
+        "coding_and_mapping_penalty_db": 0.37066239139524626
+      },
+      "equivalent_loss_db_per_point": {
+        "3": 0.25,
+        "4": 0.21,
+        "5": 0.17,
+        "6": 0.2,
+        "7": 0.27,
+        "8": 0.19,
+        "9": 0.19,
+        "10": 0.07
+      },
+      "equivalent_loss_db_range": [
+        0.07,
+        0.27
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "agree_with_250k_sweep": "7/7",
+      "noise_off_residual": {
+        "rms_evm_percent": 1.0235453618498653,
+        "half_spacing_rms": 1.0,
+        "worst_error_rms": 0.0402483030676839,
+        "eye_closure_percent": 4.02483030676839,
+        "asymptotic_loss_db": 0.35682222671827013
+      }
+    },
+    "qpsk": {
+      "points": 13,
+      "total_bits": 74140000,
+      "ebno_at_1e-03": {
+        "measured": 7.541766962167329,
+        "ideal_same_coding": 7.442973953098501,
+        "gray_theory": 6.78952212669126,
+        "implementation_loss_db": 0.09879300906882804,
+        "coding_and_mapping_penalty_db": 0.6534518264072409
+      },
+      "ebno_at_1e-04": {
+        "measured": 9.003977060991556,
+        "ideal_same_coding": 8.896657996714104,
+        "gray_theory": 8.39826054998769,
+        "implementation_loss_db": 0.1073190642774513,
+        "coding_and_mapping_penalty_db": 0.49839744672641473
+      },
+      "equivalent_loss_db_per_point": {
+        "1": 0.19,
+        "2": 0.17,
+        "3": 0.17,
+        "4": 0.14,
+        "5": 0.13,
+        "6": 0.13,
+        "7": 0.16,
+        "8": 0.08,
+        "9": 0.11,
+        "10": 0.17
+      },
+      "equivalent_loss_db_range": [
+        0.08,
+        0.19
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [],
+      "agree_with_250k_sweep": "10/10",
+      "noise_off_residual": {
+        "rms_evm_percent": 0.7863404900242923,
+        "half_spacing_rms": 0.7071067811865475,
+        "worst_error_rms": 0.02193540603294482,
+        "eye_closure_percent": 3.102134870795118,
+        "asymptotic_loss_db": 0.2737158259237078
+      }
+    },
+    "8psk": {
+      "points": 14,
+      "total_bits": 70360000,
+      "ebno_at_1e-03": {
+        "measured": 10.85638688315099,
+        "ideal_same_coding": 10.783553088747661,
+        "gray_theory": 10.010205004320783,
+        "implementation_loss_db": 0.07283379440332816,
+        "coding_and_mapping_penalty_db": 0.7733480844268783
+      },
+      "ebno_at_1e-04": {
+        "measured": 12.291841251164465,
+        "ideal_same_coding": 12.254157683688359,
+        "gray_theory": 11.72457842997299,
+        "implementation_loss_db": 0.03768356747610646,
+        "coding_and_mapping_penalty_db": 0.5295792537153687
+      },
+      "equivalent_loss_db_per_point": {
+        "3": 0.17,
+        "4": 0.16,
+        "5": 0.14,
+        "6": 0.13,
+        "7": 0.12,
+        "8": 0.14,
+        "9": 0.14,
+        "10": 0.12,
+        "11": 0.07,
+        "12": 0.03,
+        "13": 0.07,
+        "14": 0.13
+      },
+      "equivalent_loss_db_range": [
+        0.03,
+        0.17
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [],
+      "agree_with_250k_sweep": "12/12",
+      "noise_off_residual": {
+        "rms_evm_percent": 0.8077483803885811,
+        "half_spacing_rms": 0.3826834262864249,
+        "worst_error_rms": 0.02382222002361861,
+        "eye_closure_percent": 6.2250461836799085,
+        "asymptotic_loss_db": 0.5582628212994769
+      }
+    },
+    "4ask": {
+      "points": 13,
+      "total_bits": 73180000,
+      "ebno_at_1e-03": {
+        "measured": 11.723882060871183,
+        "ideal_same_coding": 11.386138774950666,
+        "gray_theory": 10.522399229517985,
+        "implementation_loss_db": 0.33774328592051717,
+        "coding_and_mapping_penalty_db": 0.863739545432681
+      },
+      "ebno_at_1e-04": {
+        "measured": 13.099130654962845,
+        "ideal_same_coding": 12.778796984119762,
+        "gray_theory": 12.204711987881032,
+        "implementation_loss_db": 0.32033367084308395,
+        "coding_and_mapping_penalty_db": 0.5740849962387298
+      },
+      "equivalent_loss_db_per_point": {
+        "6": 1.4,
+        "7": 0.89,
+        "8": 0.65,
+        "9": 0.49,
+        "10": 0.43,
+        "11": 0.35,
+        "12": 0.36,
+        "13": 0.33,
+        "14": 0.29,
+        "15": 0.34
+      },
+      "equivalent_loss_db_range": [
+        0.29,
+        1.4
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [
+        4.0,
+        5.0
+      ],
+      "agree_with_250k_sweep": "8/8",
+      "noise_off_residual": {
+        "rms_evm_percent": 1.1887628280939133,
+        "half_spacing_rms": 0.4472135954999579,
+        "worst_error_rms": 0.0805684898480614,
+        "eye_closure_percent": 18.015662014476703,
+        "asymptotic_loss_db": 1.7253821172354287
+      }
+    },
+    "8ask": {
+      "points": 14,
+      "total_bits": 77340000,
+      "ebno_at_1e-03": {
+        "measured": 16.199438660323533,
+        "ideal_same_coding": 15.768682806555137,
+        "gray_theory": 14.767493804662099,
+        "implementation_loss_db": 0.430755853768396,
+        "coding_and_mapping_penalty_db": 1.0011890018930387
+      },
+      "ebno_at_1e-04": {
+        "measured": 17.822713718869355,
+        "ideal_same_coding": 17.259725157812852,
+        "gray_theory": 16.5197019346634,
+        "implementation_loss_db": 0.5629885610565033,
+        "coding_and_mapping_penalty_db": 0.7400232231494535
+      },
+      "equivalent_loss_db_per_point": {
+        "10": 1.11,
+        "11": 0.64,
+        "12": 0.46,
+        "13": 0.37,
+        "14": 0.32,
+        "15": 0.37,
+        "16": 0.43,
+        "17": 0.51,
+        "18": 0.6,
+        "19": 0.7,
+        "20": 0.89
+      },
+      "equivalent_loss_db_range": [
+        0.32,
+        1.11
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [
+        8.0,
+        9.0
+      ],
+      "agree_with_250k_sweep": "9/9",
+      "noise_off_residual": {
+        "rms_evm_percent": 1.2366579503742479,
+        "half_spacing_rms": 0.2182178902359924,
+        "worst_error_rms": 0.09901206486829726,
+        "eye_closure_percent": 45.373028197285,
+        "asymptotic_loss_db": 5.2518574708805374
+      }
+    },
+    "16qam": {
+      "points": 13,
+      "total_bits": 68720000,
+      "ebno_at_1e-03": {
+        "measured": 11.946755902485403,
+        "ideal_same_coding": 11.744621333895411,
+        "gray_theory": 10.522399229517985,
+        "implementation_loss_db": 0.20213456858999201,
+        "coding_and_mapping_penalty_db": 1.2222221043774262
+      },
+      "ebno_at_1e-04": {
+        "measured": 13.12666099349009,
+        "ideal_same_coding": 13.100063462271406,
+        "gray_theory": 12.204711987881032,
+        "implementation_loss_db": 0.026597531218683912,
+        "coding_and_mapping_penalty_db": 0.8953514743903739
+      },
+      "equivalent_loss_db_per_point": {
+        "6": 0.4,
+        "7": 0.3,
+        "8": 0.21,
+        "9": 0.2,
+        "10": 0.2,
+        "11": 0.16,
+        "12": 0.21,
+        "13": 0.01,
+        "14": 0.15,
+        "15": 0.11
+      },
+      "equivalent_loss_db_range": [
+        0.01,
+        0.4
+      ],
+      "monotonic": true,
+      "low_snr_lock_loss_points": [],
+      "agree_with_250k_sweep": "6/8",
+      "noise_off_residual": {
+        "rms_evm_percent": 0.8691321891398102,
+        "half_spacing_rms": 0.31622776006631426,
+        "worst_error_rms": 0.04643244390255848,
+        "eye_closure_percent": 14.68322828230558,
+        "asymptotic_loss_db": 1.3793117216759152
+      }
+    }
+  }
+}
