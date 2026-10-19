@@ -214,6 +214,35 @@ python scripts/build_flowgraph.py --modulation 16qam
 
 Edit `.grc` files for normal experimentation. `grc/generated/` is compiler output. `antenna_steering.py` remains the steering framework for later hardware work.
 
+## BER tests in simulation (no radios)
+
+**In GRC:** open any `grc/single_carrier_<modulation>.grc` and set:
+- **BER test length** (default 1,000,000 bits)
+- **RX noise over sample bandwidth (dBm)**, or the TX power and path loss
+
+Press F6. The Link budget tab's BER test rows count up, then freeze on the final bits, errors and BER. This runs in real time, so 1,000,000 QPSK bits take about half a second.
+
+**From the terminal** (faster than real time, saves each result):
+
+```bash
+python scripts/run_ber_test.py --modulation qpsk --ebno-db 8
+```
+
+```bash
+python scripts/run_ber_test.py --modulation 16qam --bits 1e7 --ebno-db 10 12 14
+```
+
+Options:
+- `--ebno-db` (one or more values), or `--rx-noise-dbm`, or `--no-noise`
+- `--tx-power-dbm` and `--path-loss-db`
+- `--echo` for the one-symbol multipath test
+- `--gui` to watch the dashboard in real time
+- `--label` to name the run
+
+Each test runs the actual flowchart and reads its built-in BER test. It cross-checks the error count against the raw 10,000-bit error sums, prints BER with the exact 95% confidence interval, and saves `results/ber_tests/<time>_<modulation>_<Eb/N0>_<label>.json` with every setting and the measured TX/RX power, SNR, Eb/N₀ and EVM.
+
+Run time is about 0.3 s per million bits for QPSK and 0.8 s per 10 million bits for 16-QAM. Eb/N₀ follows the flowcharts' convention: noise integrated over Fs, per uncoded bit.
+
 ## Paper figures
 
 `python scripts/sweep_ber.py` runs each saved flowchart at Eb/N₀ = 0, 1, 2, … dB (about 262,000 bits per point, stopping after two error-free points), then `python scripts/plot_results.py` and `python scripts/plot_equalizer.py` export the figures. Every figure is a vector PDF/SVG with embedded serif fonts plus a 600-dpi PNG, sized for an IEEE column (3.5 in) or page (7.16 in). Each modulation keeps one color, marker and line style, so figures also read in grayscale.
