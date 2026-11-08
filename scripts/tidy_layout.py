@@ -41,7 +41,7 @@ CONTROL_GROUPS = [
     ["const", "eq_algorithm", "chart_math", "square_plot_panels", "equalizer_initial_taps",
      "views"],
     # Radio (N210 flowcharts)
-    ["tx_usrp_address", "rx_usrp_address", "center_freq_hz", "tx_gain_norm", "rx_gain_norm",
+    ["tx_usrp_address", "rx_usrp_address", "center_freq_hz", "tx_gain_db", "rx_gain_db",
      "carrier_loop_bw", "settle_s", "data_period_bits", "tx_data", "training_symbols",
      "preamble_len", "eq_training_len"],
     # BER test and display

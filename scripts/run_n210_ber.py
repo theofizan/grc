@@ -3,7 +3,7 @@
 Example (1 million bits of QPSK, antenna under test labelled "patch_A"):
     python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A \\
         --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.3 \\
-        --freq 915e6 --tx-gain 0.5 --rx-gain 0.5
+        --freq 915e6 --tx-gain-db 10 --rx-gain-db 10
 
 The script prints its time estimate, runs the generated flowchart (with its
 dashboard if --gui), discards the acquisition period (AGC, Costas loop, and
@@ -93,8 +93,10 @@ def main():
     parser.add_argument("--rx-address", default="addr=192.168.10.2",
                         help="same as --tx-address for one-radio loopback")
     parser.add_argument("--freq", type=float, default=915e6, help="RF center frequency (Hz)")
-    parser.add_argument("--tx-gain", type=float, default=0.5, help="normalized 0-1")
-    parser.add_argument("--rx-gain", type=float, default=0.5, help="normalized 0-1")
+    parser.add_argument("--tx-gain-db", type=float, default=10.0,
+                        help="TX gain in dB (UBX: 0-31.5)")
+    parser.add_argument("--rx-gain-db", type=float, default=10.0,
+                        help="RX gain in dB (UBX: 0-31.5)")
     parser.add_argument("--tx-level-dbfs", type=float, default=-15)
     parser.add_argument("--gui", action="store_true", help="show the live dashboard")
     parser.add_argument("--simulate", action="store_true",
@@ -116,8 +118,8 @@ def main():
 
     def make():
         lab = getattr(module, name)(**settings)
-        lab.set_tx_gain_norm(args.tx_gain)
-        lab.set_rx_gain_norm(args.rx_gain)
+        lab.set_tx_gain_db(args.tx_gain_db)
+        lab.set_rx_gain_db(args.rx_gain_db)
         return lab
 
     probe_lab = None

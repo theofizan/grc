@@ -141,12 +141,15 @@ def build(profile):
          hide="none")),
         ("center_freq_hz", "parameter", dict(value="915e6", type="eng_float",
          label="RF center frequency (Hz)", short_id="", hide="none")),
-        ("tx_gain_norm", "variable_qtgui_range", dict(value="0.5", start="0", stop="1",
-         step="0.01", label="TX gain (normalized 0-1)", widget="counter_slider",
+        # Gains in dB, absolute UHD gain. The UBX daughterboard covers 0-31.5 dB
+        # in 0.5 dB steps for both TX and RX (UHD clips other boards' limits).
+        # 10 dB each gave about -20 dBFS at the ADC through a 20 dB pad.
+        ("tx_gain_db", "variable_qtgui_range", dict(value="10", start="0", stop="31.5",
+         step="0.5", label="TX gain (dB)", widget="counter_slider",
          rangeType="float", orient="QtCore.Qt.Horizontal", min_len="200",
          gui_hint="views@3:0,0,1,1")),
-        ("rx_gain_norm", "variable_qtgui_range", dict(value="0.5", start="0", stop="1",
-         step="0.01", label="RX gain (normalized 0-1)", widget="counter_slider",
+        ("rx_gain_db", "variable_qtgui_range", dict(value="10", start="0", stop="31.5",
+         step="0.5", label="RX gain (dB)", widget="counter_slider",
          rangeType="float", orient="QtCore.Qt.Horizontal", min_len="200",
          gui_hint="views@3:0,1,1,1")),
         ("carrier_loop_bw", "variable",
@@ -189,7 +192,7 @@ def build(profile):
         dev_addr="tx_usrp_address", dev_args='"num_send_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
-        center_freq0="center_freq_hz", gain0="tx_gain_norm", gain_type0="normalized",
+        center_freq0="center_freq_hz", gain0="tx_gain_db", gain_type0="default",
         ant0='"TX/RX"', bw0="0", lo_source0="internal", lo_export0="False",
         show_lo_controls="False", len_tag_name='""')
     wire("tx_power", "usrp_tx")
@@ -200,8 +203,8 @@ def build(profile):
         dev_addr="rx_usrp_address", dev_args='"num_recv_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
-        center_freq0="center_freq_hz", rx_agc0="Disabled", gain0="rx_gain_norm",
-        gain_type0="normalized", ant0='"RX2"', bw0="0", lo_source0="internal",
+        center_freq0="center_freq_hz", rx_agc0="Disabled", gain0="rx_gain_db",
+        gain_type0="default", ant0='"RX2"', bw0="0", lo_source0="internal",
         lo_export0="False", dc_offs_enb0="auto", dc_offs0="0+0j",
         iq_imbal_enb0="auto", iq_imbal0="0+0j", show_lo_controls="False")
     # The RX level meters stay on the raw N210 samples (fixed RF gain), so

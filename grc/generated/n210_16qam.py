@@ -189,11 +189,11 @@ class n210_16qam(gr.top_block, Qt.QWidget):
         self.bit_rate = bit_rate = symbol_rate*k
         self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.alpha = alpha = 0.35
-        self.tx_gain_norm = tx_gain_norm = 0.5
+        self.tx_gain_db = tx_gain_db = 10
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
         self.timing_bw = timing_bw = 0.0628
         self.samp_rate = samp_rate = symbol_rate*sps
-        self.rx_gain_norm = rx_gain_norm = 0.5
+        self.rx_gain_db = rx_gain_db = 10
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
         self.rrc_bandwidth = rrc_bandwidth = symbol_rate*(1+alpha)
         self.preamble_len = preamble_len = 128
@@ -242,16 +242,16 @@ class n210_16qam(gr.top_block, Qt.QWidget):
         self.views_layout_5.addLayout(self.views_grid_layout_5)
         self.views.addTab(self.views_widget_5, 'BER / EVM / taps')
         self.top_layout.addWidget(self.views)
-        self._tx_gain_norm_range = qtgui.Range(0, 1, 0.01, 0.5, 200)
-        self._tx_gain_norm_win = qtgui.RangeWidget(self._tx_gain_norm_range, self.set_tx_gain_norm, "TX gain (normalized 0-1)", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.views_grid_layout_3.addWidget(self._tx_gain_norm_win, 0, 0, 1, 1)
+        self._tx_gain_db_range = qtgui.Range(0, 31.5, 0.5, 10, 200)
+        self._tx_gain_db_win = qtgui.RangeWidget(self._tx_gain_db_range, self.set_tx_gain_db, "TX gain (dB)", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.views_grid_layout_3.addWidget(self._tx_gain_db_win, 0, 0, 1, 1)
         for r in range(0, 1):
             self.views_grid_layout_3.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_3.setColumnStretch(c, 1)
-        self._rx_gain_norm_range = qtgui.Range(0, 1, 0.01, 0.5, 200)
-        self._rx_gain_norm_win = qtgui.RangeWidget(self._rx_gain_norm_range, self.set_rx_gain_norm, "RX gain (normalized 0-1)", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.views_grid_layout_3.addWidget(self._rx_gain_norm_win, 0, 1, 1, 1)
+        self._rx_gain_db_range = qtgui.Range(0, 31.5, 0.5, 10, 200)
+        self._rx_gain_db_win = qtgui.RangeWidget(self._rx_gain_db_range, self.set_rx_gain_db, "RX gain (dB)", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.views_grid_layout_3.addWidget(self._rx_gain_db_win, 0, 1, 1, 1)
         for r in range(0, 1):
             self.views_grid_layout_3.setRowStretch(r, 1)
         for c in range(1, 2):
@@ -372,7 +372,7 @@ class n210_16qam(gr.top_block, Qt.QWidget):
 
         self.usrp_tx.set_center_freq(center_freq_hz, 0)
         self.usrp_tx.set_antenna("TX/RX", 0)
-        self.usrp_tx.set_normalized_gain(tx_gain_norm, 0)
+        self.usrp_tx.set_gain(tx_gain_db, 0)
         self.usrp_rx = uhd.usrp_source(
             ",".join((rx_usrp_address, "num_recv_frames=512")),
             uhd.stream_args(
@@ -388,7 +388,7 @@ class n210_16qam(gr.top_block, Qt.QWidget):
         self.usrp_rx.set_center_freq(center_freq_hz, 0)
         self.usrp_rx.set_antenna("RX2", 0)
         self.usrp_rx.set_rx_agc(False, 0)
-        self.usrp_rx.set_normalized_gain(rx_gain_norm, 0)
+        self.usrp_rx.set_gain(rx_gain_db, 0)
         self.usrp_rx.set_auto_dc_offset(True, 0)
         self.usrp_rx.set_auto_iq_balance(True, 0)
         self.unused_timing_states = blocks.null_sink(gr.sizeof_float*1)
@@ -1888,12 +1888,12 @@ class n210_16qam(gr.top_block, Qt.QWidget):
         self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
-    def get_tx_gain_norm(self):
-        return self.tx_gain_norm
+    def get_tx_gain_db(self):
+        return self.tx_gain_db
 
-    def set_tx_gain_norm(self, tx_gain_norm):
-        self.tx_gain_norm = tx_gain_norm
-        self.usrp_tx.set_normalized_gain(self.tx_gain_norm, 0)
+    def set_tx_gain_db(self, tx_gain_db):
+        self.tx_gain_db = tx_gain_db
+        self.usrp_tx.set_gain(self.tx_gain_db, 0)
 
     def get_tx_amplitude(self):
         return self.tx_amplitude
@@ -1929,12 +1929,12 @@ class n210_16qam(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_samp_rate(self.samp_rate)
         self.usrp_rx.set_samp_rate(self.samp_rate)
 
-    def get_rx_gain_norm(self):
-        return self.rx_gain_norm
+    def get_rx_gain_db(self):
+        return self.rx_gain_db
 
-    def set_rx_gain_norm(self, rx_gain_norm):
-        self.rx_gain_norm = rx_gain_norm
-        self.usrp_rx.set_normalized_gain(self.rx_gain_norm, 0)
+    def set_rx_gain_db(self, rx_gain_db):
+        self.rx_gain_db = rx_gain_db
+        self.usrp_rx.set_gain(self.rx_gain_db, 0)
 
     def get_rrc_taps(self):
         return self.rrc_taps

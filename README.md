@@ -315,7 +315,7 @@ Data: [ber_sweep.csv](results/ber_sweep/ber_sweep.csv), [ideal_reference.csv](re
 
 ## Two USRP N210s: over-the-air BER
 
-`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. One computer drives the radios: a UHD USRP Sink on the **TX N210** (TX/RX port) and a UHD USRP Source on the **RX N210** (RX2 port). Set the device addresses, the RF frequency and the normalized TX/RX gains at the top of the flowchart.
+`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. One computer drives the radios: a UHD USRP Sink on the **TX N210** (TX/RX port) and a UHD USRP Source on the **RX N210** (RX2 port). Set the device addresses and the RF frequency at the top of the flowchart. The **TX gain (dB)** and **RX gain (dB)** sliders are on the RF levels tab: absolute UHD gain, 0–31.5 dB in 0.5 dB steps on the UBX, default 10 dB each.
 
 Both addresses default to `addr=192.168.10.2`. That is a **one-radio loopback**: TX/RX port → attenuator → RX2 port on the same N210. With a second N210, set its address in *RX N210 device address* (every N210 ships as 192.168.10.2, so one must be changed first). The computer's Ethernet port needs a fixed address on the same subnet, e.g. 192.168.10.1 / 255.255.255.0.
 
@@ -342,7 +342,7 @@ What changes from the simulation, in RF terms:
 ### Scripted BER test with a saved record
 
 ```bash
-python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.2 --freq 915e6 --tx-gain 0.3 --rx-gain 0.3
+python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.2 --freq 915e6 --tx-gain-db 10 --rx-gain-db 10
 ```
 
 What the runner does:
@@ -376,7 +376,7 @@ For a saved record of each antenna run (95% confidence interval, RX level, MER, 
 
 ### Hardware loopback results (one N210, UBX, 20 dB pad)
 
-A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2 port, at 915 MHz. TX level −15 dBFS RMS, TX and RX gain 0.3 normalized (about 9.5 dB). Each run compared 1,000,000 bits after sync with the actual transmitted data ([run files](results/n210_runs/)):
+A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2 port, at 915 MHz. TX level −15 dBFS RMS, TX and RX gain 0.3 normalized (about 9.5 dB; the sliders are now in dB, default 10 dB). Each run compared 1,000,000 bits after sync with the actual transmitted data ([run files](results/n210_runs/)):
 
 | Format | Bits | Errors | BER (95% upper bound) | RX ADC (dBFS) | MER (dB) | Sync after (s) |
 | --- | ---: | ---: | --- | ---: | ---: | ---: |
@@ -387,7 +387,7 @@ A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2
 | 8-ASK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.4 | 31.4 | 0.117 |
 | 16-QAM | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.5 | 28.1 | 0.087 |
 
-A later check at GRC's default gains (0.5, ADC about −5.6 dBFS) ran each format for 12 s. After sync, the bits stayed clean apart from one 100,000-bit chunk right after 8-PSK synced, and the GRC BER test read 0 errors in 1,000,000 bits for all six. For more ADC headroom, especially with 8-ASK (peaks about 7 dB above RMS), around −20 dBFS (gain 0.3 here) is a safer working level.
+A later check at the then-default gains (0.5 normalized, about 15.75 dB; ADC about −5.6 dBFS) ran each format for 12 s. After sync, the bits stayed clean apart from one 100,000-bit chunk right after 8-PSK synced, and the GRC BER test read 0 errors in 1,000,000 bits for all six. For more ADC headroom, especially with 8-ASK (peaks about 7 dB above RMS), around −20 dBFS is a safer working level: that is the 10 dB / 10 dB default here, and TX 20 dB with RX 0 dB gave the same −19.9 dBFS.
 
 The cable path is far above the noise (MER about 28–34 dB), so these runs confirm the receiver works end to end on real hardware. They are not a sensitivity measurement. For BER versus received level, lower the TX gain or add attenuation, and watch the ADC level and MER.
 
