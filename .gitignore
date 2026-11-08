@@ -3,3 +3,7 @@ __pycache__/
 .DS_Store
 .venv/
 .direnv/
+# Installers and large regenerable capture files (python scripts/run_all.py recreates the .mat captures)
+radioconda-*.sh
+*.dmg
+*.mat
