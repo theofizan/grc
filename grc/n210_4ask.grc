@@ -1873,7 +1873,7 @@ blocks:
     minoutbuf: '0'
     num_taps: eq_taps
     sps: '1'
-    training_sequence: training_symbols
+    training_sequence: training_symbols[:eq_training_len]
     training_start_tag: corr_est
   states:
     bus_sink: false
@@ -4917,6 +4917,16 @@ blocks:
     - 176
     rotation: 0
     state: enabled
+- name: eq_training_len
+  id: variable
+  parameters:
+    value: len(training_symbols)
+  states:
+    coordinate:
+    - 2216
+    - 176
+    rotation: 0
+    state: enabled
 - name: usrp_tx
   id: uhd_usrp_sink
   parameters:
@@ -4925,7 +4935,7 @@ blocks:
     stream_args: ''
     stream_chans: '[]'
     dev_addr: tx_usrp_address
-    dev_args: '""'
+    dev_args: '"num_send_frames=512"'
     sync: none
     start_time: '-1.0'
     clock_rate: 0e0
@@ -4958,7 +4968,7 @@ blocks:
     stream_args: ''
     stream_chans: '[]'
     dev_addr: rx_usrp_address
-    dev_args: '""'
+    dev_args: '"num_recv_frames=512"'
     sync: none
     start_time: '-1.0'
     clock_rate: 0e0
@@ -4985,6 +4995,48 @@ blocks:
     coordinate:
     - 16
     - 760
+    rotation: 0
+    state: enabled
+- name: rx_limit_split
+  id: blocks_complex_to_float
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 840
+    - 694
+    rotation: 0
+    state: enabled
+- name: rx_limit_i
+  id: analog_rail_ff
+  parameters:
+    lo: '-3'
+    hi: '3'
+  states:
+    coordinate:
+    - 1010
+    - 674
+    rotation: 0
+    state: enabled
+- name: rx_limit_q
+  id: analog_rail_ff
+  parameters:
+    lo: '-3'
+    hi: '3'
+  states:
+    coordinate:
+    - 1010
+    - 734
+    rotation: 0
+    state: enabled
+- name: rx_limit_join
+  id: blocks_float_to_complex
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 1170
+    - 694
     rotation: 0
     state: enabled
 - name: preamble_detect
@@ -5470,10 +5522,6 @@ connections:
   - '0'
   - reference_link
   - '0'
-- - rx_level
-  - '0'
-  - clock_sync
-  - '0'
 - - rx_meter_input
   - '0'
   - rx_milliwatts
@@ -5633,6 +5681,30 @@ connections:
 - - usrp_rx
   - '0'
   - rx_iq_link
+  - '0'
+- - rx_level
+  - '0'
+  - rx_limit_split
+  - '0'
+- - rx_limit_split
+  - '0'
+  - rx_limit_i
+  - '0'
+- - rx_limit_split
+  - '1'
+  - rx_limit_q
+  - '0'
+- - rx_limit_i
+  - '0'
+  - rx_limit_join
+  - '0'
+- - rx_limit_q
+  - '0'
+  - rx_limit_join
+  - '1'
+- - rx_limit_join
+  - '0'
+  - clock_sync
   - '0'
 - - clock_sync
   - '0'

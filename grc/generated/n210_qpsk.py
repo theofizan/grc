@@ -175,21 +175,21 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
+        self.tx_data = tx_data = numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
         self.const = const = digital.constellation_qpsk().base()
         self.const.set_npwr(1.0)
-        self.tx_data = tx_data = numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
         self.k = k = const.bits_per_symbol()
+        self.data_period_bits = data_period_bits = 8*len(tx_data)
         self.warmup_bits = warmup_bits = 4096
+        self.training_symbols = training_symbols = numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
         self.sps = sps = 4
         self.nfilts = nfilts = 32
-        self.data_period_bits = data_period_bits = 8*len(tx_data)
         self.bit_rate = bit_rate = symbol_rate*k
         self.ber_test_blocks = ber_test_blocks = max(1, int(ber_test_bits) // 10000)
         self.alpha = alpha = 0.35
         self.tx_gain_norm = tx_gain_norm = 0.5
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
-        self.training_symbols = training_symbols = numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
         self.timing_bw = timing_bw = 0.0628
         self.samp_rate = samp_rate = symbol_rate*sps
         self.rx_gain_norm = rx_gain_norm = 0.5
@@ -197,6 +197,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.rrc_bandwidth = rrc_bandwidth = symbol_rate*(1+alpha)
         self.preamble_len = preamble_len = 128
         self.eye_synthesis_taps = eye_synthesis_taps = firdes.root_raised_cosine(sps,sps,1.0,alpha,11*sps)
+        self.eq_training_len = eq_training_len = len(training_symbols)
         self.eq_delay_symbols = eq_delay_symbols = (eq_taps-1)//2
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/200
@@ -356,7 +357,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         for c in range(1, 2):
             self.views_grid_layout_1.setColumnStretch(c, 1)
         self.usrp_tx = uhd.usrp_sink(
-            ",".join((tx_usrp_address, "")),
+            ",".join((tx_usrp_address, "num_send_frames=512")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -372,7 +373,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_antenna("TX/RX", 0)
         self.usrp_tx.set_normalized_gain(tx_gain_norm, 0)
         self.usrp_rx = uhd.usrp_source(
-            ",".join((rx_usrp_address, "")),
+            ",".join((rx_usrp_address, "num_recv_frames=512")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -757,6 +758,10 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.rx_power_sum = blocks.integrate_ff(4096, 1)
         self.rx_power_mean = blocks.multiply_const_ff((1.0/4096))
         self.rx_milliwatts = blocks.complex_to_mag_squared(1)
+        self.rx_limit_split = blocks.complex_to_float(1)
+        self.rx_limit_q = analog.rail_ff((-3), 3)
+        self.rx_limit_join = blocks.float_to_complex(1)
+        self.rx_limit_i = analog.rail_ff((-3), 3)
         self.rx_level = analog.agc2_cc((1e-3), (1e-3), 1.0, 1.0, 65536)
         self.rx_ebno = blocks.nlog10_ff((-20), 1, (40-10*math.log10(k)))
         self.rx_dbm = blocks.nlog10_ff(10, 1, 0)
@@ -1134,7 +1139,7 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.evm_circles = blocks.vector_source_c([p+symbol_rms*evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], True, 1, [])
         self.evm = digital.meas_evm_cc(const,digital.evm_measurement_t.EVM_PERCENT)
         self.errors_float = blocks.uchar_to_float()
-        self.equalizer = digital.linear_equalizer(eq_taps, 1, eq_algorithm, True, training_symbols, 'corr_est')
+        self.equalizer = digital.linear_equalizer(eq_taps, 1, eq_algorithm, True, training_symbols[:eq_training_len], 'corr_est')
         self.eq_tap_plot = qtgui.vector_sink_f(
             eq_taps,
             0,
@@ -1574,8 +1579,8 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
+        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
@@ -1614,7 +1619,12 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.connect((self.random_bytes, 0), (self.tx_symbol_chunks, 0))
         self.connect((self.rx_dbm, 0), (self.probe_rx_dbm, 0))
         self.connect((self.rx_ebno, 0), (self.probe_rx_ebno, 0))
-        self.connect((self.rx_level, 0), (self.clock_sync, 0))
+        self.connect((self.rx_level, 0), (self.rx_limit_split, 0))
+        self.connect((self.rx_limit_i, 0), (self.rx_limit_join, 0))
+        self.connect((self.rx_limit_join, 0), (self.clock_sync, 0))
+        self.connect((self.rx_limit_q, 0), (self.rx_limit_join, 1))
+        self.connect((self.rx_limit_split, 0), (self.rx_limit_i, 0))
+        self.connect((self.rx_limit_split, 1), (self.rx_limit_q, 0))
         self.connect((self.rx_milliwatts, 0), (self.rx_power_sum, 0))
         self.connect((self.rx_power_mean, 0), (self.rx_dbm, 0))
         self.connect((self.rx_power_sum, 0), (self.rx_power_mean, 0))
@@ -1740,13 +1750,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.settle_s = settle_s
         self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
-    def get_const(self):
-        return self.const
-
-    def set_const(self, const):
-        self.const = const
-        self.decoder.set_constellation(self.const)
-
     def get_tx_data(self):
         return self.tx_data
 
@@ -1756,6 +1759,13 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.set_data_period_bits(8*len(self.tx_data))
         self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
+    def get_const(self):
+        return self.const
+
+    def set_const(self, const):
+        self.const = const
+        self.decoder.set_constellation(self.const)
+
     def get_k(self):
         return self.k
 
@@ -1764,12 +1774,28 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.set_bit_rate(self.symbol_rate*self.k)
         self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
+    def get_data_period_bits(self):
+        return self.data_period_bits
+
+    def set_data_period_bits(self, data_period_bits):
+        self.data_period_bits = data_period_bits
+        self.delay.set_dly(int(self.data_period_bits))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
+
     def get_warmup_bits(self):
         return self.warmup_bits
 
     def set_warmup_bits(self, warmup_bits):
         self.warmup_bits = warmup_bits
         self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
+
+    def get_training_symbols(self):
+        return self.training_symbols
+
+    def set_training_symbols(self, training_symbols):
+        self.training_symbols = training_symbols
+        self.set_eq_training_len(len(self.training_symbols))
 
     def get_symbol_rms(self):
         return self.symbol_rms
@@ -1804,15 +1830,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
     def set_nfilts(self, nfilts):
         self.nfilts = nfilts
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
-
-    def get_data_period_bits(self):
-        return self.data_period_bits
-
-    def set_data_period_bits(self, data_period_bits):
-        self.data_period_bits = data_period_bits
-        self.delay.set_dly(int(self.data_period_bits))
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
-        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_bit_rate(self):
         return self.bit_rate
@@ -1853,12 +1870,6 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
     def set_tx_amplitude(self, tx_amplitude):
         self.tx_amplitude = tx_amplitude
         self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
-
-    def get_training_symbols(self):
-        return self.training_symbols
-
-    def set_training_symbols(self, training_symbols):
-        self.training_symbols = training_symbols
 
     def get_timing_bw(self):
         return self.timing_bw
@@ -1920,6 +1931,12 @@ class n210_qpsk(gr.top_block, Qt.QWidget):
         self.eye_synthesis_taps = eye_synthesis_taps
         self.middle_eye_reconstruction.set_taps(self.eye_synthesis_taps)
         self.after_eye_reconstruction.set_taps(self.eye_synthesis_taps)
+
+    def get_eq_training_len(self):
+        return self.eq_training_len
+
+    def set_eq_training_len(self, eq_training_len):
+        self.eq_training_len = eq_training_len
 
     def get_eq_delay_symbols(self):
         return self.eq_delay_symbols

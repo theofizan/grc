@@ -170,14 +170,23 @@ def build(profile):
             "numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8))"
             ".reshape(-1, k)]), axis=1).ravel()]"))),
         ("preamble_len", "variable", dict(value="128")),
+        # Known symbols the equalizer trains on after each preamble. The whole
+        # block keeps it anchored to the true carrier phase; shorter training
+        # (then decision-directed) let 8-PSK drift to a neighbouring 45-degree
+        # state on hardware. A sample slip (TX underflow) still costs at most
+        # one block, until the next preamble.
+        ("eq_training_len", "variable", dict(value="len(training_symbols)")),
     ]
     for index, (name, kind, parameters) in enumerate(controls):
         add(name, kind, 16 + 200 * index, 176, **parameters)
 
     # --- TX: modulator output scaled to dBFS goes straight to the N210 ------
+    # Extra UHD send/receive frames give the computer slack when the GUI briefly
+    # hogs the CPU; a TX underflow leaves a gap in the waveform and costs up to
+    # one data block of bits before the next preamble re-syncs the receiver.
     add("usrp_tx", "uhd_usrp_sink", 1400, 600,
         type="fc32", otw="sc16", stream_args="", stream_chans="[]",
-        dev_addr="tx_usrp_address", dev_args='""', sync="none", start_time="-1.0",
+        dev_addr="tx_usrp_address", dev_args='"num_send_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
         center_freq0="center_freq_hz", gain0="tx_gain_norm", gain_type0="normalized",
@@ -188,7 +197,7 @@ def build(profile):
     # --- RX: N210 -> AGC -> timing -> Costas -> preamble -> trained EQ --
     add("usrp_rx", "uhd_usrp_source", 16, 760,
         type="fc32", otw="sc16", stream_args="", stream_chans="[]",
-        dev_addr="rx_usrp_address", dev_args='""', sync="none", start_time="-1.0",
+        dev_addr="rx_usrp_address", dev_args='"num_recv_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
         center_freq0="center_freq_hz", rx_agc0="Disabled", gain0="rx_gain_norm",
@@ -213,7 +222,26 @@ def build(profile):
     # loopback). Two N210 clocks differ by a few ppm, so 0.05 is still ample.
     blocks["clock_sync"]["parameters"]["max_dev"] = "0.05"
 
-    # AGC -> timing -> Costas -> preamble detector -> trained EQ.
+    # Amplitude limiter after the AGC (stock Rail on I and Q at +/-3). In steady
+    # state the AGC holds unit RMS and peaks stay below ~2.2, so it never acts.
+    # It matters at start-up: during the silence before the transmitter starts
+    # the AGC gain winds up to 1/noise, so a strong signal then arrives hundreds
+    # of times too large. Unlimited, that made the LMS equalizer blow up to NaN
+    # (never recovers; NaN also stalls the Qt plots and the radio stream).
+    unwire("rx_level", "clock_sync")
+    lx, ly = blocks["rx_level"]["states"]["coordinate"]
+    add("rx_limit_split", "blocks_complex_to_float", lx, ly + 110, vlen="1")
+    add("rx_limit_i", "analog_rail_ff", lx + 170, ly + 90, lo="-3", hi="3")
+    add("rx_limit_q", "analog_rail_ff", lx + 170, ly + 150, lo="-3", hi="3")
+    add("rx_limit_join", "blocks_float_to_complex", lx + 330, ly + 110, vlen="1")
+    wire("rx_level", "rx_limit_split")
+    wire("rx_limit_split", "rx_limit_i", 0, 0)
+    wire("rx_limit_split", "rx_limit_q", 1, 0)
+    wire("rx_limit_i", "rx_limit_join", 0, 0)
+    wire("rx_limit_q", "rx_limit_join", 0, 1)
+    wire("rx_limit_join", "clock_sync")
+
+    # AGC -> limiter -> timing -> Costas -> preamble detector -> trained EQ.
     unwire("clock_sync", "rx_scale")
     x, y = blocks["clock_sync"]["states"]["coordinate"]
     add("preamble_detect", "digital_corr_est_cc", x + 440, y,
@@ -227,7 +255,7 @@ def build(profile):
     # The tag is placed one symbol past the equalizer's centre tap so training
     # lines up with its output; the 11-tap LMS absorbs residual offsets.
     blocks["equalizer"]["parameters"].update(
-        training_sequence="training_symbols", training_start_tag="corr_est",
+        training_sequence="training_symbols[:eq_training_len]", training_start_tag="corr_est",
         adapt_after_training="True")
 
     # --- TX: fixed known data, no differential coding -----------------------

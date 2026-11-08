@@ -317,6 +317,10 @@ What changes from the simulation, in RF terms:
   - On a real radio the receiver hears silence until the transmitter starts, so the AGC gain climbs, and the first real samples arrive several times too large.
   - With 1.5, that burst left the timing loop stuck far off frequency (BER 0.5 on a clean loopback).
   - Two N210 clocks differ by only a few ppm, so 0.05 is still ample.
+- **Amplitude limiter after the AGC** (stock Rail blocks on I and Q at ±3). It never acts in steady state.
+  - It bounds the start-up overshoot: during the silence before the transmitter starts, the AGC gain winds up, and a strong signal then arrives hundreds of times too large.
+  - Without it, BPSK at the default gains blew the equalizer up to NaN. That never recovers, and it also stalled the plots and the radio stream.
+- **Extra UHD buffering** (`num_send_frames=512`, `num_recv_frames=512`). A TX underflow leaves a gap in the waveform and costs up to one data block of bits, until the next preamble re-syncs. The extra frames give the computer slack when the GUI briefly hogs the CPU.
 - **Settling time** (`settle_s`, default 1 s): the GRC BER readouts wait this long before counting, because acquisition on hardware usually takes 0.1–0.3 s but has been seen at 0.8 s.
 - **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD warns that odd decimation adds slight CIC passband droop. The receiver's equalizer absorbs it.
 - **Large data kept as NumPy arrays:** GRC prints every variable's value in its Variable Editor. The known data block as a Python list was megabytes of text and froze the GRC window when the flowchart was opened.
@@ -368,6 +372,8 @@ A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2
 | 4-ASK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.6 | 31.0 | 0.15 |
 | 8-ASK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.4 | 31.4 | 0.117 |
 | 16-QAM | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.5 | 28.1 | 0.087 |
+
+A later check at GRC's default gains (0.5, ADC about −5.6 dBFS) ran each format for 12 s. After sync, the bits stayed clean apart from one 100,000-bit chunk right after 8-PSK synced, and the GRC BER test read 0 errors in 1,000,000 bits for all six. For more ADC headroom, especially with 8-ASK (peaks about 7 dB above RMS), around −20 dBFS (gain 0.3 here) is a safer working level.
 
 The cable path is far above the noise (MER about 28–34 dB), so these runs confirm the receiver works end to end on real hardware. They are not a sensitivity measurement. For BER versus received level, lower the TX gain or add attenuation, and watch the ADC level and MER.
 
