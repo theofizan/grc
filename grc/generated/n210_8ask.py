@@ -70,9 +70,9 @@ def snipfcn_link_table(self):
         ('BER test', 'Test length', None, 'bits', "f'{10000 * self.ber_test_blocks:,}'"),
         ('', 'Estimated time', None, 's', "f'{self.ber_test_seconds:.2f}'"),
         ('', 'Status', self.probe_ber_test_count, '', 'status'),
-        ('', 'Bits compared', self.probe_ber_test_count, 'bits', 'count'),
-        ('', 'Bit errors (mismatches / 2)', self.probe_ber_test_errors, 'errors', 'count'),
-        ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'ber'),
+        ('', 'Bits compared', self.probe_ber_test_count, 'bits', 'test_count'),
+        ('', 'Bit errors (mismatches / 2)', self.probe_ber_test_errors, 'errors', 'test_errors'),
+        ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'test_ber'),
     ]
     table = Qt.QTableWidget(len(rows), 4)
     table.setHorizontalHeaderLabels(["Section", "Quantity", "Value", "Unit"])
@@ -96,8 +96,17 @@ def snipfcn_link_table(self):
     header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)
     header.setStretchLastSection(True)
     test_bits = 10000 * self.ber_test_blocks
+    # BER test totals run since the flowchart started; each test is shown relative
+    # to the totals frozen when it began (zero for the first test).
+    test = dict(base_count=0.0, base_errors=0.0, restarting=False)
+
+    def test_values():
+        count = self.probe_ber_test_count.level() - test["base_count"]
+        errors = self.probe_ber_test_errors.level() - test["base_errors"]
+        return count, errors
 
     def refresh_link_table():
+        count, errors = test_values()
         for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
             if probe is None:
                 continue
@@ -108,10 +117,39 @@ def snipfcn_link_table(self):
                 text = f"{level:,.0f}"
             elif fmt == "ber":
                 text = f"{level:.3e}"
+            elif fmt == "test_count":
+                text = f"{count:,.0f}"
+            elif fmt == "test_errors":
+                text = f"{errors:,.0f}"
+            elif fmt == "test_ber":
+                text = f"{errors / count:.3e}" if count > 0 else ""
+            elif test["restarting"]:
+                text = "restarting"
             else:
-                text = "complete" if level >= test_bits else (
-                    "counting" if level > 0 else "waiting for warm-up")
+                text = "complete" if count >= test_bits else (
+                    "counting" if count > 0 else "waiting for warm-up")
             table.item(row, 2).setText(text)
+
+    def restart_ber_test():
+        # 1) Close the test gate so the running totals freeze.
+        test["restarting"] = True
+        self.set_ber_test_start(1e15)
+        Qt.QTimer.singleShot(500, begin_new_test)
+
+    def begin_new_test():
+        # 2) Frozen totals become the new zero; the new test starts a quarter
+        #    second ahead, so every counted 10,000-bit window is new and the test
+        #    covers exactly ber_test_bits bits.
+        test["base_count"] = self.probe_ber_test_count.level()
+        test["base_errors"] = self.probe_ber_test_errors.level()
+        ahead = max(2, int(0.25 * self.bit_rate / 10000))
+        self.set_ber_test_start(self.probe_ber_test_index.level() + ahead)
+        test["restarting"] = False
+
+    self.restart_ber_test = restart_ber_test
+    self.restart_ber_test_button = Qt.QPushButton("Restart BER test")
+    self.restart_ber_test_button.clicked.connect(restart_ber_test)
+    self.views_grid_layout_3.addWidget(self.restart_ber_test_button, 4, 0, 1, 2)
 
     self.link_table = table
     self.link_table_timer = Qt.QTimer()
@@ -127,7 +165,7 @@ def snippets_main_after_init(tb):
 
 class n210_8ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, ber_test_bits=1000000, plot_update_s=0.5, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
+    def __init__(self, symbol_rate=1e6, evm_guide_percent=5, eq_taps=11, eq_step=0.01, plot_update_s=0.5, ber_test_bits=1000000, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
         gr.top_block.__init__(self, "8-ASK over the air | two USRP N210s", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("8-ASK over the air | two USRP N210s")
@@ -162,12 +200,11 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         # Parameters
         ##################################################
         self.symbol_rate = symbol_rate
-        self.tx_level_dbfs = tx_level_dbfs
         self.evm_guide_percent = evm_guide_percent
         self.eq_taps = eq_taps
         self.eq_step = eq_step
-        self.ber_test_bits = ber_test_bits
         self.plot_update_s = plot_update_s
+        self.ber_test_bits = ber_test_bits
         self.tx_usrp_address = tx_usrp_address
         self.rx_usrp_address = rx_usrp_address
         self.center_freq_hz = center_freq_hz
@@ -182,6 +219,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.k = k = const.bits_per_symbol()
         self.data_period_bits = data_period_bits = 8*len(tx_data)
         self.warmup_bits = warmup_bits = 4096
+        self.tx_level_dbfs = tx_level_dbfs = -15
         self.training_symbols = training_symbols = numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
         self.sps = sps = 4
@@ -203,6 +241,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/800
         self.ber_window = ber_window = 10000
+        self.ber_test_start = ber_test_start = 0
         self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s
         self.ber_error_weight = ber_error_weight = 0.5
 
@@ -358,7 +397,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         for c in range(1, 2):
             self.views_grid_layout_1.setColumnStretch(c, 1)
         self.usrp_tx = uhd.usrp_sink(
-            ",".join((tx_usrp_address, "num_send_frames=512")),
+            ",".join((tx_usrp_address, "num_send_frames=512,num_recv_frames=512")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -374,7 +413,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_antenna("TX/RX", 0)
         self.usrp_tx.set_gain(tx_gain_db, 0)
         self.usrp_rx = uhd.usrp_source(
-            ",".join((rx_usrp_address, "num_recv_frames=512")),
+            ",".join((rx_usrp_address, "num_send_frames=512,num_recv_frames=512")),
             uhd.stream_args(
                 cpu_format="fc32",
                 otw_format="sc16",
@@ -458,6 +497,13 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.tx_peak_dbm = blocks.nlog10_ff(10, 1, 0)
         self.tx_papr = blocks.sub_ff(1)
         self.tx_milliwatts = blocks.complex_to_mag_squared(1)
+        self._tx_level_dbfs_range = qtgui.Range(-40, 0, 0.5, -15, 200)
+        self._tx_level_dbfs_win = qtgui.RangeWidget(self._tx_level_dbfs_range, self.set_tx_level_dbfs, "TX digital level (dBFS RMS, keep peak < 0)", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.views_grid_layout_3.addWidget(self._tx_level_dbfs_win, 3, 0, 1, 2)
+        for r in range(3, 4):
+            self.views_grid_layout_3.setRowStretch(r, 1)
+        for c in range(0, 2):
+            self.views_grid_layout_3.setColumnStretch(c, 1)
         self.tx_eye_q_eye = qtgui.eye_sink_f(
             1024, #size
             samp_rate, #samp_rate
@@ -821,6 +867,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.probe_rx_dbm = blocks.probe_signal_f()
         self.probe_evm_rms = blocks.probe_signal_f()
         self.probe_ber_test_ratio = blocks.probe_signal_f()
+        self.probe_ber_test_index = blocks.probe_signal_f()
         self.probe_ber_test_errors = blocks.probe_signal_f()
         self.probe_ber_test_count = blocks.probe_signal_f()
         self.probe_ber_scale = blocks.probe_signal_f()
@@ -1298,14 +1345,14 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.ber_test_window_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_unit = blocks.add_const_ff(1)
         self.ber_test_sum_10k = blocks.integrate_ff(10000, 1)
+        self.ber_test_started = blocks.threshold_ff((ber_test_start + 0.5), (ber_test_start + 0.5), 0)
         self.ber_test_ratio = blocks.divide_ff(1)
-        self.ber_test_not_done = blocks.multiply_const_ff((-1))
         self.ber_test_index = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_gated_errors = blocks.multiply_vff(1)
-        self.ber_test_gate = blocks.add_const_ff(1)
+        self.ber_test_gate = blocks.sub_ff(1)
         self.ber_test_errors = blocks.multiply_const_ff(ber_error_weight)
         self.ber_test_error_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
-        self.ber_test_done = blocks.threshold_ff((ber_test_blocks + 0.5), (ber_test_blocks + 0.5), 0)
+        self.ber_test_done = blocks.threshold_ff((ber_test_start + ber_test_blocks + 0.5), (ber_test_start + ber_test_blocks + 0.5), 0)
         self.ber_test_count = blocks.multiply_const_ff(10000)
         self.ber_scale = blocks.multiply_const_ff((0.5/ber_window))
         self.ber_history = qtgui.time_sink_f(
@@ -1562,7 +1609,7 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.ber_scale, 0), (self.probe_ber_scale, 0))
         self.connect((self.ber_test_count, 0), (self.ber_test_ratio, 1))
         self.connect((self.ber_test_count, 0), (self.probe_ber_test_count, 0))
-        self.connect((self.ber_test_done, 0), (self.ber_test_not_done, 0))
+        self.connect((self.ber_test_done, 0), (self.ber_test_gate, 1))
         self.connect((self.ber_test_error_sum, 0), (self.ber_test_errors, 0))
         self.connect((self.ber_test_errors, 0), (self.ber_test_ratio, 0))
         self.connect((self.ber_test_errors, 0), (self.probe_ber_test_errors, 0))
@@ -1570,8 +1617,10 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.ber_test_gate, 0), (self.ber_test_window_sum, 0))
         self.connect((self.ber_test_gated_errors, 0), (self.ber_test_error_sum, 0))
         self.connect((self.ber_test_index, 0), (self.ber_test_done, 0))
-        self.connect((self.ber_test_not_done, 0), (self.ber_test_gate, 0))
+        self.connect((self.ber_test_index, 0), (self.ber_test_started, 0))
+        self.connect((self.ber_test_index, 0), (self.probe_ber_test_index, 0))
         self.connect((self.ber_test_ratio, 0), (self.probe_ber_test_ratio, 0))
+        self.connect((self.ber_test_started, 0), (self.ber_test_gate, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_gated_errors, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_zero, 0))
         self.connect((self.ber_test_unit, 0), (self.ber_test_index, 0))
@@ -1690,13 +1739,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.eq_evm_history.set_samp_rate(self.symbol_rate)
         self.eq_error_trace.set_samp_rate(self.symbol_rate)
 
-    def get_tx_level_dbfs(self):
-        return self.tx_level_dbfs
-
-    def set_tx_level_dbfs(self, tx_level_dbfs):
-        self.tx_level_dbfs = tx_level_dbfs
-        self.set_tx_amplitude(10**(self.tx_level_dbfs/20.0))
-
     def get_evm_guide_percent(self):
         return self.evm_guide_percent
 
@@ -1716,13 +1758,6 @@ class n210_8ask(gr.top_block, Qt.QWidget):
 
     def set_eq_step(self, eq_step):
         self.eq_step = eq_step
-
-    def get_ber_test_bits(self):
-        return self.ber_test_bits
-
-    def set_ber_test_bits(self, ber_test_bits):
-        self.ber_test_bits = ber_test_bits
-        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
 
     def get_plot_update_s(self):
         return self.plot_update_s
@@ -1753,6 +1788,13 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.eq_error_trace.set_update_time(self.plot_update_s)
         self.eq_tap_plot.set_update_time(self.plot_update_s)
         self.rf_constellation.set_update_time(self.plot_update_s)
+
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
+
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
 
     def get_tx_usrp_address(self):
         return self.tx_usrp_address
@@ -1821,6 +1863,13 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.warmup_bits = warmup_bits
         self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
+    def get_tx_level_dbfs(self):
+        return self.tx_level_dbfs
+
+    def set_tx_level_dbfs(self, tx_level_dbfs):
+        self.tx_level_dbfs = tx_level_dbfs
+        self.set_tx_amplitude(10**(self.tx_level_dbfs/20.0))
+
     def get_training_symbols(self):
         return self.training_symbols
 
@@ -1876,8 +1925,8 @@ class n210_8ask(gr.top_block, Qt.QWidget):
     def set_ber_test_blocks(self, ber_test_blocks):
         self.ber_test_blocks = ber_test_blocks
         self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
-        self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
-        self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_hi((self.ber_test_start + self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_lo((self.ber_test_start + self.ber_test_blocks + 0.5))
 
     def get_alpha(self):
         return self.alpha
@@ -1997,6 +2046,16 @@ class n210_8ask(gr.top_block, Qt.QWidget):
         self.ber_scale.set_k((0.5/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
 
+    def get_ber_test_start(self):
+        return self.ber_test_start
+
+    def set_ber_test_start(self, ber_test_start):
+        self.ber_test_start = ber_test_start
+        self.ber_test_started.set_hi((self.ber_test_start + 0.5))
+        self.ber_test_started.set_lo((self.ber_test_start + 0.5))
+        self.ber_test_done.set_hi((self.ber_test_start + self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_lo((self.ber_test_start + self.ber_test_blocks + 0.5))
+
     def get_ber_test_seconds(self):
         return self.ber_test_seconds
 
@@ -2018,9 +2077,6 @@ def argument_parser():
         "--symbol-rate", dest="symbol_rate", type=eng_float, default=eng_notation.num_to_str(float(1e6)),
         help="Set Symbol rate (symbols/s) [default=%(default)r]")
     parser.add_argument(
-        "--tx-level-dbfs", dest="tx_level_dbfs", type=eng_float, default=eng_notation.num_to_str(float((-15))),
-        help="Set TX digital RMS level (dBFS, keep peaks < 0) [default=%(default)r]")
-    parser.add_argument(
         "--evm-guide-percent", dest="evm_guide_percent", type=eng_float, default=eng_notation.num_to_str(float(5)),
         help="Set Constellation guide radius (% RMS) [default=%(default)r]")
     parser.add_argument(
@@ -2030,11 +2086,11 @@ def argument_parser():
         "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
         help="Set NLMS adaptation step [default=%(default)r]")
     parser.add_argument(
-        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
-        help="Set BER test length (compared bits) [default=%(default)r]")
-    parser.add_argument(
         "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
         help="Set Plot refresh interval (s) [default=%(default)r]")
+    parser.add_argument(
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
     parser.add_argument(
         "--tx-usrp-address", dest="tx_usrp_address", type=str, default='addr=192.168.10.2',
         help="Set TX N210 device address [default=%(default)r]")
@@ -2056,7 +2112,7 @@ def main(top_block_cls=n210_8ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, ber_test_bits=options.ber_test_bits, plot_update_s=options.plot_update_s, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
+    tb = top_block_cls(symbol_rate=options.symbol_rate, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, plot_update_s=options.plot_update_s, ber_test_bits=options.ber_test_bits, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

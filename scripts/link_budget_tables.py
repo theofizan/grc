@@ -85,7 +85,8 @@ def ber_test(graph, error_weight="1.0"):
     """(Re)build the fixed-length BER test. Safe to run repeatedly."""
     graph["blocks"][:] = [b for b in graph["blocks"]
                           if not b["name"].startswith(("ber_test", "bit_errors_"))
-                          and b["name"] not in ("stop_after_ber_test", "ber_error_weight")]
+                          and b["name"] not in ("stop_after_ber_test", "ber_error_weight",
+                                                "ber_test_not_done")]
     # (stop_after_ber_test is removed from older builds of this test.)
     names = {b["name"] for b in graph["blocks"]}
     graph["connections"][:] = [c for c in graph["connections"]
@@ -108,6 +109,8 @@ def ber_test(graph, error_weight="1.0"):
     add("ber_test_bits", "parameter", 1700, 8, value="1000000", type="intx",
         label="BER test length (compared bits)", short_id="", hide="none")
     add("ber_test_blocks", "variable", 1700, 192, value="max(1, int(ber_test_bits) // 10000)")
+    # Window index after which the BER test counts (0 = right after warm-up).
+    add("ber_test_start", "variable", 1700, 262, value="0")
     add("ber_error_weight", "variable", 1700, 332, value=error_weight)
     add("ber_test_seconds", "variable", 1700, 402,
         value="(warmup_bits + 10000*ber_test_blocks) / bit_rate")
@@ -125,12 +128,15 @@ def ber_test(graph, error_weight="1.0"):
         const="1", vlen="1")
     add("ber_test_index", "iir_filter_xxx", x0 + 670, y0 + 100, type="ffd",
         fftaps="[1.0]", fbtaps="[0.0, 1.0]", oldstyle="True")
+    # Gate = 1 while ber_test_start < window index <= ber_test_start + N windows.
+    # The Restart button moves ber_test_start (threshold limits update live).
+    add("ber_test_started", "blocks_threshold_ff", x0 + 840, y0 + 40,
+        low="ber_test_start + 0.5", high="ber_test_start + 0.5", init="0")
     add("ber_test_done", "blocks_threshold_ff", x0 + 840, y0 + 100,
-        low="ber_test_blocks + 0.5", high="ber_test_blocks + 0.5", init="0")
-    add("ber_test_not_done", "blocks_multiply_const_vxx", x0 + 1010, y0 + 100,
-        type="float", const="-1", vlen="1")
-    add("ber_test_gate", "blocks_add_const_vxx", x0 + 1180, y0 + 100, type="float",
-        const="1", vlen="1")
+        low="ber_test_start + ber_test_blocks + 0.5",
+        high="ber_test_start + ber_test_blocks + 0.5", init="0")
+    add("ber_test_gate", "blocks_sub_xx", x0 + 1010, y0 + 100, type="float", vlen="1",
+        num_inputs="2")
     # Gated running sums (IIR running sum = y[n] = x[n] + y[n-1]).
     add("ber_test_gated_errors", "blocks_multiply_xx", x0 + 500, y0, type="float",
         num_inputs="2", vlen="1")
@@ -148,9 +154,10 @@ def ber_test(graph, error_weight="1.0"):
     wire("ber_test_sum_10k", "ber_test_zero")
     wire("ber_test_zero", "ber_test_unit")
     wire("ber_test_unit", "ber_test_index")
+    wire("ber_test_index", "ber_test_started")
     wire("ber_test_index", "ber_test_done")
-    wire("ber_test_done", "ber_test_not_done")
-    wire("ber_test_not_done", "ber_test_gate")
+    wire("ber_test_started", "ber_test_gate", 0)
+    wire("ber_test_done", "ber_test_gate", 1)
     wire("ber_test_sum_10k", "ber_test_gated_errors", 0)
     wire("ber_test_gate", "ber_test_gated_errors", 1)
     wire("ber_test_gated_errors", "ber_test_error_sum")
@@ -178,10 +185,11 @@ SIM_ROWS = [
     ("BER test", "Test length", None, "bits", "f'{10000 * self.ber_test_blocks:,}'"),
     ("", "Estimated time", None, "s", "f'{self.ber_test_seconds:.2f}'"),
     ("", "Status", "ber_test_count", "", "status"),
-    ("", "Bits compared", "ber_test_count", "bits", "count"),
-    ("", "Bit errors", "ber_test_errors", "errors", "count"),
-    ("", "BER", "ber_test_ratio", "errors/bit", "ber"),
+    ("", "Bits compared", "ber_test_count", "bits", "test_count"),
+    ("", "Bit errors", "ber_test_errors", "errors", "test_errors"),
+    ("", "BER", "ber_test_ratio", "errors/bit", "test_ber"),
 ]
+EXTRA_PROBES = ["ber_test_index"]  # read by the Restart BER test button
 REPLACED_TABLES = ["link_tx_table", "link_rx_table", "ber_test_display", "ber_test_time",
                    "rx_snr_value_link", "rx_ebno_value_link",
                    "rx_snr_value_to_link_rx_table", "rx_ebno_value_to_link_rx_table"]
@@ -212,7 +220,7 @@ def spreadsheet(graph, rows=SIM_ROWS):
         blocks[block_name] = node
 
     probes = []
-    for _, _, source, _, _ in rows:
+    for source in [r[2] for r in rows] + EXTRA_PROBES:
         if source and f"probe_{source}" not in blocks:
             sx, sy = blocks[source]["states"]["coordinate"]
             add(f"probe_{source}", "blocks_probe_signal_x", sx + 40, sy + 90, type="float")
@@ -249,8 +257,17 @@ header = table.horizontalHeader()
 header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)
 header.setStretchLastSection(True)
 test_bits = 10000 * self.ber_test_blocks
+# BER test totals run since the flowchart started; each test is shown relative
+# to the totals frozen when it began (zero for the first test).
+test = dict(base_count=0.0, base_errors=0.0, restarting=False)
+
+def test_values():
+    count = self.probe_ber_test_count.level() - test["base_count"]
+    errors = self.probe_ber_test_errors.level() - test["base_errors"]
+    return count, errors
 
 def refresh_link_table():
+    count, errors = test_values()
     for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
         if probe is None:
             continue
@@ -261,10 +278,39 @@ def refresh_link_table():
             text = f"{{level:,.0f}}"
         elif fmt == "ber":
             text = f"{{level:.3e}}"
+        elif fmt == "test_count":
+            text = f"{{count:,.0f}}"
+        elif fmt == "test_errors":
+            text = f"{{errors:,.0f}}"
+        elif fmt == "test_ber":
+            text = f"{{errors / count:.3e}}" if count > 0 else ""
+        elif test["restarting"]:
+            text = "restarting"
         else:
-            text = "complete" if level >= test_bits else (
-                "counting" if level > 0 else "waiting for warm-up")
+            text = "complete" if count >= test_bits else (
+                "counting" if count > 0 else "waiting for warm-up")
         table.item(row, 2).setText(text)
+
+def restart_ber_test():
+    # 1) Close the test gate so the running totals freeze.
+    test["restarting"] = True
+    self.set_ber_test_start(1e15)
+    Qt.QTimer.singleShot(500, begin_new_test)
+
+def begin_new_test():
+    # 2) Frozen totals become the new zero; the new test starts a quarter
+    #    second ahead, so every counted 10,000-bit window is new and the test
+    #    covers exactly ber_test_bits bits.
+    test["base_count"] = self.probe_ber_test_count.level()
+    test["base_errors"] = self.probe_ber_test_errors.level()
+    ahead = max(2, int(0.25 * self.bit_rate / 10000))
+    self.set_ber_test_start(self.probe_ber_test_index.level() + ahead)
+    test["restarting"] = False
+
+self.restart_ber_test = restart_ber_test
+self.restart_ber_test_button = Qt.QPushButton("Restart BER test")
+self.restart_ber_test_button.clicked.connect(restart_ber_test)
+self.views_grid_layout_3.addWidget(self.restart_ber_test_button, 4, 0, 1, 2)
 
 self.link_table = table
 self.link_table_timer = Qt.QTimer()

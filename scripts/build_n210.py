@@ -65,9 +65,9 @@ N210_ROWS = [
     ("BER test", "Test length", None, "bits", "f'{10000 * self.ber_test_blocks:,}'"),
     ("", "Estimated time", None, "s", "f'{self.ber_test_seconds:.2f}'"),
     ("", "Status", "ber_test_count", "", "status"),
-    ("", "Bits compared", "ber_test_count", "bits", "count"),
-    ("", "Bit errors (mismatches / 2)", "ber_test_errors", "errors", "count"),
-    ("", "BER", "ber_test_ratio", "errors/bit", "ber"),
+    ("", "Bits compared", "ber_test_count", "bits", "test_count"),
+    ("", "Bit errors (mismatches / 2)", "ber_test_errors", "errors", "test_errors"),
+    ("", "BER", "ber_test_ratio", "errors/bit", "test_ber"),
 ]
 LABELS = {"bpsk": "BPSK", "qpsk": "QPSK", "8psk": "8-PSK", "4ask": "4-ASK",
           "8ask": "8-ASK", "16qam": "16-QAM"}
@@ -128,9 +128,15 @@ def build(profile):
 
     # --- Controls (top row, beside the existing ones). The live gain sliders
     # sit in row 0 of the RF levels tab, next to the levels they change. -----
-    blocks["tx_level_dbfs"]["parameters"].update(
-        value="-15", label="TX digital RMS level (dBFS, keep peaks < 0)"
-    )
+    # TX digital level: a live slider (dBFS RMS at the DAC) driving the TX
+    # Multiply Const through tx_amplitude. Watch the Transmit "Sampled peak"
+    # row in the table and keep it below 0 dBFS (DAC clipping).
+    blocks["tx_level_dbfs"]["id"] = "variable_qtgui_range"
+    blocks["tx_level_dbfs"]["parameters"] = dict(
+        value="-15", start="-40", stop="0", step="0.5",
+        label="TX digital level (dBFS RMS, keep peak < 0)", widget="counter_slider",
+        rangeType="float", orient="QtCore.Qt.Horizontal", min_len="200",
+        gui_hint="views@3:3,0,1,2")
     controls = [
         ("tx_usrp_address", "parameter", dict(value="addr=192.168.10.2", type="str",
          label="TX N210 device address", short_id="", hide="none")),
@@ -187,9 +193,12 @@ def build(profile):
     # Extra UHD send/receive frames give the computer slack when the GUI briefly
     # hogs the CPU; a TX underflow leaves a gap in the waveform and costs up to
     # one data block of bits before the next preamble re-syncs the receiver.
+    # TX and RX use the identical argument string: with one radio, UHD then
+    # shares a single connection. Different strings re-open (and re-initialize)
+    # the N210 when the RX block starts, which dropped the TX gain just set.
     add("usrp_tx", "uhd_usrp_sink", 1400, 600,
         type="fc32", otw="sc16", stream_args="", stream_chans="[]",
-        dev_addr="tx_usrp_address", dev_args='"num_send_frames=512"', sync="none", start_time="-1.0",
+        dev_addr="tx_usrp_address", dev_args='"num_send_frames=512,num_recv_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
         center_freq0="center_freq_hz", gain0="tx_gain_db", gain_type0="default",
@@ -200,7 +209,7 @@ def build(profile):
     # --- RX: N210 -> AGC -> timing -> Costas -> preamble -> trained EQ --
     add("usrp_rx", "uhd_usrp_source", 16, 760,
         type="fc32", otw="sc16", stream_args="", stream_chans="[]",
-        dev_addr="rx_usrp_address", dev_args='"num_recv_frames=512"', sync="none", start_time="-1.0",
+        dev_addr="rx_usrp_address", dev_args='"num_send_frames=512,num_recv_frames=512"', sync="none", start_time="-1.0",
         clock_rate="0e0", num_mboards="1", clock_source0="", time_source0="",
         sd_spec0="", nchan="1", samp_rate="samp_rate",
         center_freq0="center_freq_hz", rx_agc0="Disabled", gain0="rx_gain_db",

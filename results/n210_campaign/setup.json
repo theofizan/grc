@@ -1,0 +1,11 @@
+{
+  "label": "UBX N210 one-radio loopback, two antennas side by side (TX/RX and RX2 ports), 915 MHz",
+  "frequency_hz": 915000000.0,
+  "address": "addr=192.168.10.2",
+  "bits_per_point": 300000,
+  "sweep_tx_gain_db": 0.0,
+  "sweep_rx_gain_db": 10.0,
+  "step_db": 4.0,
+  "date": "2026-11-08 16:50",
+  "duration_s": 313
+}

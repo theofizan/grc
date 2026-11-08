@@ -169,8 +169,81 @@ def ber_validation_section():
     return out
 
 
+def n210_campaign_section():
+    """Over-the-air results from scripts/n210_campaign.py."""
+    import csv
+
+    folder = ROOT / "results/n210_campaign"
+    if not (folder / "summary.csv").exists():
+        return []
+    setup = json.loads((folder / "setup.json").read_text())
+    with (folder / "summary.csv").open() as file:
+        rows = list(csv.DictReader(file))
+    names = {"bpsk": "BPSK", "qpsk": "QPSK", "8psk": "8-PSK", "4ask": "4-ASK",
+             "8ask": "8-ASK", "16qam": "16-QAM"}
+
+    def num(r, key):
+        return float(r[key]) if r.get(key) not in (None, "") else None
+
+    out = [
+        "## Over the air: N210 with two antennas\n",
+        f"**Setup:** {setup['label']}. Center frequency {setup['frequency_hz'] / 1e6:g} MHz, run {setup['date']}. Every point compared {setup['bits_per_point']:,} bits with the actual transmitted data after sync ([scripts/n210_campaign.py](../scripts/n210_campaign.py), same sync-then-count method as run_n210_ber.py; the radio stays open and levels change live). The whole campaign took {setup['duration_s']} s.\n",
+        "### At the flowcharts' default settings\n",
+        "Default settings: TX gain 10 dB, RX gain 10 dB, TX digital level -15 dBFS.\n",
+        "| Format | RX ADC (dBFS) | MER (dB) | Bits | Errors | BER (95% CI) | Losses of sync |",
+        "| --- | ---: | ---: | ---: | ---: | --- | ---: |",
+    ]
+    for r in rows:
+        if r["kind"] != "default":
+            continue
+        if r["synced"] != "True":
+            out.append(f"| {names[r['modulation']]} | — | — | — | — | no sync | — |")
+            continue
+        out.append(f"| {names[r['modulation']]} | {num(r, 'rx_adc_dbfs'):.1f} | {num(r, 'mer_db'):.1f} | "
+                   f"{int(num(r, 'bits')):,} | {int(num(r, 'errors'))} | {num(r, 'ber'):.2e} "
+                   f"({num(r, 'ber_ci_low'):.1e} – {num(r, 'ber_ci_high'):.1e}) | {r['losses_of_sync']} |")
+    out += [
+        "\n### BER and MER against received level\n",
+        f"Gains fixed at TX {setup['sweep_tx_gain_db']:g} dB and RX {setup['sweep_rx_gain_db']:g} dB. The TX digital level was stepped down in {setup['step_db']:g} dB steps from -30 dBFS until a level could not sync. With the RX gain fixed, the ADC level tracks the received power 1:1.\n",
+        "![BER against received level](n210_ber_vs_level.png)\n",
+        "![MER against received level](n210_mer_vs_level.png)\n",
+        "![BER against Eb/N0 estimated from MER](n210_ber_vs_mer.png)\n",
+        "How to read the plots:\n",
+        "- **MER against level:** MER should rise 1 dB per dB of received level until the receiver's own residual floor (about 33 dB on the cable loopback). The grey line marks where that 1:1 region extrapolates to 0 dB MER: the effective noise floor at the ADC.\n",
+        "- **BER against MER:** the over-the-air flowcharts use no differential coding, so the reference is coherent theory for this exact mapping (Gray for PSK/QAM, the stock natural order for ASK). The x-axis is the MER-based Eb/N0 estimate. MER is decision-directed, so it reads optimistic once decisions start failing, which pushes the lowest points to the right of the theory curve.\n",
+    ]
+    out.append("| Format | RX level at BER 1e-3 (dBFS) | RX level at BER 1e-4 (dBFS) | Weakest level that synced (dBFS) | Points |")
+    out.append("| --- | ---: | ---: | ---: | ---: |")
+    for m, label in names.items():
+        sweep = sorted((r for r in rows if r["modulation"] == m and r["kind"] == "sweep"
+                        and r["synced"] == "True"), key=lambda r: -num(r, "rx_adc_dbfs"))
+        if not sweep:
+            out.append(f"| {label} | — | — | — | 0 |")
+            continue
+        levels = [num(r, "rx_adc_dbfs") for r in sweep]
+        bers = [num(r, "ber") for r in sweep]
+
+        def level_at(target):
+            # sweep goes from strong to weak; BER rises; interpolate in log BER
+            for (l0, b0), (l1, b1) in zip(zip(levels, bers), zip(levels[1:], bers[1:])):
+                if b0 <= target <= b1 and b1 > 0:
+                    if b0 <= 0:
+                        return l0
+                    import math
+                    t = (math.log10(target) - math.log10(b0)) / (math.log10(b1) - math.log10(b0))
+                    return l0 + t * (l1 - l0)
+            return None
+
+        a, b = level_at(1e-3), level_at(1e-4)
+        out.append(f"| {label} | {'—' if a is None else f'{a:.1f}'} | {'—' if b is None else f'{b:.1f}'} | "
+                   f"{min(levels):.1f} | {len(sweep)} |")
+    losses = sum(int(r["losses_of_sync"]) for r in rows if r["synced"] == "True")
+    out.append(f"\nLosses of sync across all synced points: {losses}. Each one is a moment where the received bit stream jumped (for example a TX underflow, or a deep fade while something moved near the antennas). Its errors are counted in that point's BER, not hidden. [All points (CSV)](n210_campaign/summary.csv).\n")
+    return out
+
+
 # BER results first: they are what the report is mainly read for.
-text[1:1] = ber_validation_section() + ["## Flowchart validation cases\n"]
+text[1:1] = ber_validation_section() + n210_campaign_section() + ["## Flowchart validation cases\n"]
 canvas_text = ["## Actual GRC canvas exports\n"]
 for profile in profiles:
     canvas_text.append(

@@ -67,9 +67,9 @@ def snipfcn_link_table(self):
         ('BER test', 'Test length', None, 'bits', "f'{10000 * self.ber_test_blocks:,}'"),
         ('', 'Estimated time', None, 's', "f'{self.ber_test_seconds:.2f}'"),
         ('', 'Status', self.probe_ber_test_count, '', 'status'),
-        ('', 'Bits compared', self.probe_ber_test_count, 'bits', 'count'),
-        ('', 'Bit errors', self.probe_ber_test_errors, 'errors', 'count'),
-        ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'ber'),
+        ('', 'Bits compared', self.probe_ber_test_count, 'bits', 'test_count'),
+        ('', 'Bit errors', self.probe_ber_test_errors, 'errors', 'test_errors'),
+        ('', 'BER', self.probe_ber_test_ratio, 'errors/bit', 'test_ber'),
     ]
     table = Qt.QTableWidget(len(rows), 4)
     table.setHorizontalHeaderLabels(["Section", "Quantity", "Value", "Unit"])
@@ -93,8 +93,17 @@ def snipfcn_link_table(self):
     header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)
     header.setStretchLastSection(True)
     test_bits = 10000 * self.ber_test_blocks
+    # BER test totals run since the flowchart started; each test is shown relative
+    # to the totals frozen when it began (zero for the first test).
+    test = dict(base_count=0.0, base_errors=0.0, restarting=False)
+
+    def test_values():
+        count = self.probe_ber_test_count.level() - test["base_count"]
+        errors = self.probe_ber_test_errors.level() - test["base_errors"]
+        return count, errors
 
     def refresh_link_table():
+        count, errors = test_values()
         for row, (section, quantity, probe, unit, fmt) in enumerate(rows):
             if probe is None:
                 continue
@@ -105,10 +114,39 @@ def snipfcn_link_table(self):
                 text = f"{level:,.0f}"
             elif fmt == "ber":
                 text = f"{level:.3e}"
+            elif fmt == "test_count":
+                text = f"{count:,.0f}"
+            elif fmt == "test_errors":
+                text = f"{errors:,.0f}"
+            elif fmt == "test_ber":
+                text = f"{errors / count:.3e}" if count > 0 else ""
+            elif test["restarting"]:
+                text = "restarting"
             else:
-                text = "complete" if level >= test_bits else (
-                    "counting" if level > 0 else "waiting for warm-up")
+                text = "complete" if count >= test_bits else (
+                    "counting" if count > 0 else "waiting for warm-up")
             table.item(row, 2).setText(text)
+
+    def restart_ber_test():
+        # 1) Close the test gate so the running totals freeze.
+        test["restarting"] = True
+        self.set_ber_test_start(1e15)
+        Qt.QTimer.singleShot(500, begin_new_test)
+
+    def begin_new_test():
+        # 2) Frozen totals become the new zero; the new test starts a quarter
+        #    second ahead, so every counted 10,000-bit window is new and the test
+        #    covers exactly ber_test_bits bits.
+        test["base_count"] = self.probe_ber_test_count.level()
+        test["base_errors"] = self.probe_ber_test_errors.level()
+        ahead = max(2, int(0.25 * self.bit_rate / 10000))
+        self.set_ber_test_start(self.probe_ber_test_index.level() + ahead)
+        test["restarting"] = False
+
+    self.restart_ber_test = restart_ber_test
+    self.restart_ber_test_button = Qt.QPushButton("Restart BER test")
+    self.restart_ber_test_button.clicked.connect(restart_ber_test)
+    self.views_grid_layout_3.addWidget(self.restart_ber_test_button, 4, 0, 1, 2)
 
     self.link_table = table
     self.link_table_timer = Qt.QTimer()
@@ -124,7 +162,7 @@ def snippets_main_after_init(tb):
 
 class single_carrier_8ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, reference_delay=102, symbol_rate=1e6, tx_power_dbm=0, path_loss_db=80, rx_noise_dbm=(-100), noise_enabled=1, evm_guide_percent=5, eq_taps=11, eq_step=0.01, channel_echo=0, ber_test_bits=1000000, plot_update_s=0.5):
+    def __init__(self, reference_delay=102, symbol_rate=1e6, tx_power_dbm=0, path_loss_db=80, rx_noise_dbm=(-100), noise_enabled=1, evm_guide_percent=5, eq_taps=11, eq_step=0.01, channel_echo=0, plot_update_s=0.5, ber_test_bits=1000000):
         gr.top_block.__init__(self, "8ASK single carrier | stock blocks", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("8ASK single carrier | stock blocks")
@@ -168,8 +206,8 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.eq_taps = eq_taps
         self.eq_step = eq_step
         self.channel_echo = channel_echo
-        self.ber_test_bits = ber_test_bits
         self.plot_update_s = plot_update_s
+        self.ber_test_bits = ber_test_bits
 
         ##################################################
         # Variables
@@ -199,6 +237,7 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.ebno_rx_db = ebno_rx_db = snr_rx_db+10*math.log10(samp_rate/bit_rate)
         self.ber_window = ber_window = 10000
+        self.ber_test_start = ber_test_start = 0
         self.ber_test_seconds = ber_test_seconds = (warmup_bits + 10000*ber_test_blocks) / bit_rate
         self.ber_error_weight = ber_error_weight = 1.0
 
@@ -768,6 +807,7 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.probe_rx_dbm = blocks.probe_signal_f()
         self.probe_evm_rms = blocks.probe_signal_f()
         self.probe_ber_test_ratio = blocks.probe_signal_f()
+        self.probe_ber_test_index = blocks.probe_signal_f()
         self.probe_ber_test_errors = blocks.probe_signal_f()
         self.probe_ber_test_count = blocks.probe_signal_f()
         self.probe_ber_scale = blocks.probe_signal_f()
@@ -1250,14 +1290,14 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.ber_test_window_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_unit = blocks.add_const_ff(1)
         self.ber_test_sum_10k = blocks.integrate_ff(10000, 1)
+        self.ber_test_started = blocks.threshold_ff((ber_test_start + 0.5), (ber_test_start + 0.5), 0)
         self.ber_test_ratio = blocks.divide_ff(1)
-        self.ber_test_not_done = blocks.multiply_const_ff((-1))
         self.ber_test_index = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
         self.ber_test_gated_errors = blocks.multiply_vff(1)
-        self.ber_test_gate = blocks.add_const_ff(1)
+        self.ber_test_gate = blocks.sub_ff(1)
         self.ber_test_errors = blocks.multiply_const_ff(ber_error_weight)
         self.ber_test_error_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
-        self.ber_test_done = blocks.threshold_ff((ber_test_blocks + 0.5), (ber_test_blocks + 0.5), 0)
+        self.ber_test_done = blocks.threshold_ff((ber_test_start + ber_test_blocks + 0.5), (ber_test_start + ber_test_blocks + 0.5), 0)
         self.ber_test_count = blocks.multiply_const_ff(10000)
         self.ber_scale = blocks.multiply_const_ff((1.0/ber_window))
         self.ber_history = qtgui.time_sink_f(
@@ -1514,7 +1554,7 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.ber_scale, 0), (self.probe_ber_scale, 0))
         self.connect((self.ber_test_count, 0), (self.ber_test_ratio, 1))
         self.connect((self.ber_test_count, 0), (self.probe_ber_test_count, 0))
-        self.connect((self.ber_test_done, 0), (self.ber_test_not_done, 0))
+        self.connect((self.ber_test_done, 0), (self.ber_test_gate, 1))
         self.connect((self.ber_test_error_sum, 0), (self.ber_test_errors, 0))
         self.connect((self.ber_test_errors, 0), (self.ber_test_ratio, 0))
         self.connect((self.ber_test_errors, 0), (self.probe_ber_test_errors, 0))
@@ -1522,8 +1562,10 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.connect((self.ber_test_gate, 0), (self.ber_test_window_sum, 0))
         self.connect((self.ber_test_gated_errors, 0), (self.ber_test_error_sum, 0))
         self.connect((self.ber_test_index, 0), (self.ber_test_done, 0))
-        self.connect((self.ber_test_not_done, 0), (self.ber_test_gate, 0))
+        self.connect((self.ber_test_index, 0), (self.ber_test_started, 0))
+        self.connect((self.ber_test_index, 0), (self.probe_ber_test_index, 0))
         self.connect((self.ber_test_ratio, 0), (self.probe_ber_test_ratio, 0))
+        self.connect((self.ber_test_started, 0), (self.ber_test_gate, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_gated_errors, 0))
         self.connect((self.ber_test_sum_10k, 0), (self.ber_test_zero, 0))
         self.connect((self.ber_test_unit, 0), (self.ber_test_index, 0))
@@ -1711,13 +1753,6 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.channel_echo = channel_echo
         self.channel.set_taps([self.path_gain/(1+self.channel_echo**2)**0.5]+[0j]*(self.sps-1)+[self.path_gain*self.channel_echo/(1+self.channel_echo**2)**0.5])
 
-    def get_ber_test_bits(self):
-        return self.ber_test_bits
-
-    def set_ber_test_bits(self, ber_test_bits):
-        self.ber_test_bits = ber_test_bits
-        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
-
     def get_plot_update_s(self):
         return self.plot_update_s
 
@@ -1747,6 +1782,13 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.eq_error_trace.set_update_time(self.plot_update_s)
         self.eq_tap_plot.set_update_time(self.plot_update_s)
         self.rf_constellation.set_update_time(self.plot_update_s)
+
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
+
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
 
     def get_const(self):
         return self.const
@@ -1856,8 +1898,8 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
     def set_ber_test_blocks(self, ber_test_blocks):
         self.ber_test_blocks = ber_test_blocks
         self.set_ber_test_seconds((self.warmup_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
-        self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_hi((self.ber_test_start + self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_lo((self.ber_test_start + self.ber_test_blocks + 0.5))
 
     def get_alpha(self):
         return self.alpha
@@ -1951,6 +1993,16 @@ class single_carrier_8ask(gr.top_block, Qt.QWidget):
         self.ber_scale.set_k((1.0/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
 
+    def get_ber_test_start(self):
+        return self.ber_test_start
+
+    def set_ber_test_start(self, ber_test_start):
+        self.ber_test_start = ber_test_start
+        self.ber_test_started.set_hi((self.ber_test_start + 0.5))
+        self.ber_test_started.set_lo((self.ber_test_start + 0.5))
+        self.ber_test_done.set_hi((self.ber_test_start + self.ber_test_blocks + 0.5))
+        self.ber_test_done.set_lo((self.ber_test_start + self.ber_test_blocks + 0.5))
+
     def get_ber_test_seconds(self):
         return self.ber_test_seconds
 
@@ -1999,11 +2051,11 @@ def argument_parser():
         "--channel-echo", dest="channel_echo", type=eng_float, default=eng_notation.num_to_str(float(0)),
         help="Set One-symbol echo voltage ratio [default=%(default)r]")
     parser.add_argument(
-        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
-        help="Set BER test length (compared bits) [default=%(default)r]")
-    parser.add_argument(
         "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
         help="Set Plot refresh interval (s) [default=%(default)r]")
+    parser.add_argument(
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
     return parser
 
 
@@ -2013,7 +2065,7 @@ def main(top_block_cls=single_carrier_8ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(reference_delay=options.reference_delay, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, rx_noise_dbm=options.rx_noise_dbm, noise_enabled=options.noise_enabled, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, channel_echo=options.channel_echo, ber_test_bits=options.ber_test_bits, plot_update_s=options.plot_update_s)
+    tb = top_block_cls(reference_delay=options.reference_delay, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, rx_noise_dbm=options.rx_noise_dbm, noise_enabled=options.noise_enabled, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, channel_echo=options.channel_echo, plot_update_s=options.plot_update_s, ber_test_bits=options.ber_test_bits)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

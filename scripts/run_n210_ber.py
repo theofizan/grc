@@ -114,10 +114,11 @@ def main():
     name = f"n210_{args.modulation}"
     module = importlib.import_module(name)
     settings = dict(tx_usrp_address=args.tx_address, rx_usrp_address=args.rx_address,
-                    center_freq_hz=args.freq, tx_level_dbfs=args.tx_level_dbfs)
+                    center_freq_hz=args.freq)
 
     def make():
         lab = getattr(module, name)(**settings)
+        lab.set_tx_level_dbfs(args.tx_level_dbfs)
         lab.set_tx_gain_db(args.tx_gain_db)
         lab.set_rx_gain_db(args.rx_gain_db)
         return lab
@@ -144,6 +145,7 @@ def main():
         sps, fs = int(lab_for_rates.sps), float(lab_for_rates.samp_rate)
         tx_capture = blocks.vector_sink_c()
         lab = loop.build(args.modulation, tx_capture, blocks.null_source(gr.sizeof_gr_complex))
+        lab.set_tx_level_dbfs(args.tx_level_dbfs)
         # Margin for the channel delay and filter latency of the playback.
         samples = (total_bits + 200_000) // k * sps + 50_000
         loop.run_until(lab, lambda: len(tx_capture.data()) >= samples, 600)

@@ -158,6 +158,50 @@ Expected physics, all visible above:
 
 [All points (CSV)](ber_tests/ber_validation.csv), [summary (JSON)](ber_tests/summary.json).
 
+## Over the air: N210 with two antennas
+
+**Setup:** UBX N210 one-radio loopback, two antennas side by side (TX/RX and RX2 ports), 915 MHz. Center frequency 915 MHz, run 2026-11-08 16:50. Every point compared 300,000 bits with the actual transmitted data after sync ([scripts/n210_campaign.py](../scripts/n210_campaign.py), same sync-then-count method as run_n210_ber.py; the radio stays open and levels change live). The whole campaign took 313 s.
+
+### At the flowcharts' default settings
+
+Default settings: TX gain 10 dB, RX gain 10 dB, TX digital level -15 dBFS.
+
+| Format | RX ADC (dBFS) | MER (dB) | Bits | Errors | BER (95% CI) | Losses of sync |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| BPSK | -14.7 | 32.3 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+| QPSK | -14.7 | 33.4 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+| 8-PSK | -14.5 | 34.8 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+| 4-ASK | -14.7 | 31.4 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+| 8-ASK | -14.7 | 30.7 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+| 16-QAM | -14.6 | 28.3 | 300,000 | 0 | 0.00e+00 (0.0e+00 – 1.2e-05) | 0 |
+
+### BER and MER against received level
+
+Gains fixed at TX 0 dB and RX 10 dB. The TX digital level was stepped down in 4 dB steps from -30 dBFS until a level could not sync. With the RX gain fixed, the ADC level tracks the received power 1:1.
+
+![BER against received level](n210_ber_vs_level.png)
+
+![MER against received level](n210_mer_vs_level.png)
+
+![BER against Eb/N0 estimated from MER](n210_ber_vs_mer.png)
+
+How to read the plots:
+
+- **MER against level:** MER should rise 1 dB per dB of received level until the receiver's own residual floor (about 33 dB on the cable loopback). The grey line marks where that 1:1 region extrapolates to 0 dB MER: the effective noise floor at the ADC.
+
+- **BER against MER:** the over-the-air flowcharts use no differential coding, so the reference is coherent theory for this exact mapping (Gray for PSK/QAM, the stock natural order for ASK). The x-axis is the MER-based Eb/N0 estimate. MER is decision-directed, so it reads optimistic once decisions start failing, which pushes the lowest points to the right of the theory curve.
+
+| Format | RX level at BER 1e-3 (dBFS) | RX level at BER 1e-4 (dBFS) | Weakest level that synced (dBFS) | Points |
+| --- | ---: | ---: | ---: | ---: |
+| BPSK | -60.6 | -58.9 | -61.7 | 7 |
+| QPSK | -58.0 | -56.4 | -58.2 | 6 |
+| 8-PSK | -53.7 | -51.8 | -55.0 | 5 |
+| 4-ASK | -54.8 | -53.0 | -55.3 | 5 |
+| 8-ASK | -48.7 | -46.3 | -51.4 | 4 |
+| 16-QAM | — | -47.6 | -51.4 | 4 |
+
+Losses of sync across all synced points: 0. Each one is a moment where the received bit stream jumped (for example a TX underflow, or a deep fade while something moved near the antennas). Its errors are counted in that point's BER, not hidden. [All points (CSV)](n210_campaign/summary.csv).
+
 ## Flowchart validation cases
 
 Baseline: **1 Msymbol/s, four samples/symbol, 4 Msamples/s**. Six flat flowcharts containing only installed GNU Radio blocks. These are software simulations with zero carrier offset and no sample-rate mismatch.

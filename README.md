@@ -374,6 +374,30 @@ How it works, all with stock blocks:
 
 For a saved record of each antenna run (95% confidence interval, RX level, MER, settings), use `run_n210_ber.py` above. It compares directly against the transmitted data.
 
+### Controls added for hardware testing
+
+- **TX digital level (dBFS RMS)** slider, −40 to 0 dBFS, under the RF levels table. It sets the TX Multiply Const live. Keep the Transmit table's *Sampled peak* below 0 dBFS (DAC clipping).
+- **Restart BER test** button, under the slider. It starts a fresh `ber_test_bits` test without stopping the radios:
+  1. It closes the test gate so the running totals freeze.
+  2. Half a second later, those totals become the new zero.
+  3. The new test starts a quarter second ahead, so it counts exactly `ber_test_bits` new bits.
+  The table shows *restarting*, then *counting*, then *complete*. This was checked against an independent error count (3 and 4 errors in two consecutive 100,000-bit tests, both exact).
+- TX and RX UHD blocks use the identical device-argument string. With one radio, UHD then shares one connection; different strings re-opened the N210 and dropped the TX gain that had just been set.
+
+### Quick over-the-air campaign
+
+```bash
+python scripts/n210_campaign.py --label "two antennas side by side"
+```
+
+How it runs:
+- **Radio stays open:** each format's flowchart is opened once, and the TX level and gains are changed live.
+- **Default point:** it measures the defaults (10/10 dB gains, −15 dBFS).
+- **Sweep:** fixed gains (TX 0 dB, RX 10 dB), with the TX level stepped down 4 dB at a time from −30 dBFS until a level cannot sync.
+- **Each point:** 300,000 bits compared with the actual data after sync.
+
+All six formats take about 5 minutes. The results are in `results/n210_campaign/`, and `plot_n210_campaign.py` plus `write_report.py` put them in the report: BER and MER against received level, and BER against the MER-based Eb/N₀ estimate next to theory.
+
 ### Hardware loopback results (one N210, UBX, 20 dB pad)
 
 A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2 port, at 915 MHz. TX level −15 dBFS RMS, TX and RX gain 0.3 normalized (about 9.5 dB; the sliders are now in dB, default 10 dB). Each run compared 1,000,000 bits after sync with the actual transmitted data ([run files](results/n210_runs/)):

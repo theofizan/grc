@@ -45,7 +45,7 @@ CONTROL_GROUPS = [
      "carrier_loop_bw", "settle_s", "data_period_bits", "tx_data", "training_symbols",
      "preamble_len", "eq_training_len"],
     # BER test and display
-    ["ber_test_bits", "ber_test_blocks", "ber_test_seconds", "ber_error_weight",
+    ["ber_test_bits", "ber_test_blocks", "ber_test_start", "ber_test_seconds", "ber_error_weight",
      "plot_update_s", "link_table"],
 ]
 # Section order, banner name, banner title, and blocks that identify a chain.
