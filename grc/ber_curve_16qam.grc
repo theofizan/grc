@@ -71,7 +71,7 @@ blocks:
     value: '4'
   states:
     coordinate:
-    - 1240
+    - 1344
     - 56
     rotation: 0
     state: enabled
@@ -115,7 +115,7 @@ blocks:
     value: symbol_rate*sps
   states:
     coordinate:
-    - 1288
+    - 1392
     - 56
     rotation: 0
     state: enabled
@@ -131,7 +131,7 @@ blocks:
     value: 1e6
   states:
     coordinate:
-    - 1120
+    - 1224
     - 56
     rotation: 0
     state: enabled
@@ -142,7 +142,7 @@ blocks:
     value: symbol_rate*k
   states:
     coordinate:
-    - 1400
+    - 1504
     - 56
     rotation: 0
     state: enabled
@@ -266,7 +266,7 @@ blocks:
     value: '0'
   states:
     coordinate:
-    - 640
+    - 744
     - 56
     rotation: 0
     state: enabled
@@ -277,7 +277,7 @@ blocks:
     value: 10**(tx_power_dbm/20.0)
   states:
     coordinate:
-    - 760
+    - 864
     - 56
     rotation: 0
     state: enabled
@@ -293,7 +293,7 @@ blocks:
     value: '0'
   states:
     coordinate:
-    - 880
+    - 984
     - 56
     rotation: 0
     state: enabled
@@ -304,7 +304,7 @@ blocks:
     value: 10**(-path_loss_db/20.0)
   states:
     coordinate:
-    - 1000
+    - 1104
     - 56
     rotation: 0
     state: enabled
@@ -338,7 +338,7 @@ blocks:
     value: list(tx_amplitude*path_gain*10**(-(numpy.array(ebno_db) - 10*math.log10(samp_rate/bit_rate))/20))
   states:
     coordinate:
-    - 456
+    - 560
     - 56
     rotation: 0
     state: enabled
@@ -367,6 +367,20 @@ blocks:
   states:
     coordinate:
     - 224
+    - 56
+    rotation: 0
+    state: enabled
+- name: plot_update_s
+  id: parameter
+  parameters:
+    value: '0.5'
+    type: eng_float
+    label: Plot refresh interval (s)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 456
     - 56
     rotation: 0
     state: enabled
@@ -2124,7 +2138,7 @@ blocks:
     curvenames: '[]'
     ymin: '-7'
     ymax: '0'
-    update_time: '0.25'
+    update_time: plot_update_s
     gui_hint: ''
     label1: '"16-QAM measured"'
     width1: '2'

@@ -28,10 +28,11 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 12]
+    coordinate:
+    - 2480
+    - 8
     rotation: 0
     state: enabled
-
 blocks:
 - name: alpha
   id: variable
@@ -42,43 +43,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 88]
-    rotation: 0
-    state: enabled
-- name: ber_error_weight
-  id: variable
-  parameters:
-    comment: ''
-    value: '1.0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1700, 332]
-    rotation: 0
-    state: enabled
-- name: ber_test_blocks
-  id: variable
-  parameters:
-    comment: ''
-    value: max(1, int(ber_test_bits) // 10000)
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1700, 192]
-    rotation: 0
-    state: enabled
-- name: ber_test_seconds
-  id: variable
-  parameters:
-    comment: ''
-    value: (warmup_bits + 10000*ber_test_blocks) / bit_rate
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1700, 402]
+    coordinate:
+    - 400
+    - 56
     rotation: 0
     state: enabled
 - name: ber_window
@@ -90,7 +57,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [272, 288]
+    coordinate:
+    - 688
+    - 128
     rotation: 0
     state: enabled
 - name: bit_rate
@@ -102,7 +71,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [440, 88]
+    coordinate:
+    - 296
+    - 56
     rotation: 0
     state: enabled
 - name: const
@@ -122,7 +93,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 360]
+    coordinate:
+    - 1280
+    - 128
     rotation: 0
     state: enabled
 - name: ebno_rx_db
@@ -134,7 +107,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [952, 232]
+    coordinate:
+    - 168
+    - 128
     rotation: 0
     state: enabled
 - name: eq_algorithm
@@ -151,7 +126,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 360]
+    coordinate:
+    - 1400
+    - 128
     rotation: 0
     state: enabled
 - name: eq_delay_symbols
@@ -163,7 +140,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 288]
+    coordinate:
+    - 832
+    - 128
     rotation: 0
     state: enabled
 - name: esno_rx_db
@@ -175,7 +154,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [800, 232]
+    coordinate:
+    - 16
+    - 128
     rotation: 0
     state: enabled
 - name: expected_rx_dbm
@@ -187,7 +168,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 232]
+    coordinate:
+    - 1952
+    - 56
     rotation: 0
     state: enabled
 - name: eye_synthesis_taps
@@ -199,7 +182,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [904, 88]
+    coordinate:
+    - 760
+    - 56
     rotation: 0
     state: enabled
 - name: k
@@ -211,7 +196,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1096, 232]
+    coordinate:
+    - 312
+    - 128
     rotation: 0
     state: enabled
 - name: nfilts
@@ -223,7 +210,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 88]
+    coordinate:
+    - 464
+    - 56
     rotation: 0
     state: enabled
 - name: noise_volt
@@ -235,7 +224,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [552, 232]
+    coordinate:
+    - 2088
+    - 56
     rotation: 0
     state: enabled
 - name: path_gain
@@ -247,7 +238,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 232]
+    coordinate:
+    - 1800
+    - 56
     rotation: 0
     state: enabled
 - name: rrc_bandwidth
@@ -259,7 +252,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1088, 88]
+    coordinate:
+    - 944
+    - 56
     rotation: 0
     state: enabled
 - name: rrc_taps
@@ -271,7 +266,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [728, 88]
+    coordinate:
+    - 584
+    - 56
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -283,7 +280,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [328, 88]
+    coordinate:
+    - 184
+    - 56
     rotation: 0
     state: enabled
 - name: snr_rx_db
@@ -295,7 +294,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [680, 232]
+    coordinate:
+    - 2216
+    - 56
     rotation: 0
     state: enabled
 - name: sps
@@ -307,7 +308,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 88]
+    coordinate:
+    - 136
+    - 56
     rotation: 0
     state: enabled
 - name: symbol_rms
@@ -319,7 +322,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1216, 232]
+    coordinate:
+    - 432
+    - 128
     rotation: 0
     state: enabled
 - name: timing_bw
@@ -331,7 +336,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [664, 88]
+    coordinate:
+    - 520
+    - 56
     rotation: 0
     state: enabled
 - name: tx_amplitude
@@ -343,7 +350,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 232]
+    coordinate:
+    - 1680
+    - 56
     rotation: 0
     state: enabled
 - name: warmup_bits
@@ -355,7 +364,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [344, 288]
+    coordinate:
+    - 760
+    - 128
     rotation: 0
     state: enabled
 - name: adaptive_tap_vectors_link
@@ -368,7 +379,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1312, 776]
+    coordinate:
+    - 1648
+    - 544
     rotation: 0
     state: enabled
 - name: after_eye_reconstruction
@@ -387,7 +400,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [180, 4044]
+    coordinate:
+    - 824
+    - 2584
     rotation: 0
     state: enabled
 - name: after_i
@@ -403,7 +418,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [420, 4044]
+    coordinate:
+    - 1040
+    - 2640
     rotation: 0
     state: enabled
 - name: after_i_eye
@@ -480,7 +497,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -499,7 +516,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 4044]
+    coordinate:
+    - 1168
+    - 2664
     rotation: 0
     state: enabled
 - name: after_input
@@ -512,7 +531,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4044]
+    coordinate:
+    - 688
+    - 2584
     rotation: 0
     state: enabled
 - name: after_q
@@ -528,7 +549,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 4044]
+    coordinate:
+    - 1040
+    - 2584
     rotation: 0
     state: enabled
 - name: after_q_eye
@@ -605,7 +628,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -624,7 +647,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1060, 4044]
+    coordinate:
+    - 1168
+    - 2584
     rotation: 0
     state: enabled
 - name: before_eq_constellation
@@ -697,7 +722,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: complex
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -716,7 +741,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 3624]
+    coordinate:
+    - 168
+    - 2408
     rotation: 0
     state: enabled
 - name: before_eq_input
@@ -729,7 +756,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3624]
+    coordinate:
+    - 16
+    - 2408
     rotation: 0
     state: enabled
 - name: ber_display
@@ -787,12 +816,14 @@ blocks:
     unit7: ''
     unit8: ''
     unit9: ''
-    update_time: '0.10'
+    update_time: plot_update_s
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1240, 1004]
+    coordinate:
+    - 1120
+    - 736
     rotation: 0
     state: enabled
 - name: ber_history
@@ -870,7 +901,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -889,7 +920,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 1512.0]
+    coordinate:
+    - 1664
+    - 1720
     rotation: 0
     state: enabled
 - name: ber_link
@@ -902,7 +935,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1240, 1100.0]
+    coordinate:
+    - 1120
+    - 888
     rotation: 0
     state: enabled
 - name: ber_plot_input
@@ -915,7 +950,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [730, 1524]
+    coordinate:
+    - 1528
+    - 1720
     rotation: 0
     state: enabled
 - name: ber_scale
@@ -933,287 +970,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1070, 1004]
-    rotation: 0
-    state: enabled
-- name: ber_test_bits
-  id: parameter
-  parameters:
-    alias: ''
-    comment: ''
-    hide: none
-    label: BER test length (compared bits)
-    short_id: ''
-    type: intx
-    value: '1000000'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1700, 8]
-    rotation: 0
-    state: enabled
-- name: ber_test_count
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '10000'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2500, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_done
-  id: blocks_threshold_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    high: ber_test_blocks + 0.5
-    init: '0'
-    low: ber_test_blocks + 0.5
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1820, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_error_sum
-  id: iir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    fbtaps: '[0.0, 1.0]'
-    fftaps: '[1.0]'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    oldstyle: 'True'
-    type: ffd
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1650, 2524]
-    rotation: 0
-    state: enabled
-- name: ber_test_errors
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: ber_error_weight
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1820, 2524]
-    rotation: 0
-    state: enabled
-- name: ber_test_gate
-  id: blocks_add_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2160, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_gated_errors
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1480, 2524]
-    rotation: 0
-    state: enabled
-- name: ber_test_index
-  id: iir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    fbtaps: '[0.0, 1.0]'
-    fftaps: '[1.0]'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    oldstyle: 'True'
-    type: ffd
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1650, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_not_done
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '-1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1990, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_ratio
-  id: blocks_divide_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1990, 2524]
-    rotation: 0
-    state: enabled
-- name: ber_test_sum_10k
-  id: blocks_integrate_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    decim: '10000'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1140, 2524]
-    rotation: 0
-    state: enabled
-- name: ber_test_unit
-  id: blocks_add_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1480, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_window_sum
-  id: iir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    fbtaps: '[0.0, 1.0]'
-    fftaps: '[1.0]'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    oldstyle: 'True'
-    type: ffd
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2330, 2624]
-    rotation: 0
-    state: enabled
-- name: ber_test_zero
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1310, 2624]
-    rotation: 0
-    state: enabled
-- name: bit_errors_link
-  id: virtual_sink
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: bit_errors
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [760, 1074]
-    rotation: 0
-    state: enabled
-- name: bit_errors_to_ber_test
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: bit_errors
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [980, 2524]
+    coordinate:
+    - 952
+    - 736
     rotation: 0
     state: enabled
 - name: channel
@@ -1234,7 +993,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 584]
+    coordinate:
+    - 712
+    - 432
     rotation: 0
     state: enabled
 - name: channel_echo
@@ -1251,7 +1012,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 160]
+    coordinate:
+    - 1560
+    - 56
     rotation: 0
     state: enabled
 - name: chart_math
@@ -1266,7 +1029,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [432, 360]
+    coordinate:
+    - 1552
+    - 128
     rotation: 0
     state: enabled
 - name: clock_sync
@@ -1289,7 +1054,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 584]
+    coordinate:
+    - 1128
+    - 432
     rotation: 0
     state: enabled
 - name: constellation
@@ -1362,7 +1129,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: complex
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -1381,7 +1148,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 1324]
+    coordinate:
+    - 160
+    - 1720
     rotation: 0
     state: enabled
 - name: constellation_reference_1
@@ -1394,7 +1163,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1394]
+    coordinate:
+    - 16
+    - 1720
     rotation: 0
     state: enabled
 - name: constellation_reference_2
@@ -1407,7 +1178,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1464]
+    coordinate:
+    - 16
+    - 1832
     rotation: 0
     state: enabled
 - name: decoded_link
@@ -1420,7 +1193,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1632, 584]
+    coordinate:
+    - 1832
+    - 432
     rotation: 0
     state: enabled
 - name: decoded_source
@@ -1433,7 +1208,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 954]
+    coordinate:
+    - 16
+    - 736
     rotation: 0
     state: enabled
 - name: decoder
@@ -1449,7 +1226,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1464, 584]
+    coordinate:
+    - 1648
+    - 432
     rotation: 0
     state: enabled
 - name: delay
@@ -1469,7 +1248,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [330, 1094]
+    coordinate:
+    - 280
+    - 792
     rotation: 0
     state: enabled
 - name: diff_decoder
@@ -1486,7 +1267,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [152, 952.0]
+    coordinate:
+    - 144
+    - 736
     rotation: 0
     state: enabled
 - name: eq_error_trace
@@ -1564,7 +1347,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -1583,7 +1366,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 4864]
+    coordinate:
+    - 800
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_error_trace_input
@@ -1596,7 +1381,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4864]
+    coordinate:
+    - 640
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_evm_history
@@ -1674,7 +1461,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -1693,7 +1480,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [800, 4484]
+    coordinate:
+    - 456
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_step
@@ -1710,7 +1499,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [624, 288]
+    coordinate:
+    - 1040
+    - 128
     rotation: 0
     state: enabled
 - name: eq_tap_decimator
@@ -1728,7 +1519,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [780, 4864]
+    coordinate:
+    - 1144
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_tap_decimator_input
@@ -1741,7 +1534,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 4864]
+    coordinate:
+    - 984
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_tap_magnitudes
@@ -1757,7 +1552,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1010, 4864]
+    coordinate:
+    - 1296
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_tap_plot
@@ -1807,7 +1604,7 @@ blocks:
     nconnections: '1'
     ref_level: '0'
     showports: 'False'
-    update_time: '0.10'
+    update_time: plot_update_s
     vlen: eq_taps
     width1: '1'
     width10: '1'
@@ -1831,7 +1628,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1210, 4864]
+    coordinate:
+    - 1448
+    - 2848
     rotation: 0
     state: enabled
 - name: eq_taps
@@ -1848,7 +1647,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 288]
+    coordinate:
+    - 928
+    - 128
     rotation: 0
     state: enabled
 - name: equalizer
@@ -1869,7 +1670,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1312, 584]
+    coordinate:
+    - 1480
+    - 432
     rotation: 0
     state: enabled
 - name: equalizer_initial_taps
@@ -1884,7 +1687,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [752, 360]
+    coordinate:
+    - 1872
+    - 128
     rotation: 0
     state: enabled
 - name: errors_float
@@ -1899,7 +1704,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [760, 1004]
+    coordinate:
+    - 672
+    - 736
     rotation: 0
     state: enabled
 - name: evm
@@ -1916,7 +1723,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 1524]
+    coordinate:
+    - 1056
+    - 1720
     rotation: 0
     state: enabled
 - name: evm_circles
@@ -1930,14 +1739,16 @@ blocks:
     repeat: 'True'
     tags: '[]'
     type: complex
-    vector: '[p+symbol_rms*evm_guide_percent/100*complex(math.cos(t),math.sin(t))
-      for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)]'
+    vector: '[p+symbol_rms*evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t
+      in numpy.linspace(0,2*math.pi,64,endpoint=False)]'
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [420, 3264]
+    coordinate:
+    - 1232
+    - 2136
     rotation: 0
     state: enabled
 - name: evm_circles_link
@@ -1950,7 +1761,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [620, 3344]
+    coordinate:
+    - 1472
+    - 2136
     rotation: 0
     state: enabled
 - name: evm_display
@@ -2008,12 +1821,14 @@ blocks:
     unit7: ''
     unit8: ''
     unit9: ''
-    update_time: '0.10'
+    update_time: plot_update_s
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 1504.0]
+    coordinate:
+    - 1344
+    - 1720
     rotation: 0
     state: enabled
 - name: evm_guide_percent
@@ -2030,7 +1845,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [744, 288]
+    coordinate:
+    - 1160
+    - 128
     rotation: 0
     state: enabled
 - name: evm_history
@@ -2108,7 +1925,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -2127,7 +1944,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1256, 1512.0]
+    coordinate:
+    - 2000
+    - 1720
     rotation: 0
     state: enabled
 - name: evm_input
@@ -2140,7 +1959,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1524]
+    coordinate:
+    - 920
+    - 1720
     rotation: 0
     state: enabled
 - name: evm_link
@@ -2153,7 +1974,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 1620.0]
+    coordinate:
+    - 1344
+    - 1872
     rotation: 0
     state: enabled
 - name: evm_meter_history_input
@@ -2166,7 +1989,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 4484]
+    coordinate:
+    - 312
+    - 2848
     rotation: 0
     state: enabled
 - name: evm_per_symbol_link
@@ -2179,7 +2004,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 1634]
+    coordinate:
+    - 1184
+    - 1776
     rotation: 0
     state: enabled
 - name: evm_plot_input
@@ -2192,7 +2019,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1090, 1524]
+    coordinate:
+    - 1856
+    - 1720
     rotation: 0
     state: enabled
 - name: evm_rms
@@ -2209,7 +2038,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [340, 1524]
+    coordinate:
+    - 1184
+    - 1720
     rotation: 0
     state: enabled
 - name: eye
@@ -2286,7 +2117,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -2305,7 +2136,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [300, 1714]
+    coordinate:
+    - 256
+    - 1952
     rotation: 0
     state: enabled
 - name: eye_i
@@ -2321,7 +2154,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 1714]
+    coordinate:
+    - 128
+    - 1952
     rotation: 0
     state: enabled
 - name: eye_input
@@ -2334,7 +2169,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1714]
+    coordinate:
+    - 16
+    - 1952
     rotation: 0
     state: enabled
 - name: eye_q
@@ -2350,7 +2187,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [620, 1714]
+    coordinate:
+    - 544
+    - 1952
     rotation: 0
     state: enabled
 - name: eye_q_input
@@ -2363,7 +2202,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [480, 1714]
+    coordinate:
+    - 432
+    - 1952
     rotation: 0
     state: enabled
 - name: eye_quadrature
@@ -2440,7 +2281,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -2459,7 +2300,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [760, 1714]
+    coordinate:
+    - 672
+    - 1952
     rotation: 0
     state: enabled
 - name: ideal_symbols
@@ -2479,7 +2322,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3264]
+    coordinate:
+    - 872
+    - 2136
     rotation: 0
     state: enabled
 - name: ideal_symbols_link
@@ -2492,7 +2337,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 3344]
+    coordinate:
+    - 1072
+    - 2136
     rotation: 0
     state: enabled
 - name: integrate
@@ -2510,57 +2357,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [910, 1004]
-    rotation: 0
-    state: enabled
-- name: link_table
-  id: snippet
-  parameters:
-    alias: ''
-    code: "# Link budget and BER test as a spreadsheet-style table (display only).\n\
-      # Values come from stock Probe Signal blocks; edit rows here to change it.\n\
-      rows = [\n    ('Transmit', 'Average power', self.probe_tx_dbm, 'dBm', 'dB'),\n\
-      \    ('', 'Sampled peak power', self.probe_tx_peak_dbm, 'dBm', 'dB'),\n    ('',\
-      \ 'Peak / average', self.probe_tx_papr, 'dB', 'dB'),\n    ('Receive', 'Signal\
-      \ + noise power', self.probe_rx_dbm, 'dBm', 'dB'),\n    ('', 'SNR (noise over\
-      \ Fs)', self.probe_rx_snr, 'dB', 'dB'),\n    ('', 'Eb/N0 per uncoded bit', self.probe_rx_ebno,\
-      \ 'dB', 'dB'),\n    ('', 'EVM (decision-directed)', self.probe_evm_rms, '%',\
-      \ 'dB'),\n    ('BER', 'Latest 10,000 bits', self.probe_ber_scale, 'errors/bit',\
-      \ 'ber'),\n    ('BER test', 'Test length', None, 'bits', \"f'{10000 * self.ber_test_blocks:,}'\"\
-      ),\n    ('', 'Estimated time', None, 's', \"f'{self.ber_test_seconds:.2f}'\"\
-      ),\n    ('', 'Status', self.probe_ber_test_count, '', 'status'),\n    ('', 'Bits\
-      \ compared', self.probe_ber_test_count, 'bits', 'count'),\n    ('', 'Bit errors',\
-      \ self.probe_ber_test_errors, 'errors', 'count'),\n    ('', 'BER', self.probe_ber_test_ratio,\
-      \ 'errors/bit', 'ber'),\n]\ntable = Qt.QTableWidget(len(rows), 4)\ntable.setHorizontalHeaderLabels([\"\
-      Section\", \"Quantity\", \"Value\", \"Unit\"])\ntable.verticalHeader().setVisible(False)\n\
-      table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)\ntable.setSelectionMode(Qt.QAbstractItemView.NoSelection)\n\
-      table.setAlternatingRowColors(True)\ntable.setShowGrid(True)\nbold = Qt.QFont(table.font())\n\
-      bold.setBold(True)\nfor row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n\
-      \    for column, text in ((0, section), (1, quantity), (3, unit)):\n       \
-      \ item = Qt.QTableWidgetItem(text)\n        if column == 0:\n            item.setFont(bold)\n\
-      \        table.setItem(row, column, item)\n    value = Qt.QTableWidgetItem(\"\
-      \" if probe else str(eval(fmt)))\n    value.setTextAlignment(Qt.Qt.AlignRight\
-      \ | Qt.Qt.AlignVCenter)\n    table.setItem(row, 2, value)\nheader = table.horizontalHeader()\n\
-      header.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)\nheader.setStretchLastSection(True)\n\
-      test_bits = 10000 * self.ber_test_blocks\n\ndef refresh_link_table():\n    for\
-      \ row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n        if\
-      \ probe is None:\n            continue\n        level = probe.level()\n    \
-      \    if fmt == \"dB\":\n            text = f\"{level:.2f}\"\n        elif fmt\
-      \ == \"count\":\n            text = f\"{level:,.0f}\"\n        elif fmt == \"\
-      ber\":\n            text = f\"{level:.3e}\"\n        else:\n            text\
-      \ = \"complete\" if level >= test_bits else (\n                \"counting\"\
-      \ if level > 0 else \"waiting for warm-up\")\n        table.item(row, 2).setText(text)\n\
-      \nself.link_table = table\nself.link_table_timer = Qt.QTimer()\nself.link_table_timer.timeout.connect(refresh_link_table)\n\
-      self.link_table_timer.start(250)\nself.views_grid_layout_3.addWidget(table,\
-      \ 1, 0, 2, 1)\n"
-    comment: ''
-    priority: '1'
-    section: main_after_init
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1700, 492]
+    coordinate:
+    - 792
+    - 736
     rotation: 0
     state: enabled
 - name: middle_eye_reconstruction
@@ -2579,7 +2378,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [180, 3864]
+    coordinate:
+    - 168
+    - 2584
     rotation: 0
     state: enabled
 - name: middle_i
@@ -2595,7 +2396,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [420, 3864]
+    coordinate:
+    - 384
+    - 2640
     rotation: 0
     state: enabled
 - name: middle_i_eye
@@ -2672,7 +2475,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -2691,7 +2494,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 3864]
+    coordinate:
+    - 512
+    - 2664
     rotation: 0
     state: enabled
 - name: middle_input
@@ -2704,7 +2509,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3864]
+    coordinate:
+    - 16
+    - 2584
     rotation: 0
     state: enabled
 - name: middle_q
@@ -2720,7 +2527,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 3864]
+    coordinate:
+    - 384
+    - 2584
     rotation: 0
     state: enabled
 - name: middle_q_eye
@@ -2797,7 +2606,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -2816,7 +2625,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1060, 3864]
+    coordinate:
+    - 512
+    - 2584
     rotation: 0
     state: enabled
 - name: modulator
@@ -2838,7 +2649,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [144, 584]
+    coordinate:
+    - 160
+    - 432
     rotation: 0
     state: enabled
 - name: noise_enabled
@@ -2855,7 +2668,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [520, 160]
+    coordinate:
+    - 1448
+    - 56
     rotation: 0
     state: enabled
 - name: path_loss_db
@@ -2872,7 +2687,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 160]
+    coordinate:
+    - 1208
+    - 56
     rotation: 0
     state: enabled
 - name: peak_input
@@ -2885,7 +2702,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2454]
+    coordinate:
+    - 200
+    - 1368
     rotation: 0
     state: enabled
 - name: pre_eq_link
@@ -2898,161 +2717,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 684]
-    rotation: 0
-    state: enabled
-- name: probe_ber_scale
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1110, 1094]
-    rotation: 0
-    state: enabled
-- name: probe_ber_test_count
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2540, 2714]
-    rotation: 0
-    state: enabled
-- name: probe_ber_test_errors
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1860, 2614]
-    rotation: 0
-    state: enabled
-- name: probe_ber_test_ratio
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2030, 2614]
-    rotation: 0
-    state: enabled
-- name: probe_evm_rms
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [380, 1614]
-    rotation: 0
-    state: enabled
-- name: probe_rx_dbm
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [820, 2404]
-    rotation: 0
-    state: enabled
-- name: probe_rx_ebno
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [820, 2944]
-    rotation: 0
-    state: enabled
-- name: probe_rx_snr
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [200, 2944]
-    rotation: 0
-    state: enabled
-- name: probe_tx_dbm
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [820, 2274]
-    rotation: 0
-    state: enabled
-- name: probe_tx_papr
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1020, 2334]
-    rotation: 0
-    state: enabled
-- name: probe_tx_peak_dbm
-  id: blocks_probe_signal_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    type: float
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [620, 2544]
+    coordinate:
+    - 1480
+    - 552
     rotation: 0
     state: enabled
 - name: random_bytes
@@ -3072,7 +2739,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 584]
+    coordinate:
+    - 16
+    - 432
     rotation: 0
     state: enabled
 - name: reference_delay
@@ -3089,7 +2758,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 288]
+    coordinate:
+    - 576
+    - 128
     rotation: 0
     state: enabled
 - name: reference_link
@@ -3102,7 +2773,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 684]
+    coordinate:
+    - 160
+    - 512
     rotation: 0
     state: enabled
 - name: reference_source
@@ -3115,112 +2788,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1094]
-    rotation: 0
-    state: enabled
-- name: rf_constellation
-  id: qtgui_const_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '0.4'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    axislabels: 'True'
-    color1: '"blue"'
-    color10: '"dark blue"'
-    color2: '"red"'
-    color3: '"green"'
-    color4: '"black"'
-    color5: '"cyan"'
-    color6: '"magenta"'
-    color7: '"yellow"'
-    color8: '"dark red"'
-    color9: '"dark green"'
-    comment: ''
-    grid: 'True'
-    gui_hint: views@3:2,1,1,1
-    label1: RX
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    legend: 'False'
-    marker1: '0'
-    marker10: '0'
-    marker2: '0'
-    marker3: '0'
-    marker4: '0'
-    marker5: '0'
-    marker6: '0'
-    marker7: '0'
-    marker8: '0'
-    marker9: '0'
-    name: Received symbols (after equalizer)
-    nconnections: '1'
-    size: '1024'
-    style1: '0'
-    style10: '0'
-    style2: '0'
-    style3: '0'
-    style4: '0'
-    style5: '0'
-    style6: '0'
-    style7: '0'
-    style8: '0'
-    style9: '0'
-    tr_chan: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: complex
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    xmax: '2'
-    xmin: '-2'
-    ymax: '2'
-    ymin: '-2'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [380, 4804]
-    rotation: 0
-    state: enabled
-- name: rf_constellation_input
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: rx_symbols
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [200, 4804]
+    coordinate:
+    - 16
+    - 792
     rotation: 0
     state: enabled
 - name: rx_dbm
@@ -3238,7 +2808,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [780, 2314]
+    coordinate:
+    - 1744
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_ebno
@@ -3247,8 +2819,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: -path_loss_db-rx_noise_dbm+10*math.log10(samp_rate/bit_rate) if noise_enabled
-      else float('inf')
+    const: -path_loss_db-rx_noise_dbm+10*math.log10(samp_rate/bit_rate) if noise_enabled else float('inf')
     maxoutbuf: '0'
     minoutbuf: '0'
     type: float
@@ -3257,7 +2828,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [780, 2854]
+    coordinate:
+    - 168
+    - 1536
     rotation: 0
     state: enabled
 - name: rx_ebno_input
@@ -3270,7 +2843,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [620, 2854]
+    coordinate:
+    - 16
+    - 1536
     rotation: 0
     state: enabled
 - name: rx_iq_link
@@ -3283,7 +2858,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 704]
+    coordinate:
+    - 936
+    - 488
     rotation: 0
     state: enabled
 - name: rx_level
@@ -3301,7 +2878,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [840, 584]
+    coordinate:
+    - 936
+    - 432
     rotation: 0
     state: enabled
 - name: rx_meter_input
@@ -3314,7 +2893,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2314]
+    coordinate:
+    - 1216
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_milliwatts
@@ -3330,7 +2911,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 2314]
+    coordinate:
+    - 1328
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_noise_dbm
@@ -3347,7 +2930,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [400, 160]
+    coordinate:
+    - 1328
+    - 56
     rotation: 0
     state: enabled
 - name: rx_power_mean
@@ -3365,7 +2950,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [570, 2314]
+    coordinate:
+    - 1584
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_power_sum
@@ -3383,7 +2970,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [370, 2314]
+    coordinate:
+    - 1456
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_scale
@@ -3401,7 +2990,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 584]
+    coordinate:
+    - 1312
+    - 432
     rotation: 0
     state: enabled
 - name: rx_snr
@@ -3419,7 +3010,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 2854]
+    coordinate:
+    - 2120
+    - 1312
     rotation: 0
     state: enabled
 - name: rx_snr_input
@@ -3432,7 +3025,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2854]
+    coordinate:
+    - 1968
+    - 1312
     rotation: 0
     state: enabled
 - name: scope
@@ -3440,14 +3035,15 @@ blocks:
   parameters:
     alias: ''
     comment: ''
-    note: 'SISO single carrier, RRC pulse shaping. 4ASK, 4 samples/symbol. No carrier
-      recovery: leave frequency offset=0 and epsilon=1 for scored BER. Delay calibrated
-      for this filter/clock configuration. See README.md.'
+    note: 'SISO single carrier, RRC pulse shaping. 4ASK, 4 samples/symbol. No carrier recovery: leave frequency
+      offset=0 and epsilon=1 for scored BER. Delay calibrated for this filter/clock configuration. See README.md.'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2084]
+    coordinate:
+    - 16
+    - 1312
     rotation: 0
     state: enabled
 - name: section_ber
@@ -3460,7 +3056,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 872.0]
+    coordinate:
+    - 16
+    - 688
     rotation: 0
     state: enabled
 - name: section_channel
@@ -3473,7 +3071,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 504]
+    coordinate:
+    - 712
+    - 392
     rotation: 0
     state: enabled
 - name: section_controls
@@ -3486,7 +3086,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 0]
+    coordinate:
+    - 16
+    - 8
     rotation: 0
     state: enabled
 - name: section_extra_plots
@@ -3499,7 +3101,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4404]
+    coordinate:
+    - 16
+    - 2800
     rotation: 0
     state: enabled
 - name: section_eyes
@@ -3512,7 +3116,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3784]
+    coordinate:
+    - 16
+    - 2536
     rotation: 0
     state: enabled
 - name: section_power
@@ -3525,7 +3131,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2004]
+    coordinate:
+    - 16
+    - 1264
     rotation: 0
     state: enabled
 - name: section_pre_eq
@@ -3538,7 +3146,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3544]
+    coordinate:
+    - 16
+    - 2360
     rotation: 0
     state: enabled
 - name: section_receiver
@@ -3551,7 +3161,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [840, 504]
+    coordinate:
+    - 936
+    - 392
     rotation: 0
     state: enabled
 - name: section_reference
@@ -3564,7 +3176,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3024]
+    coordinate:
+    - 16
+    - 2088
     rotation: 0
     state: enabled
 - name: section_rx_diagnostics
@@ -3577,7 +3191,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1244]
+    coordinate:
+    - 16
+    - 1672
     rotation: 0
     state: enabled
 - name: section_transmitter
@@ -3590,7 +3206,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 504]
+    coordinate:
+    - 16
+    - 384
     rotation: 0
     state: enabled
 - name: skip_rx
@@ -3608,7 +3226,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [480, 954]
+    coordinate:
+    - 432
+    - 736
     rotation: 0
     state: enabled
 - name: skip_tx
@@ -3626,7 +3246,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [480, 1094]
+    coordinate:
+    - 432
+    - 792
     rotation: 0
     state: enabled
 - name: spectrum
@@ -3689,7 +3311,7 @@ blocks:
     tr_tag: '""'
     type: complex
     units: dB
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -3707,7 +3329,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 1324]
+    coordinate:
+    - 448
+    - 1720
     rotation: 0
     state: enabled
 - name: spectrum_budget
@@ -3770,7 +3394,7 @@ blocks:
     tr_tag: '""'
     type: complex
     units: dB
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -3788,7 +3412,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 4664]
+    coordinate:
+    - 592
+    - 1536
     rotation: 0
     state: enabled
 - name: spectrum_budget_input
@@ -3801,7 +3427,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4664]
+    coordinate:
+    - 480
+    - 1536
     rotation: 0
     state: enabled
 - name: spectrum_input
@@ -3814,24 +3442,23 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [410, 1324]
+    coordinate:
+    - 336
+    - 1720
     rotation: 0
     state: enabled
 - name: square_plot_panels
   id: snippet
   parameters:
     alias: ''
-    code: "# Plot layout is a resizable 2x2 grid, not a square-canvas constraint.\n\
-      for index in range(self.views.count()):\n    layout = getattr(self, \"views_grid_layout_\"\
-      +str(index))\n    if layout is not None:\n        layout.setColumnStretch(0,\
-      \ 1)\n        layout.setColumnStretch(1, 1)\n        layout.setRowStretch(1,\
-      \ 1)\n        layout.setRowStretch(2, 1)\n        # Native sinks otherwise request\
-      \ a large minimum and force scrolling.\n        for row in (1, 2):\n       \
-      \     for column in (0, 1):\n                panel = layout.itemAtPosition(row,\
-      \ column).widget()\n                panel.setMinimumSize(0, 0)\n           \
-      \     panel.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)\n\
-      self.views.setMinimumSize(0, 0)\nself.views.setSizePolicy(Qt.QSizePolicy.Ignored,\
-      \ Qt.QSizePolicy.Ignored)\nself.resize(1180, 900)\n"
+    code: "# Plot layout is a resizable 2x2 grid, not a square-canvas constraint.\nfor index in range(self.views.count()):\n\
+      \    layout = getattr(self, \"views_grid_layout_\"+str(index))\n    if layout is not None:\n        layout.setColumnStretch(0,\
+      \ 1)\n        layout.setColumnStretch(1, 1)\n        layout.setRowStretch(1, 1)\n        layout.setRowStretch(2,\
+      \ 1)\n        # Native sinks otherwise request a large minimum and force scrolling.\n        for row in (1,\
+      \ 2):\n            for column in (0, 1):\n                panel = layout.itemAtPosition(row, column).widget()\n\
+      \                panel.setMinimumSize(0, 0)\n                panel.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)\n\
+      self.views.setMinimumSize(0, 0)\nself.views.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)\n\
+      self.resize(1180, 900)\n"
     comment: 'UI layout only: resizable 2x2 dashboards.'
     priority: '0'
     section: main_after_init
@@ -3839,7 +3466,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 360]
+    coordinate:
+    - 1720
+    - 128
     rotation: 0
     state: enabled
 - name: symbol_rate
@@ -3856,7 +3485,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 88]
+    coordinate:
+    - 16
+    - 56
     rotation: 0
     state: enabled
 - name: symbols_link
@@ -3869,7 +3500,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1312, 712]
+    coordinate:
+    - 1648
+    - 488
     rotation: 0
     state: enabled
 - name: symbols_plot
@@ -3882,7 +3515,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 1324]
+    coordinate:
+    - 16
+    - 1776
     rotation: 0
     state: enabled
 - name: throttle
@@ -3903,7 +3538,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 584]
+    coordinate:
+    - 552
+    - 432
     rotation: 0
     state: enabled
 - name: timing_error
@@ -3981,7 +3618,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4000,7 +3637,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1180, 1714]
+    coordinate:
+    - 984
+    - 1952
     rotation: 0
     state: enabled
 - name: timing_input
@@ -4013,7 +3652,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1040, 1714]
+    coordinate:
+    - 848
+    - 1952
     rotation: 0
     state: enabled
 - name: timing_link
@@ -4026,7 +3667,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 744]
+    coordinate:
+    - 1312
+    - 488
     rotation: 0
     state: enabled
 - name: tx_constellation
@@ -4099,7 +3742,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: complex
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4118,7 +3761,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [840, 3104]
+    coordinate:
+    - 696
+    - 2136
     rotation: 0
     state: enabled
 - name: tx_constellation_reference_1
@@ -4131,7 +3776,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [620, 3194]
+    coordinate:
+    - 16
+    - 2192
     rotation: 0
     state: enabled
 - name: tx_constellation_reference_2
@@ -4144,7 +3791,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [620, 3264]
+    coordinate:
+    - 16
+    - 2248
     rotation: 0
     state: enabled
 - name: tx_dbm
@@ -4162,7 +3811,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [780, 2184]
+    coordinate:
+    - 792
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_dbm_link
@@ -4175,7 +3826,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [780, 2104]
+    coordinate:
+    - 928
+    - 1400
     rotation: 0
     state: enabled
 - name: tx_eye_i
@@ -4191,7 +3844,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [420, 4224]
+    coordinate:
+    - 1456
+    - 2640
     rotation: 0
     state: enabled
 - name: tx_eye_i_eye
@@ -4268,7 +3923,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4287,7 +3942,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 4224]
+    coordinate:
+    - 1584
+    - 2664
     rotation: 0
     state: enabled
 - name: tx_eye_input
@@ -4300,7 +3957,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4224]
+    coordinate:
+    - 1344
+    - 2584
     rotation: 0
     state: enabled
 - name: tx_eye_q
@@ -4316,7 +3975,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 4224]
+    coordinate:
+    - 1456
+    - 2584
     rotation: 0
     state: enabled
 - name: tx_eye_q_eye
@@ -4393,7 +4054,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: float
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4412,7 +4073,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1060, 4224]
+    coordinate:
+    - 1584
+    - 2584
     rotation: 0
     state: enabled
 - name: tx_meter_input
@@ -4425,7 +4088,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 2184]
+    coordinate:
+    - 200
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_milliwatts
@@ -4441,7 +4106,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 2184]
+    coordinate:
+    - 344
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_mw_link
@@ -4454,7 +4121,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 2254]
+    coordinate:
+    - 472
+    - 1368
     rotation: 0
     state: enabled
 - name: tx_papr
@@ -4472,7 +4141,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [980, 2244]
+    coordinate:
+    - 928
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_peak_dbm
@@ -4490,7 +4161,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [580, 2454]
+    coordinate:
+    - 632
+    - 1368
     rotation: 0
     state: enabled
 - name: tx_peak_mw
@@ -4509,7 +4182,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [400, 2454]
+    coordinate:
+    - 472
+    - 1424
     rotation: 0
     state: enabled
 - name: tx_peak_vectors
@@ -4527,7 +4202,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 2454]
+    coordinate:
+    - 344
+    - 1368
     rotation: 0
     state: enabled
 - name: tx_plot_link
@@ -4540,7 +4217,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [312, 684]
+    coordinate:
+    - 552
+    - 496
     rotation: 0
     state: enabled
 - name: tx_power
@@ -4558,7 +4237,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [312, 584]
+    coordinate:
+    - 344
+    - 432
     rotation: 0
     state: enabled
 - name: tx_power_dbm
@@ -4575,7 +4256,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 160]
+    coordinate:
+    - 1088
+    - 56
     rotation: 0
     state: enabled
 - name: tx_power_mean
@@ -4593,7 +4276,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [570, 2184]
+    coordinate:
+    - 632
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_power_sum
@@ -4611,7 +4296,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [370, 2184]
+    coordinate:
+    - 472
+    - 1312
     rotation: 0
     state: enabled
 - name: tx_spectrum
@@ -4624,7 +4311,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [410, 1404]
+    coordinate:
+    - 336
+    - 1776
     rotation: 0
     state: enabled
 - name: tx_symbol_chunks
@@ -4643,7 +4332,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [160, 3104]
+    coordinate:
+    - 160
+    - 2136
     rotation: 0
     state: enabled
 - name: tx_symbol_diff
@@ -4660,7 +4351,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [380, 3104]
+    coordinate:
+    - 352
+    - 2136
     rotation: 0
     state: enabled
 - name: tx_symbol_input
@@ -4673,7 +4366,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 3104]
+    coordinate:
+    - 16
+    - 2136
     rotation: 0
     state: enabled
 - name: tx_symbols
@@ -4693,7 +4388,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 3104]
+    coordinate:
+    - 488
+    - 2136
     rotation: 0
     state: enabled
 - name: tx_time
@@ -4706,7 +4403,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [850, 1404]
+    coordinate:
+    - 632
+    - 1720
     rotation: 0
     state: enabled
 - name: tx_wave_input
@@ -4719,7 +4418,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 4484]
+    coordinate:
+    - 16
+    - 2848
     rotation: 0
     state: enabled
 - name: tx_waveform
@@ -4797,7 +4498,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: complex
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4816,7 +4517,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 4484]
+    coordinate:
+    - 128
+    - 2848
     rotation: 0
     state: enabled
 - name: unpack_rx
@@ -4832,7 +4535,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [330, 954]
+    coordinate:
+    - 280
+    - 736
     rotation: 0
     state: enabled
 - name: unpack_tx
@@ -4848,7 +4553,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [150, 1094]
+    coordinate:
+    - 144
+    - 800
     rotation: 0
     state: enabled
 - name: unused_timing_states
@@ -4865,7 +4572,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 804]
+    coordinate:
+    - 1312
+    - 544
     rotation: 0
     state: enabled
 - name: views
@@ -4899,7 +4608,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [904, 360]
+    coordinate:
+    - 2024
+    - 128
     rotation: 0
     state: enabled
 - name: waveform
@@ -4977,7 +4688,7 @@ blocks:
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_tag: '""'
     type: complex
-    update_time: '0.10'
+    update_time: plot_update_s
     width1: '1'
     width10: '1'
     width2: '1'
@@ -4996,7 +4707,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1000, 1324]
+    coordinate:
+    - 744
+    - 1720
     rotation: 0
     state: enabled
 - name: waveform_input
@@ -5009,7 +4722,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [850, 1324]
+    coordinate:
+    - 632
+    - 1776
     rotation: 0
     state: enabled
 - name: xor
@@ -5026,138 +4741,956 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [680, 1004]
+    coordinate:
+    - 600
+    - 736
     rotation: 0
     state: enabled
-
+- name: ber_test_bits
+  id: parameter
+  parameters:
+    value: '1000000'
+    type: intx
+    label: BER test length (compared bits)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 16
+    - 248
+    rotation: 0
+    state: enabled
+- name: ber_test_blocks
+  id: variable
+  parameters:
+    value: max(1, int(ber_test_bits) // 10000)
+  states:
+    coordinate:
+    - 128
+    - 248
+    rotation: 0
+    state: enabled
+- name: ber_error_weight
+  id: variable
+  parameters:
+    value: '1.0'
+  states:
+    coordinate:
+    - 408
+    - 248
+    rotation: 0
+    state: enabled
+- name: ber_test_seconds
+  id: variable
+  parameters:
+    value: (warmup_bits + 10000*ber_test_blocks) / bit_rate
+  states:
+    coordinate:
+    - 256
+    - 248
+    rotation: 0
+    state: enabled
+- name: bit_errors_link
+  id: virtual_sink
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 792
+    - 792
+    rotation: 0
+    state: enabled
+- name: bit_errors_to_ber_test
+  id: virtual_source
+  parameters:
+    stream_id: bit_errors
+  states:
+    coordinate:
+    - 16
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_sum_10k
+  id: blocks_integrate_xx
+  parameters:
+    type: float
+    decim: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 144
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_zero
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 264
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_unit
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    const: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 384
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_index
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 488
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_done
+  id: blocks_threshold_ff
+  parameters:
+    low: ber_test_blocks + 0.5
+    high: ber_test_blocks + 0.5
+    init: '0'
+  states:
+    coordinate:
+    - 624
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_not_done
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '-1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 800
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_gate
+  id: blocks_add_const_vxx
+  parameters:
+    type: float
+    const: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 920
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_gated_errors
+  id: blocks_multiply_xx
+  parameters:
+    type: float
+    num_inputs: '2'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1024
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_error_sum
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 1160
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_errors
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: ber_error_weight
+    vlen: '1'
+  states:
+    coordinate:
+    - 1296
+    - 1056
+    rotation: 0
+    state: enabled
+- name: ber_test_window_sum
+  id: iir_filter_xxx
+  parameters:
+    type: ffd
+    fftaps: '[1.0]'
+    fbtaps: '[0.0, 1.0]'
+    oldstyle: 'True'
+  states:
+    coordinate:
+    - 1024
+    - 1144
+    rotation: 0
+    state: enabled
+- name: ber_test_count
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: '10000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 1160
+    - 1120
+    rotation: 0
+    state: enabled
+- name: ber_test_ratio
+  id: blocks_divide_xx
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '2'
+  states:
+    coordinate:
+    - 1456
+    - 1056
+    rotation: 0
+    state: enabled
+- name: probe_tx_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 928
+    - 1456
+    rotation: 0
+    state: enabled
+- name: probe_tx_peak_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 792
+    - 1368
+    rotation: 0
+    state: enabled
+- name: probe_tx_papr
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1080
+    - 1312
+    rotation: 0
+    state: enabled
+- name: probe_rx_dbm
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1832
+    - 1312
+    rotation: 0
+    state: enabled
+- name: probe_rx_snr
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 2280
+    - 1312
+    rotation: 0
+    state: enabled
+- name: probe_rx_ebno
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 344
+    - 1536
+    rotation: 0
+    state: enabled
+- name: probe_evm_rms
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1344
+    - 1816
+    rotation: 0
+    state: enabled
+- name: probe_ber_scale
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1120
+    - 832
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_count
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1296
+    - 1112
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_errors
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1456
+    - 1144
+    rotation: 0
+    state: enabled
+- name: probe_ber_test_ratio
+  id: blocks_probe_signal_x
+  parameters:
+    type: float
+  states:
+    coordinate:
+    - 1600
+    - 1056
+    rotation: 0
+    state: enabled
+- name: link_table
+  id: snippet
+  parameters:
+    section: main_after_init
+    priority: '1'
+    code: "# Link budget and BER test as a spreadsheet-style table (display only).\n# Values come from stock Probe\
+      \ Signal blocks; edit rows here to change it.\nrows = [\n    ('Transmit', 'Average power', self.probe_tx_dbm,\
+      \ 'dBm', 'dB'),\n    ('', 'Sampled peak power', self.probe_tx_peak_dbm, 'dBm', 'dB'),\n    ('', 'Peak / average',\
+      \ self.probe_tx_papr, 'dB', 'dB'),\n    ('Receive', 'Signal + noise power', self.probe_rx_dbm, 'dBm', 'dB'),\n\
+      \    ('', 'SNR (noise over Fs)', self.probe_rx_snr, 'dB', 'dB'),\n    ('', 'Eb/N0 per uncoded bit', self.probe_rx_ebno,\
+      \ 'dB', 'dB'),\n    ('', 'EVM (decision-directed)', self.probe_evm_rms, '%', 'dB'),\n    ('BER', 'Latest 10,000\
+      \ bits', self.probe_ber_scale, 'errors/bit', 'ber'),\n    ('BER test', 'Test length', None, 'bits', \"f'{10000\
+      \ * self.ber_test_blocks:,}'\"),\n    ('', 'Estimated time', None, 's', \"f'{self.ber_test_seconds:.2f}'\"\
+      ),\n    ('', 'Status', self.probe_ber_test_count, '', 'status'),\n    ('', 'Bits compared', self.probe_ber_test_count,\
+      \ 'bits', 'count'),\n    ('', 'Bit errors', self.probe_ber_test_errors, 'errors', 'count'),\n    ('', 'BER',\
+      \ self.probe_ber_test_ratio, 'errors/bit', 'ber'),\n]\ntable = Qt.QTableWidget(len(rows), 4)\ntable.setHorizontalHeaderLabels([\"\
+      Section\", \"Quantity\", \"Value\", \"Unit\"])\ntable.verticalHeader().setVisible(False)\ntable.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)\n\
+      table.setSelectionMode(Qt.QAbstractItemView.NoSelection)\ntable.setAlternatingRowColors(True)\ntable.setShowGrid(True)\n\
+      bold = Qt.QFont(table.font())\nbold.setBold(True)\nfor row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n\
+      \    for column, text in ((0, section), (1, quantity), (3, unit)):\n        item = Qt.QTableWidgetItem(text)\n\
+      \        if column == 0:\n            item.setFont(bold)\n        table.setItem(row, column, item)\n    value\
+      \ = Qt.QTableWidgetItem(\"\" if probe else str(eval(fmt)))\n    value.setTextAlignment(Qt.Qt.AlignRight |\
+      \ Qt.Qt.AlignVCenter)\n    table.setItem(row, 2, value)\nheader = table.horizontalHeader()\nheader.setSectionResizeMode(Qt.QHeaderView.ResizeToContents)\n\
+      header.setStretchLastSection(True)\ntest_bits = 10000 * self.ber_test_blocks\n\ndef refresh_link_table():\n\
+      \    for row, (section, quantity, probe, unit, fmt) in enumerate(rows):\n        if probe is None:\n     \
+      \       continue\n        level = probe.level()\n        if fmt == \"dB\":\n            text = f\"{level:.2f}\"\
+      \n        elif fmt == \"count\":\n            text = f\"{level:,.0f}\"\n        elif fmt == \"ber\":\n   \
+      \         text = f\"{level:.3e}\"\n        else:\n            text = \"complete\" if level >= test_bits else\
+      \ (\n                \"counting\" if level > 0 else \"waiting for warm-up\")\n        table.item(row, 2).setText(text)\n\
+      \nself.link_table = table\nself.link_table_timer = Qt.QTimer()\nself.link_table_timer.timeout.connect(refresh_link_table)\n\
+      self.link_table_timer.start(int(1000 * self.plot_update_s))\nself.views_grid_layout_3.addWidget(table, 1,\
+      \ 0, 2, 1)\n"
+  states:
+    coordinate:
+    - 600
+    - 248
+    rotation: 0
+    state: enabled
+- name: rf_constellation_input
+  id: virtual_source
+  parameters:
+    stream_id: rx_symbols
+  states:
+    coordinate:
+    - 776
+    - 1536
+    rotation: 0
+    state: enabled
+- name: rf_constellation
+  id: qtgui_const_sink_x
+  parameters:
+    type: complex
+    name: Received symbols (after equalizer)
+    size: '1024'
+    nconnections: '1'
+    grid: 'True'
+    autoscale: 'False'
+    xmin: '-2'
+    xmax: '2'
+    ymin: '-2'
+    ymax: '2'
+    gui_hint: views@3:2,1,1,1
+    label1: RX
+    color1: '"blue"'
+    marker1: '0'
+    style1: '0'
+    alpha1: '0.4'
+    width1: '1'
+    update_time: plot_update_s
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_level: '0.0'
+    tr_chan: '0'
+    tr_tag: '""'
+    legend: 'False'
+    axislabels: 'True'
+  states:
+    coordinate:
+    - 912
+    - 1536
+    rotation: 0
+    state: enabled
+- name: plot_update_s
+  id: parameter
+  parameters:
+    value: '0.5'
+    type: eng_float
+    label: Plot refresh interval (s)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 496
+    - 248
+    rotation: 0
+    state: enabled
+- name: section_ber_test
+  id: note
+  parameters:
+    note: BER TEST (FIXED LENGTH)
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 1000
+    rotation: 0
+    state: enabled
 connections:
-- [after_eye_reconstruction, '0', after_i, '0']
-- [after_eye_reconstruction, '0', after_q, '0']
-- [after_i, '0', after_i_eye, '0']
-- [after_input, '0', after_eye_reconstruction, '0']
-- [after_q, '0', after_q_eye, '0']
-- [before_eq_input, '0', before_eq_constellation, '0']
-- [ber_plot_input, '0', ber_history, '0']
-- [ber_scale, '0', ber_display, '0']
-- [ber_scale, '0', ber_link, '0']
-- [ber_scale, '0', probe_ber_scale, '0']
-- [ber_test_count, '0', ber_test_ratio, '1']
-- [ber_test_count, '0', probe_ber_test_count, '0']
-- [ber_test_done, '0', ber_test_not_done, '0']
-- [ber_test_error_sum, '0', ber_test_errors, '0']
-- [ber_test_errors, '0', ber_test_ratio, '0']
-- [ber_test_errors, '0', probe_ber_test_errors, '0']
-- [ber_test_gate, '0', ber_test_gated_errors, '1']
-- [ber_test_gate, '0', ber_test_window_sum, '0']
-- [ber_test_gated_errors, '0', ber_test_error_sum, '0']
-- [ber_test_index, '0', ber_test_done, '0']
-- [ber_test_not_done, '0', ber_test_gate, '0']
-- [ber_test_ratio, '0', probe_ber_test_ratio, '0']
-- [ber_test_sum_10k, '0', ber_test_gated_errors, '0']
-- [ber_test_sum_10k, '0', ber_test_zero, '0']
-- [ber_test_unit, '0', ber_test_index, '0']
-- [ber_test_window_sum, '0', ber_test_count, '0']
-- [ber_test_zero, '0', ber_test_unit, '0']
-- [bit_errors_to_ber_test, '0', ber_test_sum_10k, '0']
-- [channel, '0', rx_iq_link, '0']
-- [channel, '0', rx_level, '0']
-- [clock_sync, '0', rx_scale, '0']
-- [clock_sync, '1', timing_link, '0']
-- [clock_sync, '2', unused_timing_states, '0']
-- [clock_sync, '3', unused_timing_states, '1']
-- [constellation_reference_1, '0', constellation, '1']
-- [constellation_reference_2, '0', constellation, '2']
-- [decoded_source, '0', diff_decoder, '0']
-- [decoder, '0', decoded_link, '0']
-- [delay, '0', skip_tx, '0']
-- [diff_decoder, '0', unpack_rx, '0']
-- [eq_error_trace_input, '0', eq_error_trace, '0']
-- [eq_tap_decimator, '0', eq_tap_magnitudes, '0']
-- [eq_tap_decimator_input, '0', eq_tap_decimator, '0']
-- [eq_tap_magnitudes, '0', eq_tap_plot, '0']
-- [equalizer, '0', decoder, '0']
-- [equalizer, '0', symbols_link, '0']
-- [equalizer, '1', adaptive_tap_vectors_link, '0']
-- [errors_float, '0', bit_errors_link, '0']
-- [errors_float, '0', integrate, '0']
-- [evm, '0', evm_per_symbol_link, '0']
-- [evm, '0', evm_rms, '0']
-- [evm_circles, '0', evm_circles_link, '0']
-- [evm_input, '0', evm, '0']
-- [evm_meter_history_input, '0', eq_evm_history, '0']
-- [evm_plot_input, '0', evm_history, '0']
-- [evm_rms, '0', evm_display, '0']
-- [evm_rms, '0', evm_link, '0']
-- [evm_rms, '0', probe_evm_rms, '0']
-- [eye_i, '0', eye, '0']
-- [eye_input, '0', eye_i, '0']
-- [eye_q, '0', eye_quadrature, '0']
-- [eye_q_input, '0', eye_q, '0']
-- [ideal_symbols, '0', ideal_symbols_link, '0']
-- [integrate, '0', ber_scale, '0']
-- [middle_eye_reconstruction, '0', middle_i, '0']
-- [middle_eye_reconstruction, '0', middle_q, '0']
-- [middle_i, '0', middle_i_eye, '0']
-- [middle_input, '0', middle_eye_reconstruction, '0']
-- [middle_q, '0', middle_q_eye, '0']
-- [modulator, '0', tx_power, '0']
-- [peak_input, '0', tx_peak_vectors, '0']
-- [random_bytes, '0', modulator, '0']
-- [random_bytes, '0', reference_link, '0']
-- [reference_source, '0', unpack_tx, '0']
-- [rf_constellation_input, '0', rf_constellation, '0']
-- [rx_dbm, '0', probe_rx_dbm, '0']
-- [rx_ebno, '0', probe_rx_ebno, '0']
-- [rx_ebno_input, '0', rx_ebno, '0']
-- [rx_level, '0', clock_sync, '0']
-- [rx_meter_input, '0', rx_milliwatts, '0']
-- [rx_milliwatts, '0', rx_power_sum, '0']
-- [rx_power_mean, '0', rx_dbm, '0']
-- [rx_power_sum, '0', rx_power_mean, '0']
-- [rx_scale, '0', equalizer, '0']
-- [rx_scale, '0', pre_eq_link, '0']
-- [rx_snr, '0', probe_rx_snr, '0']
-- [rx_snr_input, '0', rx_snr, '0']
-- [skip_rx, '0', xor, '0']
-- [skip_tx, '0', xor, '1']
-- [spectrum_budget_input, '0', spectrum_budget, '0']
-- [spectrum_input, '0', spectrum, '0']
-- [symbols_plot, '0', constellation, '0']
-- [throttle, '0', channel, '0']
-- [timing_input, '0', timing_error, '0']
-- [tx_constellation_reference_1, '0', tx_constellation, '1']
-- [tx_constellation_reference_2, '0', tx_constellation, '2']
-- [tx_dbm, '0', probe_tx_dbm, '0']
-- [tx_dbm, '0', tx_dbm_link, '0']
-- [tx_dbm, '0', tx_papr, '1']
-- [tx_eye_i, '0', tx_eye_i_eye, '0']
-- [tx_eye_input, '0', tx_eye_i, '0']
-- [tx_eye_input, '0', tx_eye_q, '0']
-- [tx_eye_q, '0', tx_eye_q_eye, '0']
-- [tx_meter_input, '0', tx_milliwatts, '0']
-- [tx_milliwatts, '0', tx_mw_link, '0']
-- [tx_milliwatts, '0', tx_power_sum, '0']
-- [tx_papr, '0', probe_tx_papr, '0']
-- [tx_peak_dbm, '0', probe_tx_peak_dbm, '0']
-- [tx_peak_dbm, '0', tx_papr, '0']
-- [tx_peak_mw, '0', tx_peak_dbm, '0']
-- [tx_peak_vectors, '0', tx_peak_mw, '0']
-- [tx_power, '0', throttle, '0']
-- [tx_power, '0', tx_plot_link, '0']
-- [tx_power_mean, '0', tx_dbm, '0']
-- [tx_power_sum, '0', tx_power_mean, '0']
-- [tx_spectrum, '0', spectrum, '1']
-- [tx_symbol_chunks, '0', tx_symbol_diff, '0']
-- [tx_symbol_diff, '0', tx_symbols, '0']
-- [tx_symbol_input, '0', tx_symbol_chunks, '0']
-- [tx_symbols, '0', tx_constellation, '0']
-- [tx_time, '0', waveform, '1']
-- [tx_wave_input, '0', tx_waveform, '0']
-- [unpack_rx, '0', skip_rx, '0']
-- [unpack_tx, '0', delay, '0']
-- [waveform_input, '0', waveform, '0']
-- [xor, '0', errors_float, '0']
-
+- - after_eye_reconstruction
+  - '0'
+  - after_i
+  - '0'
+- - after_eye_reconstruction
+  - '0'
+  - after_q
+  - '0'
+- - after_i
+  - '0'
+  - after_i_eye
+  - '0'
+- - after_input
+  - '0'
+  - after_eye_reconstruction
+  - '0'
+- - after_q
+  - '0'
+  - after_q_eye
+  - '0'
+- - before_eq_input
+  - '0'
+  - before_eq_constellation
+  - '0'
+- - ber_plot_input
+  - '0'
+  - ber_history
+  - '0'
+- - ber_scale
+  - '0'
+  - ber_display
+  - '0'
+- - ber_scale
+  - '0'
+  - ber_link
+  - '0'
+- - channel
+  - '0'
+  - rx_iq_link
+  - '0'
+- - channel
+  - '0'
+  - rx_level
+  - '0'
+- - clock_sync
+  - '0'
+  - rx_scale
+  - '0'
+- - clock_sync
+  - '1'
+  - timing_link
+  - '0'
+- - clock_sync
+  - '2'
+  - unused_timing_states
+  - '0'
+- - clock_sync
+  - '3'
+  - unused_timing_states
+  - '1'
+- - constellation_reference_1
+  - '0'
+  - constellation
+  - '1'
+- - constellation_reference_2
+  - '0'
+  - constellation
+  - '2'
+- - decoded_source
+  - '0'
+  - diff_decoder
+  - '0'
+- - decoder
+  - '0'
+  - decoded_link
+  - '0'
+- - delay
+  - '0'
+  - skip_tx
+  - '0'
+- - diff_decoder
+  - '0'
+  - unpack_rx
+  - '0'
+- - eq_error_trace_input
+  - '0'
+  - eq_error_trace
+  - '0'
+- - eq_tap_decimator
+  - '0'
+  - eq_tap_magnitudes
+  - '0'
+- - eq_tap_decimator_input
+  - '0'
+  - eq_tap_decimator
+  - '0'
+- - eq_tap_magnitudes
+  - '0'
+  - eq_tap_plot
+  - '0'
+- - equalizer
+  - '0'
+  - decoder
+  - '0'
+- - equalizer
+  - '0'
+  - symbols_link
+  - '0'
+- - equalizer
+  - '1'
+  - adaptive_tap_vectors_link
+  - '0'
+- - errors_float
+  - '0'
+  - integrate
+  - '0'
+- - evm
+  - '0'
+  - evm_per_symbol_link
+  - '0'
+- - evm
+  - '0'
+  - evm_rms
+  - '0'
+- - evm_circles
+  - '0'
+  - evm_circles_link
+  - '0'
+- - evm_input
+  - '0'
+  - evm
+  - '0'
+- - evm_meter_history_input
+  - '0'
+  - eq_evm_history
+  - '0'
+- - evm_plot_input
+  - '0'
+  - evm_history
+  - '0'
+- - evm_rms
+  - '0'
+  - evm_display
+  - '0'
+- - evm_rms
+  - '0'
+  - evm_link
+  - '0'
+- - eye_i
+  - '0'
+  - eye
+  - '0'
+- - eye_input
+  - '0'
+  - eye_i
+  - '0'
+- - eye_q
+  - '0'
+  - eye_quadrature
+  - '0'
+- - eye_q_input
+  - '0'
+  - eye_q
+  - '0'
+- - ideal_symbols
+  - '0'
+  - ideal_symbols_link
+  - '0'
+- - integrate
+  - '0'
+  - ber_scale
+  - '0'
+- - middle_eye_reconstruction
+  - '0'
+  - middle_i
+  - '0'
+- - middle_eye_reconstruction
+  - '0'
+  - middle_q
+  - '0'
+- - middle_i
+  - '0'
+  - middle_i_eye
+  - '0'
+- - middle_input
+  - '0'
+  - middle_eye_reconstruction
+  - '0'
+- - middle_q
+  - '0'
+  - middle_q_eye
+  - '0'
+- - modulator
+  - '0'
+  - tx_power
+  - '0'
+- - peak_input
+  - '0'
+  - tx_peak_vectors
+  - '0'
+- - random_bytes
+  - '0'
+  - modulator
+  - '0'
+- - random_bytes
+  - '0'
+  - reference_link
+  - '0'
+- - reference_source
+  - '0'
+  - unpack_tx
+  - '0'
+- - rx_ebno_input
+  - '0'
+  - rx_ebno
+  - '0'
+- - rx_level
+  - '0'
+  - clock_sync
+  - '0'
+- - rx_meter_input
+  - '0'
+  - rx_milliwatts
+  - '0'
+- - rx_milliwatts
+  - '0'
+  - rx_power_sum
+  - '0'
+- - rx_power_mean
+  - '0'
+  - rx_dbm
+  - '0'
+- - rx_power_sum
+  - '0'
+  - rx_power_mean
+  - '0'
+- - rx_scale
+  - '0'
+  - equalizer
+  - '0'
+- - rx_scale
+  - '0'
+  - pre_eq_link
+  - '0'
+- - rx_snr_input
+  - '0'
+  - rx_snr
+  - '0'
+- - skip_rx
+  - '0'
+  - xor
+  - '0'
+- - skip_tx
+  - '0'
+  - xor
+  - '1'
+- - spectrum_budget_input
+  - '0'
+  - spectrum_budget
+  - '0'
+- - spectrum_input
+  - '0'
+  - spectrum
+  - '0'
+- - symbols_plot
+  - '0'
+  - constellation
+  - '0'
+- - throttle
+  - '0'
+  - channel
+  - '0'
+- - timing_input
+  - '0'
+  - timing_error
+  - '0'
+- - tx_constellation_reference_1
+  - '0'
+  - tx_constellation
+  - '1'
+- - tx_constellation_reference_2
+  - '0'
+  - tx_constellation
+  - '2'
+- - tx_dbm
+  - '0'
+  - tx_dbm_link
+  - '0'
+- - tx_dbm
+  - '0'
+  - tx_papr
+  - '1'
+- - tx_eye_i
+  - '0'
+  - tx_eye_i_eye
+  - '0'
+- - tx_eye_input
+  - '0'
+  - tx_eye_i
+  - '0'
+- - tx_eye_input
+  - '0'
+  - tx_eye_q
+  - '0'
+- - tx_eye_q
+  - '0'
+  - tx_eye_q_eye
+  - '0'
+- - tx_meter_input
+  - '0'
+  - tx_milliwatts
+  - '0'
+- - tx_milliwatts
+  - '0'
+  - tx_mw_link
+  - '0'
+- - tx_milliwatts
+  - '0'
+  - tx_power_sum
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - tx_papr
+  - '0'
+- - tx_peak_mw
+  - '0'
+  - tx_peak_dbm
+  - '0'
+- - tx_peak_vectors
+  - '0'
+  - tx_peak_mw
+  - '0'
+- - tx_power
+  - '0'
+  - throttle
+  - '0'
+- - tx_power
+  - '0'
+  - tx_plot_link
+  - '0'
+- - tx_power_mean
+  - '0'
+  - tx_dbm
+  - '0'
+- - tx_power_sum
+  - '0'
+  - tx_power_mean
+  - '0'
+- - tx_spectrum
+  - '0'
+  - spectrum
+  - '1'
+- - tx_symbol_chunks
+  - '0'
+  - tx_symbol_diff
+  - '0'
+- - tx_symbol_diff
+  - '0'
+  - tx_symbols
+  - '0'
+- - tx_symbol_input
+  - '0'
+  - tx_symbol_chunks
+  - '0'
+- - tx_symbols
+  - '0'
+  - tx_constellation
+  - '0'
+- - tx_time
+  - '0'
+  - waveform
+  - '1'
+- - tx_wave_input
+  - '0'
+  - tx_waveform
+  - '0'
+- - unpack_rx
+  - '0'
+  - skip_rx
+  - '0'
+- - unpack_tx
+  - '0'
+  - delay
+  - '0'
+- - waveform_input
+  - '0'
+  - waveform
+  - '0'
+- - xor
+  - '0'
+  - errors_float
+  - '0'
+- - errors_float
+  - '0'
+  - bit_errors_link
+  - '0'
+- - bit_errors_to_ber_test
+  - '0'
+  - ber_test_sum_10k
+  - '0'
+- - ber_test_sum_10k
+  - '0'
+  - ber_test_zero
+  - '0'
+- - ber_test_zero
+  - '0'
+  - ber_test_unit
+  - '0'
+- - ber_test_unit
+  - '0'
+  - ber_test_index
+  - '0'
+- - ber_test_index
+  - '0'
+  - ber_test_done
+  - '0'
+- - ber_test_done
+  - '0'
+  - ber_test_not_done
+  - '0'
+- - ber_test_not_done
+  - '0'
+  - ber_test_gate
+  - '0'
+- - ber_test_sum_10k
+  - '0'
+  - ber_test_gated_errors
+  - '0'
+- - ber_test_gate
+  - '0'
+  - ber_test_gated_errors
+  - '1'
+- - ber_test_gated_errors
+  - '0'
+  - ber_test_error_sum
+  - '0'
+- - ber_test_error_sum
+  - '0'
+  - ber_test_errors
+  - '0'
+- - ber_test_gate
+  - '0'
+  - ber_test_window_sum
+  - '0'
+- - ber_test_window_sum
+  - '0'
+  - ber_test_count
+  - '0'
+- - ber_test_errors
+  - '0'
+  - ber_test_ratio
+  - '0'
+- - ber_test_count
+  - '0'
+  - ber_test_ratio
+  - '1'
+- - tx_dbm
+  - '0'
+  - probe_tx_dbm
+  - '0'
+- - tx_peak_dbm
+  - '0'
+  - probe_tx_peak_dbm
+  - '0'
+- - tx_papr
+  - '0'
+  - probe_tx_papr
+  - '0'
+- - rx_dbm
+  - '0'
+  - probe_rx_dbm
+  - '0'
+- - rx_snr
+  - '0'
+  - probe_rx_snr
+  - '0'
+- - rx_ebno
+  - '0'
+  - probe_rx_ebno
+  - '0'
+- - evm_rms
+  - '0'
+  - probe_evm_rms
+  - '0'
+- - ber_scale
+  - '0'
+  - probe_ber_scale
+  - '0'
+- - ber_test_count
+  - '0'
+  - probe_ber_test_count
+  - '0'
+- - ber_test_errors
+  - '0'
+  - probe_ber_test_errors
+  - '0'
+- - ber_test_ratio
+  - '0'
+  - probe_ber_test_ratio
+  - '0'
+- - rf_constellation_input
+  - '0'
+  - rf_constellation
+  - '0'
 metadata:
   file_format: 1
   grc_version: 3.10.12.0

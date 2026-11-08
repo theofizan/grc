@@ -90,6 +90,8 @@ def build(profile):
          label="Bit errors to collect per point", short_id="", hide="none")),
         ("ber_floor_log10", "parameter", dict(value="-7", type="eng_float",
          label="Stop a point below BER 10^x", short_id="", hide="none")),
+        ("plot_update_s", "parameter", dict(value="0.5", type="eng_float",
+         label="Plot refresh interval (s)", short_id="", hide="none")),
         ("sim_speed", "parameter", dict(value="100", type="eng_float",
          label="Simulation speed limit (x real time)", short_id="", hide="none")),
     ]
@@ -150,7 +152,7 @@ def build(profile):
     add("section_ber_curve", "note", 16, y_sink - 50, note="BER CURVE")
     add("ber_curve", "qtgui_bercurve_sink", 600, y_sink,
         esno="ebno_db", berminerrors="min_errors", berlimit="ber_floor_log10",
-        num_curves="1", curvenames="[]", ymin="-7", ymax="0", update_time="0.25",
+        num_curves="1", curvenames="[]", ymin="-7", ymax="0", update_time="plot_update_s",
         gui_hint="", label1=f'"{label} measured"', width1="2", color1='"blue"',
         style1="1", marker1="0", alpha1="1.0",
         bus_structure_sink=str([list(range(2 * POINTS))]))

@@ -243,6 +243,20 @@ Each test runs the actual flowchart and reads its built-in BER test. It cross-ch
 
 Run time is about 0.3 s per million bits for QPSK and 0.8 s per 10 million bits for 16-QAM. Eb/N₀ follows the flowcharts' convention: noise integrated over Fs, per uncoded bit.
 
+## Plot refresh and canvas layout
+
+**Plot refresh interval (s)** (`plot_update_s`, default 0.5) at the top of every flowchart sets how often all plots and the link-budget table redraw.
+- **Plots only:** each plot still receives every sample. The slower redraw only frees the GUI thread, so BER, MER and the other readouts are unchanged; on the N210 they read identically at 0.1 s and 0.5 s.
+- **If the window still lags,** raise it to 1 s or more.
+- **Most CPU isn't plotting.** It goes to UHD streaming, the LMS equalizer, timing recovery, and GNU Radio running each of about 100 blocks in its own thread. The plots themselves took about 5% of the block processing time in a profile.
+
+`python scripts/tidy_layout.py grc/<flowchart>.grc` lays a canvas out again from GRC's own block sizes. It moves block positions only, never parameters or wires:
+- **Controls:** packed rows at the top, in the BPSK control grouping.
+- **Processing:** each wired chain runs left to right.
+- **Sections:** stacked under their blue banners, with a check that no blocks overlap.
+
+`build_n210.py` runs it automatically. The simulation flowcharts were tidied with it once; run it again after big hand edits if you want.
+
 ## BER validation report
 
 `python scripts/ber_validation.py` runs the BER tests across Eb/N₀ for all six simulation flowcharts. It takes about 15 minutes, and each point gets at least ~300 errors or 20 million bits. It checks the results against:

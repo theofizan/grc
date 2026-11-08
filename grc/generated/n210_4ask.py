@@ -116,7 +116,7 @@ def snipfcn_link_table(self):
     self.link_table = table
     self.link_table_timer = Qt.QTimer()
     self.link_table_timer.timeout.connect(refresh_link_table)
-    self.link_table_timer.start(250)
+    self.link_table_timer.start(int(1000 * self.plot_update_s))
     self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
 
 
@@ -127,7 +127,7 @@ def snippets_main_after_init(tb):
 
 class n210_4ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, ber_test_bits=1000000, eq_step=0.01, eq_taps=11, evm_guide_percent=5, symbol_rate=1e6, tx_level_dbfs=(-15), tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
+    def __init__(self, eq_step=0.01, eq_taps=11, evm_guide_percent=5, symbol_rate=1e6, tx_level_dbfs=(-15), ber_test_bits=1000000, plot_update_s=0.5, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
         gr.top_block.__init__(self, "4-ASK over the air | two USRP N210s", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("4-ASK over the air | two USRP N210s")
@@ -161,12 +161,13 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         ##################################################
         # Parameters
         ##################################################
-        self.ber_test_bits = ber_test_bits
         self.eq_step = eq_step
         self.eq_taps = eq_taps
         self.evm_guide_percent = evm_guide_percent
         self.symbol_rate = symbol_rate
         self.tx_level_dbfs = tx_level_dbfs
+        self.ber_test_bits = ber_test_bits
+        self.plot_update_s = plot_update_s
         self.tx_usrp_address = tx_usrp_address
         self.rx_usrp_address = rx_usrp_address
         self.center_freq_hz = center_freq_hz
@@ -261,7 +262,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.constellation.set_update_time(0.10)
+        self.constellation.set_update_time(plot_update_s)
         self.constellation.set_y_axis((-2), 2)
         self.constellation.set_x_axis((-2), 2)
         self.constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -308,7 +309,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             2, #number of inputs
             None # parent
         )
-        self.waveform.set_update_time(0.10)
+        self.waveform.set_update_time(plot_update_s)
         self.waveform.set_y_axis(-1, 1)
 
         self.waveform.set_y_label('Amplitude', "")
@@ -399,7 +400,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.tx_waveform.set_update_time(0.10)
+        self.tx_waveform.set_update_time(plot_update_s)
         self.tx_waveform.set_y_axis(-1, 1)
 
         self.tx_waveform.set_y_label('Amplitude', "")
@@ -463,7 +464,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_q_eye.set_update_time(0.10)
+        self.tx_eye_q_eye.set_update_time(plot_update_s)
         self.tx_eye_q_eye.set_samp_per_symbol(sps)
         self.tx_eye_q_eye.set_y_axis(-1, 1)
 
@@ -515,7 +516,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_i_eye.set_update_time(0.10)
+        self.tx_eye_i_eye.set_update_time(plot_update_s)
         self.tx_eye_i_eye.set_samp_per_symbol(sps)
         self.tx_eye_i_eye.set_y_axis(-1, 1)
 
@@ -568,7 +569,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.tx_constellation.set_update_time(0.10)
+        self.tx_constellation.set_update_time(plot_update_s)
         self.tx_constellation.set_y_axis((-2), 2)
         self.tx_constellation.set_x_axis((-2), 2)
         self.tx_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -614,7 +615,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.timing_error.set_update_time(0.10)
+        self.timing_error.set_update_time(plot_update_s)
         self.timing_error.set_y_axis(-1, 1)
 
         self.timing_error.set_y_label('Amplitude', "")
@@ -668,7 +669,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.spectrum_budget.set_update_time(0.10)
+        self.spectrum_budget.set_update_time(plot_update_s)
         self.spectrum_budget.set_y_axis((-140), 10)
         self.spectrum_budget.set_y_label('Relative Gain', 'dB')
         self.spectrum_budget.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -714,7 +715,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             2,
             None # parent
         )
-        self.spectrum.set_update_time(0.10)
+        self.spectrum.set_update_time(plot_update_s)
         self.spectrum.set_y_axis((-140), 10)
         self.spectrum.set_y_label('Relative Gain', 'dB')
         self.spectrum.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -771,7 +772,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.rf_constellation.set_update_time(0.10)
+        self.rf_constellation.set_update_time(plot_update_s)
         self.rf_constellation.set_y_axis((-2), 2)
         self.rf_constellation.set_x_axis((-2), 2)
         self.rf_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -839,7 +840,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_q_eye.set_update_time(0.10)
+        self.middle_q_eye.set_update_time(plot_update_s)
         self.middle_q_eye.set_samp_per_symbol(sps)
         self.middle_q_eye.set_y_axis(-1, 1)
 
@@ -891,7 +892,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_i_eye.set_update_time(0.10)
+        self.middle_i_eye.set_update_time(plot_update_s)
         self.middle_i_eye.set_samp_per_symbol(sps)
         self.middle_i_eye.set_y_axis(-1, 1)
 
@@ -947,7 +948,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye_quadrature.set_update_time(0.10)
+        self.eye_quadrature.set_update_time(plot_update_s)
         self.eye_quadrature.set_samp_per_symbol(sps)
         self.eye_quadrature.set_y_axis(-1, 1)
 
@@ -1000,7 +1001,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye.set_update_time(0.10)
+        self.eye.set_update_time(plot_update_s)
         self.eye.set_samp_per_symbol(sps)
         self.eye.set_y_axis(-1, 1)
 
@@ -1054,7 +1055,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.evm_history.set_update_time(0.10)
+        self.evm_history.set_update_time(plot_update_s)
         self.evm_history.set_y_axis(-1, 1)
 
         self.evm_history.set_y_label('EVM', '%')
@@ -1106,7 +1107,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.evm_display.set_update_time(0.10)
+        self.evm_display.set_update_time(plot_update_s)
         self.evm_display.set_title('Decision-directed RMS EVM')
 
         labels = ['Decision-directed EVM', '', '', '', '',
@@ -1150,7 +1151,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, # Number of inputs
             None # parent
         )
-        self.eq_tap_plot.set_update_time(0.10)
+        self.eq_tap_plot.set_update_time(plot_update_s)
         self.eq_tap_plot.set_y_axis((-140), 10)
         self.eq_tap_plot.enable_autoscale(True)
         self.eq_tap_plot.enable_grid(True)
@@ -1192,7 +1193,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_evm_history.set_update_time(0.10)
+        self.eq_evm_history.set_update_time(plot_update_s)
         self.eq_evm_history.set_y_axis(-1, 1)
 
         self.eq_evm_history.set_y_label('EVM', '%')
@@ -1244,7 +1245,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_error_trace.set_update_time(0.10)
+        self.eq_error_trace.set_update_time(plot_update_s)
         self.eq_error_trace.set_y_axis(-1, 1)
 
         self.eq_error_trace.set_y_label('EVM', '%')
@@ -1314,7 +1315,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.ber_history.set_update_time(0.10)
+        self.ber_history.set_update_time(plot_update_s)
         self.ber_history.set_y_axis(0, 1)
 
         self.ber_history.set_y_label('Bit error ratio', '')
@@ -1366,7 +1367,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.ber_display.set_update_time(0.10)
+        self.ber_display.set_update_time(plot_update_s)
         self.ber_display.set_title('BER | RX vs RX one data period earlier, /2 (preamble-trained)')
 
         labels = ['Bit error ratio', '', '', '', '',
@@ -1402,7 +1403,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.before_eq_constellation.set_update_time(0.10)
+        self.before_eq_constellation.set_update_time(plot_update_s)
         self.before_eq_constellation.set_y_axis((-2), 2)
         self.before_eq_constellation.set_x_axis((-2), 2)
         self.before_eq_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -1447,7 +1448,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_q_eye.set_update_time(0.10)
+        self.after_q_eye.set_update_time(plot_update_s)
         self.after_q_eye.set_samp_per_symbol(sps)
         self.after_q_eye.set_y_axis(-1, 1)
 
@@ -1499,7 +1500,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_i_eye.set_update_time(0.10)
+        self.after_i_eye.set_update_time(plot_update_s)
         self.after_i_eye.set_samp_per_symbol(sps)
         self.after_i_eye.set_y_axis(-1, 1)
 
@@ -1579,8 +1580,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
+        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
@@ -1676,13 +1677,6 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
         event.accept()
 
-    def get_ber_test_bits(self):
-        return self.ber_test_bits
-
-    def set_ber_test_bits(self, ber_test_bits):
-        self.ber_test_bits = ber_test_bits
-        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
-
     def get_eq_step(self):
         return self.eq_step
 
@@ -1722,6 +1716,43 @@ class n210_4ask(gr.top_block, Qt.QWidget):
     def set_tx_level_dbfs(self, tx_level_dbfs):
         self.tx_level_dbfs = tx_level_dbfs
         self.set_tx_amplitude(10**(self.tx_level_dbfs/20.0))
+
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
+
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+
+    def get_plot_update_s(self):
+        return self.plot_update_s
+
+    def set_plot_update_s(self, plot_update_s):
+        self.plot_update_s = plot_update_s
+        self.after_i_eye.set_update_time(self.plot_update_s)
+        self.after_q_eye.set_update_time(self.plot_update_s)
+        self.before_eq_constellation.set_update_time(self.plot_update_s)
+        self.ber_display.set_update_time(self.plot_update_s)
+        self.ber_history.set_update_time(self.plot_update_s)
+        self.constellation.set_update_time(self.plot_update_s)
+        self.eq_error_trace.set_update_time(self.plot_update_s)
+        self.eq_evm_history.set_update_time(self.plot_update_s)
+        self.eq_tap_plot.set_update_time(self.plot_update_s)
+        self.evm_display.set_update_time(self.plot_update_s)
+        self.evm_history.set_update_time(self.plot_update_s)
+        self.eye.set_update_time(self.plot_update_s)
+        self.eye_quadrature.set_update_time(self.plot_update_s)
+        self.middle_i_eye.set_update_time(self.plot_update_s)
+        self.middle_q_eye.set_update_time(self.plot_update_s)
+        self.spectrum.set_update_time(self.plot_update_s)
+        self.spectrum_budget.set_update_time(self.plot_update_s)
+        self.timing_error.set_update_time(self.plot_update_s)
+        self.tx_constellation.set_update_time(self.plot_update_s)
+        self.tx_eye_i_eye.set_update_time(self.plot_update_s)
+        self.tx_eye_q_eye.set_update_time(self.plot_update_s)
+        self.tx_waveform.set_update_time(self.plot_update_s)
+        self.waveform.set_update_time(self.plot_update_s)
+        self.rf_constellation.set_update_time(self.plot_update_s)
 
     def get_tx_usrp_address(self):
         return self.tx_usrp_address
@@ -1779,8 +1810,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_data_period_bits(self, data_period_bits):
         self.data_period_bits = data_period_bits
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.delay.set_dly(int(self.data_period_bits))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_warmup_bits(self):
@@ -1836,8 +1867,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_bit_rate(self, bit_rate):
         self.bit_rate = bit_rate
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
     def get_ber_test_blocks(self):
         return self.ber_test_blocks
@@ -1984,9 +2015,6 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 def argument_parser():
     parser = ArgumentParser()
     parser.add_argument(
-        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
-        help="Set BER test length (compared bits) [default=%(default)r]")
-    parser.add_argument(
         "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
         help="Set NLMS adaptation step [default=%(default)r]")
     parser.add_argument(
@@ -2001,6 +2029,12 @@ def argument_parser():
     parser.add_argument(
         "--tx-level-dbfs", dest="tx_level_dbfs", type=eng_float, default=eng_notation.num_to_str(float((-15))),
         help="Set TX digital RMS level (dBFS, keep peaks < 0) [default=%(default)r]")
+    parser.add_argument(
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
+    parser.add_argument(
+        "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
+        help="Set Plot refresh interval (s) [default=%(default)r]")
     parser.add_argument(
         "--tx-usrp-address", dest="tx_usrp_address", type=str, default='addr=192.168.10.2',
         help="Set TX N210 device address [default=%(default)r]")
@@ -2022,7 +2056,7 @@ def main(top_block_cls=n210_4ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(ber_test_bits=options.ber_test_bits, eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
+    tb = top_block_cls(eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, ber_test_bits=options.ber_test_bits, plot_update_s=options.plot_update_s, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

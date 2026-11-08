@@ -51,7 +51,34 @@ def apply(graph):
                         state="enabled")))
         graph["connections"] += [["tx_peak_dbm", "0", "tx_papr", "0"],
                                  ["tx_dbm", "0", "tx_papr", "1"]]
-    return ber_test(graph)
+    return plot_refresh(ber_test(graph))
+
+
+PLOT_SINKS = {"qtgui_time_sink_x", "qtgui_freq_sink_x", "qtgui_const_sink_x",
+              "qtgui_eye_sink_x", "qtgui_number_sink", "qtgui_vector_sink_f",
+              "qtgui_bercurve_sink"}
+
+
+def plot_refresh(graph, default_s="0.5"):
+    """One control for how often every plot redraws (display only).
+
+    Each Qt GUI sink still receives and processes every sample; its update
+    interval only sets how often it repaints. Slower repaints free the CPU
+    without changing any measurement. Safe to run repeatedly.
+    """
+    blocks = {b["name"]: b for b in graph["blocks"]}
+    if "plot_update_s" not in blocks:
+        x, y = blocks["ber_test_bits"]["states"]["coordinate"] if "ber_test_bits" in blocks \
+            else (16, 8)
+        graph["blocks"].append(dict(
+            name="plot_update_s", id="parameter",
+            parameters=dict(value=default_s, type="eng_float",
+                            label="Plot refresh interval (s)", short_id="", hide="none"),
+            states=dict(coordinate=[x + 200, y], rotation=0, state="enabled")))
+    for block in graph["blocks"]:
+        if block["id"] in PLOT_SINKS:
+            block["parameters"]["update_time"] = "plot_update_s"
+    return graph
 
 
 def ber_test(graph, error_weight="1.0"):
@@ -242,7 +269,7 @@ def refresh_link_table():
 self.link_table = table
 self.link_table_timer = Qt.QTimer()
 self.link_table_timer.timeout.connect(refresh_link_table)
-self.link_table_timer.start(250)
+self.link_table_timer.start(int(1000 * self.plot_update_s))
 self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
 '''
     x, y = blocks["ber_test_seconds"]["states"]["coordinate"]

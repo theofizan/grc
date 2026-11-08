@@ -113,7 +113,7 @@ def snipfcn_link_table(self):
     self.link_table = table
     self.link_table_timer = Qt.QTimer()
     self.link_table_timer.timeout.connect(refresh_link_table)
-    self.link_table_timer.start(250)
+    self.link_table_timer.start(int(1000 * self.plot_update_s))
     self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
 
 
@@ -124,7 +124,7 @@ def snippets_main_after_init(tb):
 
 class single_carrier_bpsk(gr.top_block, Qt.QWidget):
 
-    def __init__(self, channel_echo=0, eq_step=0.01, eq_taps=11, evm_guide_percent=5, noise_enabled=1, path_loss_db=40, reference_delay=34, rx_noise_dbm=(-100), symbol_rate=1e6, tx_power_dbm=0, ber_test_bits=1000000):
+    def __init__(self, channel_echo=0, eq_step=0.01, eq_taps=11, evm_guide_percent=5, noise_enabled=1, path_loss_db=40, reference_delay=34, rx_noise_dbm=(-100), symbol_rate=1e6, tx_power_dbm=0, ber_test_bits=1000000, plot_update_s=0.5):
         gr.top_block.__init__(self, "BPSK single carrier | stock blocks", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("BPSK single carrier | stock blocks")
@@ -169,6 +169,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
         self.symbol_rate = symbol_rate
         self.tx_power_dbm = tx_power_dbm
         self.ber_test_bits = ber_test_bits
+        self.plot_update_s = plot_update_s
 
         ##################################################
         # Variables
@@ -243,7 +244,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.constellation.set_update_time(0.10)
+        self.constellation.set_update_time(plot_update_s)
         self.constellation.set_y_axis((-2), 2)
         self.constellation.set_x_axis((-2), 2)
         self.constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -290,7 +291,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             2, #number of inputs
             None # parent
         )
-        self.waveform.set_update_time(0.10)
+        self.waveform.set_update_time(plot_update_s)
         self.waveform.set_y_axis(-1, 1)
 
         self.waveform.set_y_label('Amplitude', "")
@@ -348,7 +349,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.tx_waveform.set_update_time(0.10)
+        self.tx_waveform.set_update_time(plot_update_s)
         self.tx_waveform.set_y_axis(-1, 1)
 
         self.tx_waveform.set_y_label('Amplitude', "")
@@ -413,7 +414,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_q_eye.set_update_time(0.10)
+        self.tx_eye_q_eye.set_update_time(plot_update_s)
         self.tx_eye_q_eye.set_samp_per_symbol(sps)
         self.tx_eye_q_eye.set_y_axis(-1, 1)
 
@@ -465,7 +466,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_i_eye.set_update_time(0.10)
+        self.tx_eye_i_eye.set_update_time(plot_update_s)
         self.tx_eye_i_eye.set_samp_per_symbol(sps)
         self.tx_eye_i_eye.set_y_axis(-1, 1)
 
@@ -518,7 +519,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.tx_constellation.set_update_time(0.10)
+        self.tx_constellation.set_update_time(plot_update_s)
         self.tx_constellation.set_y_axis((-2), 2)
         self.tx_constellation.set_x_axis((-2), 2)
         self.tx_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -564,7 +565,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.timing_error.set_update_time(0.10)
+        self.timing_error.set_update_time(plot_update_s)
         self.timing_error.set_y_axis(-1, 1)
 
         self.timing_error.set_y_label('Amplitude', "")
@@ -619,7 +620,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.spectrum_budget.set_update_time(0.10)
+        self.spectrum_budget.set_update_time(plot_update_s)
         self.spectrum_budget.set_y_axis((-140), 10)
         self.spectrum_budget.set_y_label('Relative Gain', 'dB')
         self.spectrum_budget.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -665,7 +666,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             2,
             None # parent
         )
-        self.spectrum.set_update_time(0.10)
+        self.spectrum.set_update_time(plot_update_s)
         self.spectrum.set_y_axis((-140), 10)
         self.spectrum.set_y_label('Relative Gain', 'dB')
         self.spectrum.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -718,7 +719,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.rf_constellation.set_update_time(0.10)
+        self.rf_constellation.set_update_time(plot_update_s)
         self.rf_constellation.set_y_axis((-2), 2)
         self.rf_constellation.set_x_axis((-2), 2)
         self.rf_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -785,7 +786,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_q_eye.set_update_time(0.10)
+        self.middle_q_eye.set_update_time(plot_update_s)
         self.middle_q_eye.set_samp_per_symbol(sps)
         self.middle_q_eye.set_y_axis(-1, 1)
 
@@ -837,7 +838,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_i_eye.set_update_time(0.10)
+        self.middle_i_eye.set_update_time(plot_update_s)
         self.middle_i_eye.set_samp_per_symbol(sps)
         self.middle_i_eye.set_y_axis(-1, 1)
 
@@ -893,7 +894,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye_quadrature.set_update_time(0.10)
+        self.eye_quadrature.set_update_time(plot_update_s)
         self.eye_quadrature.set_samp_per_symbol(sps)
         self.eye_quadrature.set_y_axis(-1, 1)
 
@@ -946,7 +947,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye.set_update_time(0.10)
+        self.eye.set_update_time(plot_update_s)
         self.eye.set_samp_per_symbol(sps)
         self.eye.set_y_axis(-1, 1)
 
@@ -999,7 +1000,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.evm_history.set_update_time(0.10)
+        self.evm_history.set_update_time(plot_update_s)
         self.evm_history.set_y_axis(-1, 1)
 
         self.evm_history.set_y_label('EVM', '%')
@@ -1051,7 +1052,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.evm_display.set_update_time(0.10)
+        self.evm_display.set_update_time(plot_update_s)
         self.evm_display.set_title('Decision-directed RMS EVM')
 
         labels = ['Decision-directed EVM', '', '', '', '',
@@ -1095,7 +1096,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, # Number of inputs
             None # parent
         )
-        self.eq_tap_plot.set_update_time(0.10)
+        self.eq_tap_plot.set_update_time(plot_update_s)
         self.eq_tap_plot.set_y_axis((-140), 10)
         self.eq_tap_plot.enable_autoscale(True)
         self.eq_tap_plot.enable_grid(True)
@@ -1137,7 +1138,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_evm_history.set_update_time(0.10)
+        self.eq_evm_history.set_update_time(plot_update_s)
         self.eq_evm_history.set_y_axis(-1, 1)
 
         self.eq_evm_history.set_y_label('EVM', '%')
@@ -1189,7 +1190,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_error_trace.set_update_time(0.10)
+        self.eq_error_trace.set_update_time(plot_update_s)
         self.eq_error_trace.set_y_axis(-1, 1)
 
         self.eq_error_trace.set_y_label('EVM', '%')
@@ -1266,7 +1267,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.ber_history.set_update_time(0.10)
+        self.ber_history.set_update_time(plot_update_s)
         self.ber_history.set_y_axis(0, 1)
 
         self.ber_history.set_y_label('Bit error ratio', '')
@@ -1318,7 +1319,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.ber_display.set_update_time(0.10)
+        self.ber_display.set_update_time(plot_update_s)
         self.ber_display.set_title('BER | latest 10000 compared bits')
 
         labels = ['Bit error ratio', '', '', '', '',
@@ -1354,7 +1355,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.before_eq_constellation.set_update_time(0.10)
+        self.before_eq_constellation.set_update_time(plot_update_s)
         self.before_eq_constellation.set_y_axis((-2), 2)
         self.before_eq_constellation.set_x_axis((-2), 2)
         self.before_eq_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -1399,7 +1400,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_q_eye.set_update_time(0.10)
+        self.after_q_eye.set_update_time(plot_update_s)
         self.after_q_eye.set_samp_per_symbol(sps)
         self.after_q_eye.set_y_axis(-1, 1)
 
@@ -1451,7 +1452,7 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_i_eye.set_update_time(0.10)
+        self.after_i_eye.set_update_time(plot_update_s)
         self.after_i_eye.set_samp_per_symbol(sps)
         self.after_i_eye.set_y_axis(-1, 1)
 
@@ -1537,8 +1538,8 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
         self.connect((self.channel, 0), (self.waveform, 0))
         self.connect((self.clock_sync, 0), (self.rx_scale, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
+        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.decoder, 0), (self.diff_decoder, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.diff_decoder, 0), (self.unpack_rx, 0))
@@ -1716,6 +1717,36 @@ class single_carrier_bpsk(gr.top_block, Qt.QWidget):
     def set_ber_test_bits(self, ber_test_bits):
         self.ber_test_bits = ber_test_bits
         self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+
+    def get_plot_update_s(self):
+        return self.plot_update_s
+
+    def set_plot_update_s(self, plot_update_s):
+        self.plot_update_s = plot_update_s
+        self.after_i_eye.set_update_time(self.plot_update_s)
+        self.after_q_eye.set_update_time(self.plot_update_s)
+        self.before_eq_constellation.set_update_time(self.plot_update_s)
+        self.ber_display.set_update_time(self.plot_update_s)
+        self.ber_history.set_update_time(self.plot_update_s)
+        self.constellation.set_update_time(self.plot_update_s)
+        self.eq_error_trace.set_update_time(self.plot_update_s)
+        self.eq_evm_history.set_update_time(self.plot_update_s)
+        self.eq_tap_plot.set_update_time(self.plot_update_s)
+        self.evm_display.set_update_time(self.plot_update_s)
+        self.evm_history.set_update_time(self.plot_update_s)
+        self.eye.set_update_time(self.plot_update_s)
+        self.eye_quadrature.set_update_time(self.plot_update_s)
+        self.middle_i_eye.set_update_time(self.plot_update_s)
+        self.middle_q_eye.set_update_time(self.plot_update_s)
+        self.spectrum.set_update_time(self.plot_update_s)
+        self.spectrum_budget.set_update_time(self.plot_update_s)
+        self.timing_error.set_update_time(self.plot_update_s)
+        self.tx_constellation.set_update_time(self.plot_update_s)
+        self.tx_eye_i_eye.set_update_time(self.plot_update_s)
+        self.tx_eye_q_eye.set_update_time(self.plot_update_s)
+        self.tx_waveform.set_update_time(self.plot_update_s)
+        self.waveform.set_update_time(self.plot_update_s)
+        self.rf_constellation.set_update_time(self.plot_update_s)
 
     def get_const(self):
         return self.const
@@ -1970,6 +2001,9 @@ def argument_parser():
     parser.add_argument(
         "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
         help="Set BER test length (compared bits) [default=%(default)r]")
+    parser.add_argument(
+        "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
+        help="Set Plot refresh interval (s) [default=%(default)r]")
     return parser
 
 
@@ -1979,7 +2013,7 @@ def main(top_block_cls=single_carrier_bpsk, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(channel_echo=options.channel_echo, eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, noise_enabled=options.noise_enabled, path_loss_db=options.path_loss_db, reference_delay=options.reference_delay, rx_noise_dbm=options.rx_noise_dbm, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, ber_test_bits=options.ber_test_bits)
+    tb = top_block_cls(channel_echo=options.channel_echo, eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, noise_enabled=options.noise_enabled, path_loss_db=options.path_loss_db, reference_delay=options.reference_delay, rx_noise_dbm=options.rx_noise_dbm, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, ber_test_bits=options.ber_test_bits, plot_update_s=options.plot_update_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

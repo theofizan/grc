@@ -30,6 +30,9 @@ import sip
 import threading
 
 
+def snipfcn_equalizer_initial_taps(self):
+    self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
+
 def snipfcn_square_plot_panels(self):
     # Plot layout is a resizable 2x2 grid, not a square-canvas constraint.
     for index in range(self.views.count()):
@@ -48,9 +51,6 @@ def snipfcn_square_plot_panels(self):
     self.views.setMinimumSize(0, 0)
     self.views.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)
     self.resize(1180, 900)
-
-def snipfcn_equalizer_initial_taps(self):
-    self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
 
 def snipfcn_link_table(self):
     # Link budget and BER test as a spreadsheet-style table (display only).
@@ -113,18 +113,18 @@ def snipfcn_link_table(self):
     self.link_table = table
     self.link_table_timer = Qt.QTimer()
     self.link_table_timer.timeout.connect(refresh_link_table)
-    self.link_table_timer.start(250)
+    self.link_table_timer.start(int(1000 * self.plot_update_s))
     self.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)
 
 
 def snippets_main_after_init(tb):
     snipfcn_link_table(tb)
-    snipfcn_square_plot_panels(tb)
     snipfcn_equalizer_initial_taps(tb)
+    snipfcn_square_plot_panels(tb)
 
 class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, reference_delay=68, symbol_rate=1e6, tx_power_dbm=0, path_loss_db=80, rx_noise_dbm=(-100), noise_enabled=1, evm_guide_percent=5, eq_taps=11, eq_step=0.01, channel_echo=0, ber_test_bits=1000000):
+    def __init__(self, channel_echo=0, eq_step=0.01, eq_taps=11, evm_guide_percent=5, noise_enabled=1, path_loss_db=90, reference_delay=68, rx_noise_dbm=(-100), symbol_rate=1e6, tx_power_dbm=0, ber_test_bits=1000000, plot_update_s=0.5):
         gr.top_block.__init__(self, "4ASK single carrier | stock blocks", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("4ASK single carrier | stock blocks")
@@ -158,17 +158,18 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         ##################################################
         # Parameters
         ##################################################
+        self.channel_echo = channel_echo
+        self.eq_step = eq_step
+        self.eq_taps = eq_taps
+        self.evm_guide_percent = evm_guide_percent
+        self.noise_enabled = noise_enabled
+        self.path_loss_db = path_loss_db
         self.reference_delay = reference_delay
+        self.rx_noise_dbm = rx_noise_dbm
         self.symbol_rate = symbol_rate
         self.tx_power_dbm = tx_power_dbm
-        self.path_loss_db = path_loss_db
-        self.rx_noise_dbm = rx_noise_dbm
-        self.noise_enabled = noise_enabled
-        self.evm_guide_percent = evm_guide_percent
-        self.eq_taps = eq_taps
-        self.eq_step = eq_step
-        self.channel_echo = channel_echo
         self.ber_test_bits = ber_test_bits
+        self.plot_update_s = plot_update_s
 
         ##################################################
         # Variables
@@ -243,7 +244,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.constellation.set_update_time(0.10)
+        self.constellation.set_update_time(plot_update_s)
         self.constellation.set_y_axis((-2), 2)
         self.constellation.set_x_axis((-2), 2)
         self.constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -290,7 +291,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             2, #number of inputs
             None # parent
         )
-        self.waveform.set_update_time(0.10)
+        self.waveform.set_update_time(plot_update_s)
         self.waveform.set_y_axis(-1, 1)
 
         self.waveform.set_y_label('Amplitude', "")
@@ -348,7 +349,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.tx_waveform.set_update_time(0.10)
+        self.tx_waveform.set_update_time(plot_update_s)
         self.tx_waveform.set_y_axis(-1, 1)
 
         self.tx_waveform.set_y_label('Amplitude', "")
@@ -413,7 +414,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_q_eye.set_update_time(0.10)
+        self.tx_eye_q_eye.set_update_time(plot_update_s)
         self.tx_eye_q_eye.set_samp_per_symbol(sps)
         self.tx_eye_q_eye.set_y_axis(-1, 1)
 
@@ -465,7 +466,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.tx_eye_i_eye.set_update_time(0.10)
+        self.tx_eye_i_eye.set_update_time(plot_update_s)
         self.tx_eye_i_eye.set_samp_per_symbol(sps)
         self.tx_eye_i_eye.set_y_axis(-1, 1)
 
@@ -518,7 +519,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             3, #number of inputs
             None # parent
         )
-        self.tx_constellation.set_update_time(0.10)
+        self.tx_constellation.set_update_time(plot_update_s)
         self.tx_constellation.set_y_axis((-2), 2)
         self.tx_constellation.set_x_axis((-2), 2)
         self.tx_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -564,7 +565,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.timing_error.set_update_time(0.10)
+        self.timing_error.set_update_time(plot_update_s)
         self.timing_error.set_y_axis(-1, 1)
 
         self.timing_error.set_y_label('Amplitude', "")
@@ -619,7 +620,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.spectrum_budget.set_update_time(0.10)
+        self.spectrum_budget.set_update_time(plot_update_s)
         self.spectrum_budget.set_y_axis((-140), 10)
         self.spectrum_budget.set_y_label('Relative Gain', 'dB')
         self.spectrum_budget.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -665,7 +666,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             2,
             None # parent
         )
-        self.spectrum.set_update_time(0.10)
+        self.spectrum.set_update_time(plot_update_s)
         self.spectrum.set_y_axis((-140), 10)
         self.spectrum.set_y_label('Relative Gain', 'dB')
         self.spectrum.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
@@ -718,7 +719,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.rf_constellation.set_update_time(0.10)
+        self.rf_constellation.set_update_time(plot_update_s)
         self.rf_constellation.set_y_axis((-2), 2)
         self.rf_constellation.set_x_axis((-2), 2)
         self.rf_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -785,7 +786,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_q_eye.set_update_time(0.10)
+        self.middle_q_eye.set_update_time(plot_update_s)
         self.middle_q_eye.set_samp_per_symbol(sps)
         self.middle_q_eye.set_y_axis(-1, 1)
 
@@ -837,7 +838,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.middle_i_eye.set_update_time(0.10)
+        self.middle_i_eye.set_update_time(plot_update_s)
         self.middle_i_eye.set_samp_per_symbol(sps)
         self.middle_i_eye.set_y_axis(-1, 1)
 
@@ -893,7 +894,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye_quadrature.set_update_time(0.10)
+        self.eye_quadrature.set_update_time(plot_update_s)
         self.eye_quadrature.set_samp_per_symbol(sps)
         self.eye_quadrature.set_y_axis(-1, 1)
 
@@ -946,7 +947,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.eye.set_update_time(0.10)
+        self.eye.set_update_time(plot_update_s)
         self.eye.set_samp_per_symbol(sps)
         self.eye.set_y_axis(-1, 1)
 
@@ -999,7 +1000,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.evm_history.set_update_time(0.10)
+        self.evm_history.set_update_time(plot_update_s)
         self.evm_history.set_y_axis(-1, 1)
 
         self.evm_history.set_y_label('EVM', '%')
@@ -1051,7 +1052,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.evm_display.set_update_time(0.10)
+        self.evm_display.set_update_time(plot_update_s)
         self.evm_display.set_title('Decision-directed RMS EVM')
 
         labels = ['Decision-directed EVM', '', '', '', '',
@@ -1095,7 +1096,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, # Number of inputs
             None # parent
         )
-        self.eq_tap_plot.set_update_time(0.10)
+        self.eq_tap_plot.set_update_time(plot_update_s)
         self.eq_tap_plot.set_y_axis((-140), 10)
         self.eq_tap_plot.enable_autoscale(True)
         self.eq_tap_plot.enable_grid(True)
@@ -1137,7 +1138,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_evm_history.set_update_time(0.10)
+        self.eq_evm_history.set_update_time(plot_update_s)
         self.eq_evm_history.set_y_axis(-1, 1)
 
         self.eq_evm_history.set_y_label('EVM', '%')
@@ -1189,7 +1190,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.eq_error_trace.set_update_time(0.10)
+        self.eq_error_trace.set_update_time(plot_update_s)
         self.eq_error_trace.set_y_axis(-1, 1)
 
         self.eq_error_trace.set_y_label('EVM', '%')
@@ -1266,7 +1267,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.ber_history.set_update_time(0.10)
+        self.ber_history.set_update_time(plot_update_s)
         self.ber_history.set_y_axis(0, 1)
 
         self.ber_history.set_y_label('Bit error ratio', '')
@@ -1318,7 +1319,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.ber_display.set_update_time(0.10)
+        self.ber_display.set_update_time(plot_update_s)
         self.ber_display.set_title('BER | latest 10000 compared bits')
 
         labels = ['Bit error ratio', '', '', '', '',
@@ -1354,7 +1355,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None # parent
         )
-        self.before_eq_constellation.set_update_time(0.10)
+        self.before_eq_constellation.set_update_time(plot_update_s)
         self.before_eq_constellation.set_y_axis((-2), 2)
         self.before_eq_constellation.set_x_axis((-2), 2)
         self.before_eq_constellation.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
@@ -1399,7 +1400,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_q_eye.set_update_time(0.10)
+        self.after_q_eye.set_update_time(plot_update_s)
         self.after_q_eye.set_samp_per_symbol(sps)
         self.after_q_eye.set_y_axis(-1, 1)
 
@@ -1451,7 +1452,7 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
             1, #number of inputs
             None
         )
-        self.after_i_eye.set_update_time(0.10)
+        self.after_i_eye.set_update_time(plot_update_s)
         self.after_i_eye.set_samp_per_symbol(sps)
         self.after_i_eye.set_y_axis(-1, 1)
 
@@ -1537,8 +1538,8 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.channel, 0), (self.waveform, 0))
         self.connect((self.clock_sync, 0), (self.rx_scale, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
+        self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
         self.connect((self.decoder, 0), (self.diff_decoder, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.diff_decoder, 0), (self.unpack_rx, 0))
@@ -1624,71 +1625,18 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
         event.accept()
 
-    def get_reference_delay(self):
-        return self.reference_delay
+    def get_channel_echo(self):
+        return self.channel_echo
 
-    def set_reference_delay(self, reference_delay):
-        self.reference_delay = reference_delay
-        self.delay.set_dly(int(self.reference_delay))
+    def set_channel_echo(self, channel_echo):
+        self.channel_echo = channel_echo
+        self.channel.set_taps([self.path_gain/(1+self.channel_echo**2)**0.5]+[0j]*(self.sps-1)+[self.path_gain*self.channel_echo/(1+self.channel_echo**2)**0.5])
 
-    def get_symbol_rate(self):
-        return self.symbol_rate
+    def get_eq_step(self):
+        return self.eq_step
 
-    def set_symbol_rate(self, symbol_rate):
-        self.symbol_rate = symbol_rate
-        self.set_samp_rate(self.symbol_rate*self.sps)
-        self.set_bit_rate(self.symbol_rate*self.k)
-        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
-        self.evm_history.set_samp_rate(self.symbol_rate)
-        self.timing_error.set_samp_rate(self.symbol_rate)
-        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
-        self.eq_evm_history.set_samp_rate(self.symbol_rate)
-        self.eq_error_trace.set_samp_rate(self.symbol_rate)
-
-    def get_tx_power_dbm(self):
-        return self.tx_power_dbm
-
-    def set_tx_power_dbm(self, tx_power_dbm):
-        self.tx_power_dbm = tx_power_dbm
-        self.set_tx_amplitude(10**(self.tx_power_dbm/20.0))
-        self.set_expected_rx_dbm(self.tx_power_dbm-self.path_loss_db)
-
-    def get_path_loss_db(self):
-        return self.path_loss_db
-
-    def set_path_loss_db(self, path_loss_db):
-        self.path_loss_db = path_loss_db
-        self.set_path_gain(10**(-self.path_loss_db/20.0))
-        self.set_expected_rx_dbm(self.tx_power_dbm-self.path_loss_db)
-        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
-        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
-
-    def get_rx_noise_dbm(self):
-        return self.rx_noise_dbm
-
-    def set_rx_noise_dbm(self, rx_noise_dbm):
-        self.rx_noise_dbm = rx_noise_dbm
-        self.set_noise_volt(10**(self.rx_noise_dbm/20.0) if self.noise_enabled else 0.0)
-        self.set_snr_rx_db(self.expected_rx_dbm-self.rx_noise_dbm if self.noise_enabled else float('inf'))
-        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
-        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
-
-    def get_noise_enabled(self):
-        return self.noise_enabled
-
-    def set_noise_enabled(self, noise_enabled):
-        self.noise_enabled = noise_enabled
-        self.set_noise_volt(10**(self.rx_noise_dbm/20.0) if self.noise_enabled else 0.0)
-        self.set_snr_rx_db(self.expected_rx_dbm-self.rx_noise_dbm if self.noise_enabled else float('inf'))
-        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
-        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
-
-    def get_evm_guide_percent(self):
-        return self.evm_guide_percent
-
-    def set_evm_guide_percent(self, evm_guide_percent):
-        self.evm_guide_percent = evm_guide_percent
-        self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
+    def set_eq_step(self, eq_step):
+        self.eq_step = eq_step
 
     def get_eq_taps(self):
         return self.eq_taps
@@ -1697,18 +1645,71 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
         self.eq_taps = eq_taps
         self.set_eq_delay_symbols((self.eq_taps-1)//2)
 
-    def get_eq_step(self):
-        return self.eq_step
+    def get_evm_guide_percent(self):
+        return self.evm_guide_percent
 
-    def set_eq_step(self, eq_step):
-        self.eq_step = eq_step
+    def set_evm_guide_percent(self, evm_guide_percent):
+        self.evm_guide_percent = evm_guide_percent
+        self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
 
-    def get_channel_echo(self):
-        return self.channel_echo
+    def get_noise_enabled(self):
+        return self.noise_enabled
 
-    def set_channel_echo(self, channel_echo):
-        self.channel_echo = channel_echo
-        self.channel.set_taps([self.path_gain/(1+self.channel_echo**2)**0.5]+[0j]*(self.sps-1)+[self.path_gain*self.channel_echo/(1+self.channel_echo**2)**0.5])
+    def set_noise_enabled(self, noise_enabled):
+        self.noise_enabled = noise_enabled
+        self.set_noise_volt(10**(self.rx_noise_dbm/20.0) if self.noise_enabled else 0.0)
+        self.set_snr_rx_db(self.expected_rx_dbm-self.rx_noise_dbm if self.noise_enabled else float('inf'))
+        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
+
+    def get_path_loss_db(self):
+        return self.path_loss_db
+
+    def set_path_loss_db(self, path_loss_db):
+        self.path_loss_db = path_loss_db
+        self.set_expected_rx_dbm(self.tx_power_dbm-self.path_loss_db)
+        self.set_path_gain(10**(-self.path_loss_db/20.0))
+        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
+
+    def get_reference_delay(self):
+        return self.reference_delay
+
+    def set_reference_delay(self, reference_delay):
+        self.reference_delay = reference_delay
+        self.delay.set_dly(int(self.reference_delay))
+
+    def get_rx_noise_dbm(self):
+        return self.rx_noise_dbm
+
+    def set_rx_noise_dbm(self, rx_noise_dbm):
+        self.rx_noise_dbm = rx_noise_dbm
+        self.set_noise_volt(10**(self.rx_noise_dbm/20.0) if self.noise_enabled else 0.0)
+        self.set_snr_rx_db(self.expected_rx_dbm-self.rx_noise_dbm if self.noise_enabled else float('inf'))
+        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.rx_snr.set_k((-self.path_loss_db-self.rx_noise_dbm if self.noise_enabled else float('inf')))
+
+    def get_symbol_rate(self):
+        return self.symbol_rate
+
+    def set_symbol_rate(self, symbol_rate):
+        self.symbol_rate = symbol_rate
+        self.set_bit_rate(self.symbol_rate*self.k)
+        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
+        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
+        self.set_samp_rate(self.symbol_rate*self.sps)
+        self.eq_error_trace.set_samp_rate(self.symbol_rate)
+        self.eq_evm_history.set_samp_rate(self.symbol_rate)
+        self.evm_history.set_samp_rate(self.symbol_rate)
+        self.timing_error.set_samp_rate(self.symbol_rate)
+
+    def get_tx_power_dbm(self):
+        return self.tx_power_dbm
+
+    def set_tx_power_dbm(self, tx_power_dbm):
+        self.tx_power_dbm = tx_power_dbm
+        self.set_expected_rx_dbm(self.tx_power_dbm-self.path_loss_db)
+        self.set_tx_amplitude(10**(self.tx_power_dbm/20.0))
 
     def get_ber_test_bits(self):
         return self.ber_test_bits
@@ -1716,6 +1717,36 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
     def set_ber_test_bits(self, ber_test_bits):
         self.ber_test_bits = ber_test_bits
         self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+
+    def get_plot_update_s(self):
+        return self.plot_update_s
+
+    def set_plot_update_s(self, plot_update_s):
+        self.plot_update_s = plot_update_s
+        self.after_i_eye.set_update_time(self.plot_update_s)
+        self.after_q_eye.set_update_time(self.plot_update_s)
+        self.before_eq_constellation.set_update_time(self.plot_update_s)
+        self.ber_display.set_update_time(self.plot_update_s)
+        self.ber_history.set_update_time(self.plot_update_s)
+        self.constellation.set_update_time(self.plot_update_s)
+        self.eq_error_trace.set_update_time(self.plot_update_s)
+        self.eq_evm_history.set_update_time(self.plot_update_s)
+        self.eq_tap_plot.set_update_time(self.plot_update_s)
+        self.evm_display.set_update_time(self.plot_update_s)
+        self.evm_history.set_update_time(self.plot_update_s)
+        self.eye.set_update_time(self.plot_update_s)
+        self.eye_quadrature.set_update_time(self.plot_update_s)
+        self.middle_i_eye.set_update_time(self.plot_update_s)
+        self.middle_q_eye.set_update_time(self.plot_update_s)
+        self.spectrum.set_update_time(self.plot_update_s)
+        self.spectrum_budget.set_update_time(self.plot_update_s)
+        self.timing_error.set_update_time(self.plot_update_s)
+        self.tx_constellation.set_update_time(self.plot_update_s)
+        self.tx_eye_i_eye.set_update_time(self.plot_update_s)
+        self.tx_eye_q_eye.set_update_time(self.plot_update_s)
+        self.tx_waveform.set_update_time(self.plot_update_s)
+        self.waveform.set_update_time(self.plot_update_s)
+        self.rf_constellation.set_update_time(self.plot_update_s)
 
     def get_const(self):
         return self.const
@@ -1729,16 +1760,16 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_sps(self, sps):
         self.sps = sps
-        self.set_samp_rate(self.symbol_rate*self.sps)
+        self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
         self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
+        self.set_samp_rate(self.symbol_rate*self.sps)
+        self.after_i_eye.set_samp_per_symbol(self.sps)
+        self.after_q_eye.set_samp_per_symbol(self.sps)
         self.channel.set_taps([self.path_gain/(1+self.channel_echo**2)**0.5]+[0j]*(self.sps-1)+[self.path_gain*self.channel_echo/(1+self.channel_echo**2)**0.5])
         self.eye.set_samp_per_symbol(self.sps)
         self.eye_quadrature.set_samp_per_symbol(self.sps)
-        self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
         self.middle_i_eye.set_samp_per_symbol(self.sps)
         self.middle_q_eye.set_samp_per_symbol(self.sps)
-        self.after_i_eye.set_samp_per_symbol(self.sps)
-        self.after_q_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_i_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_q_eye.set_samp_per_symbol(self.sps)
 
@@ -1768,39 +1799,39 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_symbol_rms(self, symbol_rms):
         self.symbol_rms = symbol_rms
-        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
-        self.rx_scale.set_k(self.symbol_rms)
         self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
+        self.rx_scale.set_k(self.symbol_rms)
+        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
 
     def get_snr_rx_db(self):
         return self.snr_rx_db
 
     def set_snr_rx_db(self, snr_rx_db):
         self.snr_rx_db = snr_rx_db
-        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
         self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
+        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.throttle.set_sample_rate(self.samp_rate)
-        self.spectrum.set_frequency_range(0, self.samp_rate)
-        self.waveform.set_samp_rate(self.samp_rate)
-        self.eye.set_samp_rate(self.samp_rate)
-        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
         self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
-        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.set_esno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.symbol_rate))
+        self.after_i_eye.set_samp_rate(self.samp_rate)
+        self.after_q_eye.set_samp_rate(self.samp_rate)
+        self.eye.set_samp_rate(self.samp_rate)
         self.eye_quadrature.set_samp_rate(self.samp_rate)
         self.middle_i_eye.set_samp_rate(self.samp_rate)
         self.middle_q_eye.set_samp_rate(self.samp_rate)
-        self.after_i_eye.set_samp_rate(self.samp_rate)
-        self.after_q_eye.set_samp_rate(self.samp_rate)
+        self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
+        self.spectrum.set_frequency_range(0, self.samp_rate)
+        self.spectrum_budget.set_frequency_range(0, self.samp_rate)
+        self.throttle.set_sample_rate(self.samp_rate)
         self.tx_eye_i_eye.set_samp_rate(self.samp_rate)
         self.tx_eye_q_eye.set_samp_rate(self.samp_rate)
         self.tx_waveform.set_samp_rate(self.samp_rate)
-        self.spectrum_budget.set_frequency_range(0, self.samp_rate)
+        self.waveform.set_samp_rate(self.samp_rate)
 
     def get_nfilts(self):
         return self.nfilts
@@ -1814,8 +1845,8 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_bit_rate(self, bit_rate):
         self.bit_rate = bit_rate
-        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
         self.set_ebno_rx_db(self.snr_rx_db+10*math.log10(self.samp_rate/self.bit_rate))
+        self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
         self.rx_ebno.set_k((-self.path_loss_db-self.rx_noise_dbm+10*math.log10(self.samp_rate/self.bit_rate) if self.noise_enabled else float('inf')))
         self.set_ber_test_seconds((self.warmup_bits + 10000*self.ber_test_blocks) / self.bit_rate)
 
@@ -1833,17 +1864,17 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_alpha(self, alpha):
         self.alpha = alpha
-        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
-        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
         self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
+        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
+        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
     def get_tx_amplitude(self):
         return self.tx_amplitude
 
     def set_tx_amplitude(self, tx_amplitude):
         self.tx_amplitude = tx_amplitude
-        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
         self.rx_level.set_k(1.0/(self.tx_amplitude*self.path_gain))
+        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
 
     def get_timing_bw(self):
         return self.timing_bw
@@ -1885,8 +1916,8 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_eye_synthesis_taps(self, eye_synthesis_taps):
         self.eye_synthesis_taps = eye_synthesis_taps
-        self.middle_eye_reconstruction.set_taps(self.eye_synthesis_taps)
         self.after_eye_reconstruction.set_taps(self.eye_synthesis_taps)
+        self.middle_eye_reconstruction.set_taps(self.eye_synthesis_taps)
 
     def get_esno_rx_db(self):
         return self.esno_rx_db
@@ -1917,8 +1948,8 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 
     def set_ber_window(self, ber_window):
         self.ber_window = ber_window
-        self.ber_scale.set_k((1.0/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.ber_scale.set_k((1.0/self.ber_window))
 
     def get_ber_test_seconds(self):
         return self.ber_test_seconds
@@ -1938,8 +1969,29 @@ class single_carrier_4ask(gr.top_block, Qt.QWidget):
 def argument_parser():
     parser = ArgumentParser()
     parser.add_argument(
+        "--channel-echo", dest="channel_echo", type=eng_float, default=eng_notation.num_to_str(float(0)),
+        help="Set One-symbol echo voltage ratio [default=%(default)r]")
+    parser.add_argument(
+        "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
+        help="Set NLMS adaptation step [default=%(default)r]")
+    parser.add_argument(
+        "--eq-taps", dest="eq_taps", type=intx, default=11,
+        help="Set Adaptive equalizer taps [default=%(default)r]")
+    parser.add_argument(
+        "--evm-guide-percent", dest="evm_guide_percent", type=eng_float, default=eng_notation.num_to_str(float(5)),
+        help="Set Constellation guide radius (% RMS) [default=%(default)r]")
+    parser.add_argument(
+        "--noise-enabled", dest="noise_enabled", type=intx, default=1,
+        help="Set Receiver noise enabled (0/1) [default=%(default)r]")
+    parser.add_argument(
+        "--path-loss-db", dest="path_loss_db", type=eng_float, default=eng_notation.num_to_str(float(90)),
+        help="Set Net path loss including gains/losses (dB) [default=%(default)r]")
+    parser.add_argument(
         "--reference-delay", dest="reference_delay", type=intx, default=68,
         help="Set TX reference delay (bits) [default=%(default)r]")
+    parser.add_argument(
+        "--rx-noise-dbm", dest="rx_noise_dbm", type=eng_float, default=eng_notation.num_to_str(float((-100))),
+        help="Set RX noise over sample bandwidth (dBm) [default=%(default)r]")
     parser.add_argument(
         "--symbol-rate", dest="symbol_rate", type=eng_float, default=eng_notation.num_to_str(float(1e6)),
         help="Set Symbol rate (symbols/s) [default=%(default)r]")
@@ -1947,29 +1999,11 @@ def argument_parser():
         "--tx-power-dbm", dest="tx_power_dbm", type=eng_float, default=eng_notation.num_to_str(float(0)),
         help="Set TX average conducted power (dBm) [default=%(default)r]")
     parser.add_argument(
-        "--path-loss-db", dest="path_loss_db", type=eng_float, default=eng_notation.num_to_str(float(80)),
-        help="Set Net path loss including gains/losses (dB) [default=%(default)r]")
-    parser.add_argument(
-        "--rx-noise-dbm", dest="rx_noise_dbm", type=eng_float, default=eng_notation.num_to_str(float((-100))),
-        help="Set RX noise over sample bandwidth (dBm) [default=%(default)r]")
-    parser.add_argument(
-        "--noise-enabled", dest="noise_enabled", type=intx, default=1,
-        help="Set Receiver noise enabled (0/1) [default=%(default)r]")
-    parser.add_argument(
-        "--evm-guide-percent", dest="evm_guide_percent", type=eng_float, default=eng_notation.num_to_str(float(5)),
-        help="Set Constellation guide radius (% RMS) [default=%(default)r]")
-    parser.add_argument(
-        "--eq-taps", dest="eq_taps", type=intx, default=11,
-        help="Set Adaptive equalizer taps [default=%(default)r]")
-    parser.add_argument(
-        "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
-        help="Set NLMS adaptation step [default=%(default)r]")
-    parser.add_argument(
-        "--channel-echo", dest="channel_echo", type=eng_float, default=eng_notation.num_to_str(float(0)),
-        help="Set One-symbol echo voltage ratio [default=%(default)r]")
-    parser.add_argument(
         "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
         help="Set BER test length (compared bits) [default=%(default)r]")
+    parser.add_argument(
+        "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
+        help="Set Plot refresh interval (s) [default=%(default)r]")
     return parser
 
 
@@ -1979,7 +2013,7 @@ def main(top_block_cls=single_carrier_4ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(reference_delay=options.reference_delay, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, rx_noise_dbm=options.rx_noise_dbm, noise_enabled=options.noise_enabled, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, channel_echo=options.channel_echo, ber_test_bits=options.ber_test_bits)
+    tb = top_block_cls(channel_echo=options.channel_echo, eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, noise_enabled=options.noise_enabled, path_loss_db=options.path_loss_db, reference_delay=options.reference_delay, rx_noise_dbm=options.rx_noise_dbm, symbol_rate=options.symbol_rate, tx_power_dbm=options.tx_power_dbm, ber_test_bits=options.ber_test_bits, plot_update_s=options.plot_update_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

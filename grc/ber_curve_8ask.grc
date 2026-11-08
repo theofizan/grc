@@ -24,7 +24,7 @@ blocks:
     w_imag_sect: '1'
   states:
     coordinate:
-    - 136
+    - 240
     - 128
     rotation: 0
     state: enabled
@@ -34,7 +34,7 @@ blocks:
     value: const.bits_per_symbol()
   states:
     coordinate:
-    - 16
+    - 120
     - 128
     rotation: 0
     state: enabled
@@ -44,7 +44,7 @@ blocks:
     value: '4'
   states:
     coordinate:
-    - 1248
+    - 1352
     - 56
     rotation: 0
     state: enabled
@@ -54,7 +54,7 @@ blocks:
     value: '0.35'
   states:
     coordinate:
-    - 400
+    - 504
     - 128
     rotation: 0
     state: enabled
@@ -64,7 +64,7 @@ blocks:
     value: '32'
   states:
     coordinate:
-    - 464
+    - 568
     - 128
     rotation: 0
     state: enabled
@@ -74,7 +74,7 @@ blocks:
     value: firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
   states:
     coordinate:
-    - 520
+    - 624
     - 128
     rotation: 0
     state: enabled
@@ -84,7 +84,7 @@ blocks:
     value: symbol_rate*sps
   states:
     coordinate:
-    - 1296
+    - 1400
     - 56
     rotation: 0
     state: enabled
@@ -98,7 +98,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1128
+    - 1232
     - 56
     rotation: 0
     state: enabled
@@ -108,8 +108,8 @@ blocks:
     value: symbol_rate*k
   states:
     coordinate:
-    - 1408
-    - 56
+    - 16
+    - 128
     rotation: 0
     state: enabled
 - name: symbol_rms
@@ -118,7 +118,7 @@ blocks:
     value: (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
   states:
     coordinate:
-    - 256
+    - 360
     - 128
     rotation: 0
     state: enabled
@@ -128,7 +128,7 @@ blocks:
     value: '0.0628'
   states:
     coordinate:
-    - 696
+    - 800
     - 128
     rotation: 0
     state: enabled
@@ -140,7 +140,7 @@ blocks:
     step_size: eq_step/(eq_taps*symbol_rms**2)
   states:
     coordinate:
-    - 1088
+    - 1192
     - 128
     rotation: 0
     state: enabled
@@ -154,7 +154,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 760
+    - 864
     - 128
     rotation: 0
     state: enabled
@@ -168,7 +168,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 872
+    - 976
     - 128
     rotation: 0
     state: enabled
@@ -178,7 +178,7 @@ blocks:
     value: (eq_taps-1)//2
   states:
     coordinate:
-    - 992
+    - 1096
     - 128
     rotation: 0
     state: enabled
@@ -192,7 +192,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1240
+    - 1344
     - 128
     rotation: 0
     state: enabled
@@ -202,7 +202,7 @@ blocks:
     value: '50000'
   states:
     coordinate:
-    - 1352
+    - 1456
     - 128
     rotation: 0
     state: enabled
@@ -216,7 +216,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 648
+    - 752
     - 56
     rotation: 0
     state: enabled
@@ -226,7 +226,7 @@ blocks:
     value: 10**(tx_power_dbm/20.0)
   states:
     coordinate:
-    - 768
+    - 872
     - 56
     rotation: 0
     state: enabled
@@ -240,7 +240,7 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 888
+    - 992
     - 56
     rotation: 0
     state: enabled
@@ -250,7 +250,7 @@ blocks:
     value: 10**(-path_loss_db/20.0)
   states:
     coordinate:
-    - 1008
+    - 1112
     - 56
     rotation: 0
     state: enabled
@@ -262,8 +262,8 @@ blocks:
       import numpy'
   states:
     coordinate:
-    - 1424
-    - 128
+    - 16
+    - 248
     rotation: 0
     state: enabled
 - name: ebno_db
@@ -282,7 +282,7 @@ blocks:
     value: list(tx_amplitude*path_gain*10**(-(numpy.array(ebno_db) - 10*math.log10(samp_rate/bit_rate))/20))
   states:
     coordinate:
-    - 464
+    - 568
     - 56
     rotation: 0
     state: enabled
@@ -311,6 +311,20 @@ blocks:
   states:
     coordinate:
     - 232
+    - 56
+    rotation: 0
+    state: enabled
+- name: plot_update_s
+  id: parameter
+  parameters:
+    value: '0.5'
+    type: eng_float
+    label: Plot refresh interval (s)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 464
     - 56
     rotation: 0
     state: enabled
@@ -1668,7 +1682,7 @@ blocks:
     curvenames: '[]'
     ymin: '-7'
     ymax: '0'
-    update_time: '0.25'
+    update_time: plot_update_s
     gui_hint: ''
     label1: '"8-ASK measured"'
     width1: '2'
@@ -1852,7 +1866,7 @@ blocks:
       \ 'equalizer_%d' % i).set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))"
   states:
     coordinate:
-    - 16
+    - 184
     - 248
     rotation: 0
     state: enabled
@@ -1866,7 +1880,7 @@ blocks:
       self.resize(1000, 700)'
   states:
     coordinate:
-    - 168
+    - 336
     - 248
     rotation: 0
     state: enabled

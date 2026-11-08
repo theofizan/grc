@@ -21,7 +21,7 @@ CONTROL_TYPES = {"variable", "parameter", "variable_constellation",
                  "import", "snippet"}
 ORDER = [
     # What you change for a curve
-    "ebno_db", "min_errors", "ber_floor_log10", "sim_speed", "noise_volts",
+    "ebno_db", "min_errors", "ber_floor_log10", "sim_speed", "plot_update_s", "noise_volts",
     # Link and power
     "tx_power_dbm", "tx_amplitude", "path_loss_db", "path_gain",
     # Modem

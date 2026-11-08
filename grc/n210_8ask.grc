@@ -7,8 +7,8 @@ options:
     author: Antenna benchmark
   states:
     coordinate:
-    - 16
-    - 12
+    - 2480
+    - 8
     rotation: 0
     state: enabled
 blocks:
@@ -18,8 +18,8 @@ blocks:
     value: symbol_rate*sps
   states:
     coordinate:
-    - 328
-    - 88
+    - 184
+    - 56
     rotation: 0
     state: enabled
 - name: sps
@@ -28,8 +28,8 @@ blocks:
     value: '4'
   states:
     coordinate:
-    - 280
-    - 88
+    - 136
+    - 56
     rotation: 0
     state: enabled
 - name: alpha
@@ -38,8 +38,8 @@ blocks:
     value: '0.35'
   states:
     coordinate:
-    - 544
-    - 88
+    - 400
+    - 56
     rotation: 0
     state: enabled
 - name: nfilts
@@ -48,8 +48,8 @@ blocks:
     value: '32'
   states:
     coordinate:
-    - 608
-    - 88
+    - 464
+    - 56
     rotation: 0
     state: enabled
 - name: timing_bw
@@ -58,8 +58,8 @@ blocks:
     value: '0.0628'
   states:
     coordinate:
-    - 664
-    - 88
+    - 520
+    - 56
     rotation: 0
     state: enabled
 - name: rrc_taps
@@ -68,8 +68,8 @@ blocks:
     value: firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, alpha, 11*sps*nfilts)
   states:
     coordinate:
-    - 728
-    - 88
+    - 584
+    - 56
     rotation: 0
     state: enabled
 - name: const
@@ -84,8 +84,8 @@ blocks:
     w_imag_sect: '1'
   states:
     coordinate:
-    - 160
-    - 360
+    - 2208
+    - 56
     rotation: 0
     state: enabled
 - name: ber_window
@@ -94,8 +94,8 @@ blocks:
     value: '10000'
   states:
     coordinate:
-    - 272
-    - 288
+    - 1616
+    - 56
     rotation: 0
     state: enabled
 - name: warmup_bits
@@ -104,8 +104,8 @@ blocks:
     value: '4096'
   states:
     coordinate:
-    - 344
-    - 288
+    - 1688
+    - 56
     rotation: 0
     state: enabled
 - name: k
@@ -114,8 +114,8 @@ blocks:
     value: const.bits_per_symbol()
   states:
     coordinate:
-    - 1096
-    - 232
+    - 1352
+    - 56
     rotation: 0
     state: enabled
 - name: symbol_rate
@@ -128,8 +128,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 160
-    - 88
+    - 16
+    - 56
     rotation: 0
     state: enabled
 - name: bit_rate
@@ -138,8 +138,8 @@ blocks:
     value: symbol_rate*k
   states:
     coordinate:
-    - 440
-    - 88
+    - 296
+    - 56
     rotation: 0
     state: enabled
 - name: rrc_bandwidth
@@ -148,8 +148,8 @@ blocks:
     value: symbol_rate*(1+alpha)
   states:
     coordinate:
-    - 1088
-    - 88
+    - 944
+    - 56
     rotation: 0
     state: enabled
 - name: random_bytes
@@ -163,7 +163,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 584
+    - 576
     rotation: 0
     state: enabled
 - name: modulator
@@ -176,8 +176,8 @@ blocks:
     truncate: 'False'
   states:
     coordinate:
-    - 144
-    - 584
+    - 160
+    - 576
     rotation: 0
     state: enabled
 - name: clock_sync
@@ -193,8 +193,8 @@ blocks:
     osps: '1'
   states:
     coordinate:
-    - 992
-    - 584
+    - 728
+    - 792
     rotation: 0
     state: enabled
 - name: decoder
@@ -203,8 +203,8 @@ blocks:
     constellation: const
   states:
     coordinate:
-    - 1464
-    - 584
+    - 1680
+    - 792
     rotation: 0
     state: enabled
 - name: decoded_link
@@ -213,8 +213,8 @@ blocks:
     stream_id: decoded
   states:
     coordinate:
-    - 1624
-    - 584
+    - 1864
+    - 792
     rotation: 0
     state: enabled
 - name: reference_link
@@ -223,8 +223,8 @@ blocks:
     stream_id: reference
   states:
     coordinate:
-    - 16
-    - 684
+    - 160
+    - 656
     rotation: 0
     state: enabled
 - name: decoded_source
@@ -234,7 +234,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 954
+    - 1192
     rotation: 0
     state: enabled
 - name: unpack_rx
@@ -243,8 +243,8 @@ blocks:
     k: k
   states:
     coordinate:
-    - 330
-    - 954
+    - 144
+    - 1192
     rotation: 0
     state: enabled
 - name: skip_rx
@@ -255,8 +255,8 @@ blocks:
     num_items: warmup_bits+2*data_period_bits+int(settle_s*bit_rate)
   states:
     coordinate:
-    - 480
-    - 954
+    - 256
+    - 1248
     rotation: 0
     state: enabled
 - name: delay
@@ -267,8 +267,8 @@ blocks:
     delay: data_period_bits
   states:
     coordinate:
-    - 330
-    - 1094
+    - 256
+    - 1192
     rotation: 0
     state: enabled
 - name: skip_tx
@@ -279,8 +279,8 @@ blocks:
     num_items: warmup_bits+2*data_period_bits+int(settle_s*bit_rate)
   states:
     coordinate:
-    - 480
-    - 1094
+    - 456
+    - 1192
     rotation: 0
     state: enabled
 - name: xor
@@ -290,8 +290,8 @@ blocks:
     num_inputs: '2'
   states:
     coordinate:
-    - 680
-    - 1004
+    - 656
+    - 1192
     rotation: 0
     state: enabled
 - name: errors_float
@@ -299,8 +299,8 @@ blocks:
   parameters: {}
   states:
     coordinate:
-    - 760
-    - 1004
+    - 728
+    - 1192
     rotation: 0
     state: enabled
 - name: integrate
@@ -311,8 +311,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 910
-    - 1004
+    - 848
+    - 1192
     rotation: 0
     state: enabled
 - name: ber_scale
@@ -323,8 +323,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1070
-    - 1004
+    - 1008
+    - 1192
     rotation: 0
     state: enabled
 - name: ber_display
@@ -341,10 +341,11 @@ blocks:
     label1: Bit error ratio
     unit1: errors/bit
     gui_hint: views@0:0,0,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1240
-    - 1004
+    - 1168
+    - 1192
     rotation: 0
     state: enabled
 - name: constellation
@@ -376,10 +377,11 @@ blocks:
     alpha1: '0.3'
     alpha2: '1.0'
     alpha3: '0.5'
+    update_time: plot_update_s
   states:
     coordinate:
     - 160
-    - 1324
+    - 2200
     rotation: 0
     state: enabled
 - name: spectrum
@@ -395,10 +397,11 @@ blocks:
     gui_hint: views@1:2,0,1,1
     label1: RX
     label2: TX
+    update_time: plot_update_s
   states:
     coordinate:
-    - 560
-    - 1324
+    - 448
+    - 2200
     rotation: 0
     state: enabled
 - name: waveform
@@ -414,10 +417,11 @@ blocks:
     label2: RX Q
     label3: TX I
     label4: TX Q
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1000
-    - 1324
+    - 744
+    - 2200
     rotation: 0
     state: enabled
 - name: evm
@@ -427,8 +431,8 @@ blocks:
     meas_type: digital.evm_measurement_t.EVM_PERCENT
   states:
     coordinate:
-    - 160
-    - 1524
+    - 1056
+    - 2200
     rotation: 0
     state: enabled
 - name: evm_rms
@@ -438,8 +442,8 @@ blocks:
     alpha: '0.001'
   states:
     coordinate:
-    - 340
-    - 1524
+    - 1184
+    - 2200
     rotation: 0
     state: enabled
 - name: evm_display
@@ -456,10 +460,11 @@ blocks:
     label1: Decision-directed EVM
     unit1: '%'
     gui_hint: views@0:0,1,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 504
-    - 1504.0
+    - 1344
+    - 2200
     rotation: 0
     state: enabled
 - name: scope
@@ -470,7 +475,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2084
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_iq_link
@@ -479,8 +484,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 648
-    - 704
+    - 224
+    - 888
     rotation: 0
     state: enabled
 - name: symbols_link
@@ -489,8 +494,8 @@ blocks:
     stream_id: rx_symbols
   states:
     coordinate:
-    - 1312
-    - 712
+    - 1680
+    - 848
     rotation: 0
     state: enabled
 - name: symbols_plot
@@ -500,7 +505,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1324
+    - 2200
     rotation: 0
     state: enabled
 - name: spectrum_input
@@ -509,8 +514,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 410
-    - 1324
+    - 336
+    - 2200
     rotation: 0
     state: enabled
 - name: waveform_input
@@ -519,8 +524,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 850
-    - 1324
+    - 632
+    - 2200
     rotation: 0
     state: enabled
 - name: evm_input
@@ -529,8 +534,8 @@ blocks:
     stream_id: rx_symbols
   states:
     coordinate:
-    - 16
-    - 1524
+    - 920
+    - 2200
     rotation: 0
     state: enabled
 - name: symbol_rms
@@ -539,8 +544,8 @@ blocks:
     value: (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
   states:
     coordinate:
-    - 1216
-    - 232
+    - 1472
+    - 56
     rotation: 0
     state: enabled
 - name: tx_power
@@ -551,8 +556,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 312
-    - 584
+    - 344
+    - 576
     rotation: 0
     state: enabled
 - name: rx_scale
@@ -563,8 +568,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1160
-    - 584
+    - 1344
+    - 792
     rotation: 0
     state: enabled
 - name: views
@@ -580,8 +585,8 @@ blocks:
     label5: BER / EVM / taps
   states:
     coordinate:
-    - 904
-    - 360
+    - 640
+    - 176
     rotation: 0
     state: enabled
 - name: tx_plot_link
@@ -590,8 +595,8 @@ blocks:
     stream_id: tx_iq
   states:
     coordinate:
-    - 312
-    - 684
+    - 552
+    - 576
     rotation: 0
     state: enabled
 - name: timing_link
@@ -600,8 +605,8 @@ blocks:
     stream_id: timing_error
   states:
     coordinate:
-    - 992
-    - 744
+    - 912
+    - 944
     rotation: 0
     state: enabled
 - name: ber_link
@@ -610,8 +615,8 @@ blocks:
     stream_id: ber_history
   states:
     coordinate:
-    - 1240
-    - 1100.0
+    - 1168
+    - 1344
     rotation: 0
     state: enabled
 - name: evm_link
@@ -620,8 +625,8 @@ blocks:
     stream_id: evm_history
   states:
     coordinate:
-    - 504
-    - 1620.0
+    - 1344
+    - 2352
     rotation: 0
     state: enabled
 - name: tx_spectrum
@@ -630,8 +635,8 @@ blocks:
     stream_id: tx_iq
   states:
     coordinate:
-    - 410
-    - 1404
+    - 336
+    - 2256
     rotation: 0
     state: enabled
 - name: tx_time
@@ -640,8 +645,8 @@ blocks:
     stream_id: tx_iq
   states:
     coordinate:
-    - 850
-    - 1404
+    - 632
+    - 2256
     rotation: 0
     state: enabled
 - name: ber_plot_input
@@ -650,8 +655,8 @@ blocks:
     stream_id: ber_history
   states:
     coordinate:
-    - 730
-    - 1524
+    - 1528
+    - 2200
     rotation: 0
     state: enabled
 - name: ber_history
@@ -669,10 +674,11 @@ blocks:
     label1: BER
     ymin: '0'
     ymax: '1'
+    update_time: plot_update_s
   states:
     coordinate:
-    - 880
-    - 1512.0
+    - 1664
+    - 2200
     rotation: 0
     state: enabled
 - name: evm_plot_input
@@ -681,8 +687,8 @@ blocks:
     stream_id: evm_history
   states:
     coordinate:
-    - 1090
-    - 1524
+    - 1856
+    - 2200
     rotation: 0
     state: enabled
 - name: evm_history
@@ -698,10 +704,11 @@ blocks:
     ylabel: EVM
     yunit: '%'
     label1: Decision-directed EVM
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1256
-    - 1512.0
+    - 2000
+    - 2200
     rotation: 0
     state: enabled
 - name: timing_input
@@ -710,8 +717,8 @@ blocks:
     stream_id: timing_error
   states:
     coordinate:
-    - 1040
-    - 1714
+    - 848
+    - 2432
     rotation: 0
     state: enabled
 - name: timing_error
@@ -724,10 +731,11 @@ blocks:
     nconnections: '1'
     autoscale: 'True'
     gui_hint: views@1:2,1,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1180
-    - 1714
+    - 984
+    - 2432
     rotation: 0
     state: enabled
 - name: eye_input
@@ -737,7 +745,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1714
+    - 2432
     rotation: 0
     state: enabled
 - name: eye
@@ -753,10 +761,11 @@ blocks:
     gui_hint: views@2:1,1,1,1
     ylabel: RX in-phase amplitude
     label1: RX I | raw N210 RX output
+    update_time: plot_update_s
   states:
     coordinate:
-    - 300
-    - 1714
+    - 256
+    - 2432
     rotation: 0
     state: enabled
 - name: unused_timing_states
@@ -767,8 +776,8 @@ blocks:
     num_inputs: '2'
   states:
     coordinate:
-    - 992
-    - 804
+    - 912
+    - 1000
     rotation: 0
     state: enabled
 - name: tx_level_dbfs
@@ -781,8 +790,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 160
-    - 160
+    - 1088
+    - 56
     rotation: 0
     state: enabled
 - name: tx_amplitude
@@ -791,8 +800,8 @@ blocks:
     value: 10**(tx_level_dbfs/20.0)
   states:
     coordinate:
-    - 160
-    - 232
+    - 1200
+    - 56
     rotation: 0
     state: enabled
 - name: rx_level
@@ -806,8 +815,8 @@ blocks:
     max_gain: '65536'
   states:
     coordinate:
-    - 840
-    - 584
+    - 224
+    - 792
     rotation: 0
     state: enabled
 - name: tx_meter_input
@@ -816,8 +825,8 @@ blocks:
     stream_id: tx_iq
   states:
     coordinate:
-    - 16
-    - 2184
+    - 200
+    - 1760
     rotation: 0
     state: enabled
 - name: tx_milliwatts
@@ -826,8 +835,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 160
-    - 2184
+    - 344
+    - 1760
     rotation: 0
     state: enabled
 - name: tx_power_sum
@@ -838,8 +847,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 370
-    - 2184
+    - 472
+    - 1760
     rotation: 0
     state: enabled
 - name: tx_power_mean
@@ -850,8 +859,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 570
-    - 2184
+    - 632
+    - 1760
     rotation: 0
     state: enabled
 - name: tx_dbm
@@ -862,8 +871,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 780
-    - 2184
+    - 792
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_meter_input
@@ -872,8 +881,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 16
-    - 2314
+    - 1216
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_milliwatts
@@ -882,8 +891,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 160
-    - 2314
+    - 1328
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_power_sum
@@ -894,8 +903,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 370
-    - 2314
+    - 1456
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_power_mean
@@ -906,8 +915,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 570
-    - 2314
+    - 1584
+    - 1760
     rotation: 0
     state: enabled
 - name: rx_dbm
@@ -918,8 +927,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 780
-    - 2314
+    - 1744
+    - 1760
     rotation: 0
     state: enabled
 - name: tx_peak_vectors
@@ -930,8 +939,8 @@ blocks:
     num_items: '4096'
   states:
     coordinate:
-    - 160
-    - 2454
+    - 344
+    - 1816
     rotation: 0
     state: enabled
 - name: tx_peak_mw
@@ -943,8 +952,8 @@ blocks:
     num_inputs: '1'
   states:
     coordinate:
-    - 400
-    - 2454
+    - 472
+    - 1872
     rotation: 0
     state: enabled
 - name: tx_peak_dbm
@@ -955,8 +964,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 580
-    - 2454
+    - 632
+    - 1816
     rotation: 0
     state: enabled
 - name: tx_mw_link
@@ -965,8 +974,8 @@ blocks:
     stream_id: tx_power_mw
   states:
     coordinate:
-    - 160
-    - 2254
+    - 472
+    - 1816
     rotation: 0
     state: enabled
 - name: peak_input
@@ -975,8 +984,8 @@ blocks:
     stream_id: tx_power_mw
   states:
     coordinate:
-    - 16
-    - 2454
+    - 200
+    - 1816
     rotation: 0
     state: enabled
 - name: chart_math
@@ -987,8 +996,8 @@ blocks:
       import numpy'
   states:
     coordinate:
-    - 432
-    - 360
+    - 168
+    - 176
     rotation: 0
     state: enabled
 - name: evm_guide_percent
@@ -1001,8 +1010,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 744
-    - 288
+    - 2088
+    - 56
     rotation: 0
     state: enabled
 - name: rx_snr
@@ -1013,8 +1022,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 160
-    - 2854
+    - 264
+    - 1984
     rotation: 0
     state: enabled
 - name: rx_ebno
@@ -1025,8 +1034,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 780
-    - 2854
+    - 264
+    - 2040
     rotation: 0
     state: enabled
 - name: tx_symbol_input
@@ -1036,7 +1045,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3104
+    - 2616
     rotation: 0
     state: enabled
 - name: tx_symbol_chunks
@@ -1049,7 +1058,7 @@ blocks:
   states:
     coordinate:
     - 160
-    - 3104
+    - 2616
     rotation: 0
     state: enabled
 - name: tx_symbols
@@ -1061,8 +1070,8 @@ blocks:
     dimension: '1'
   states:
     coordinate:
-    - 600
-    - 3104
+    - 352
+    - 2616
     rotation: 0
     state: enabled
 - name: tx_constellation
@@ -1094,10 +1103,11 @@ blocks:
     alpha1: '0.3'
     alpha2: '1.0'
     alpha3: '0.5'
+    update_time: plot_update_s
   states:
     coordinate:
-    - 840
-    - 3104
+    - 560
+    - 2616
     rotation: 0
     state: enabled
 - name: ideal_symbols
@@ -1110,8 +1120,8 @@ blocks:
     tags: '[]'
   states:
     coordinate:
-    - 16
-    - 3264
+    - 736
+    - 2616
     rotation: 0
     state: enabled
 - name: evm_circles
@@ -1125,8 +1135,8 @@ blocks:
     tags: '[]'
   states:
     coordinate:
-    - 420
-    - 3264
+    - 1096
+    - 2616
     rotation: 0
     state: enabled
 - name: eye_i
@@ -1135,8 +1145,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 160
-    - 1714
+    - 128
+    - 2432
     rotation: 0
     state: enabled
 - name: eye_q
@@ -1145,8 +1155,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 620
-    - 1714
+    - 544
+    - 2432
     rotation: 0
     state: enabled
 - name: eye_quadrature
@@ -1162,10 +1172,11 @@ blocks:
     gui_hint: views@4:1,1,1,1
     ylabel: RX quadrature amplitude
     label1: RX Q | raw N210 RX output
+    update_time: plot_update_s
   states:
     coordinate:
-    - 760
-    - 1714
+    - 672
+    - 2432
     rotation: 0
     state: enabled
 - name: square_plot_panels
@@ -1184,8 +1195,8 @@ blocks:
     comment: 'UI layout only: resizable 2x2 dashboards.'
   states:
     coordinate:
-    - 600
-    - 360
+    - 336
+    - 176
     rotation: 0
     state: enabled
 - name: ideal_symbols_link
@@ -1194,8 +1205,8 @@ blocks:
     stream_id: ideal_points
   states:
     coordinate:
-    - 160
-    - 3344
+    - 936
+    - 2616
     rotation: 0
     state: enabled
 - name: evm_circles_link
@@ -1204,8 +1215,8 @@ blocks:
     stream_id: guide_circles
   states:
     coordinate:
-    - 620
-    - 3344
+    - 1336
+    - 2616
     rotation: 0
     state: enabled
 - name: tx_dbm_link
@@ -1214,8 +1225,8 @@ blocks:
     stream_id: sensed_tx_dbm
   states:
     coordinate:
-    - 780
-    - 2104
+    - 928
+    - 1848
     rotation: 0
     state: enabled
 - name: constellation_reference_1
@@ -1225,7 +1236,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1394
+    - 2256
     rotation: 0
     state: enabled
 - name: constellation_reference_2
@@ -1235,7 +1246,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1464
+    - 2312
     rotation: 0
     state: enabled
 - name: tx_constellation_reference_1
@@ -1244,8 +1255,8 @@ blocks:
     stream_id: ideal_points
   states:
     coordinate:
-    - 620
-    - 3194
+    - 16
+    - 2672
     rotation: 0
     state: enabled
 - name: tx_constellation_reference_2
@@ -1254,8 +1265,8 @@ blocks:
     stream_id: guide_circles
   states:
     coordinate:
-    - 620
-    - 3264
+    - 16
+    - 2728
     rotation: 0
     state: enabled
 - name: rx_snr_input
@@ -1265,7 +1276,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2854
+    - 1984
     rotation: 0
     state: enabled
 - name: eye_q_input
@@ -1274,8 +1285,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 480
-    - 1714
+    - 432
+    - 2432
     rotation: 0
     state: enabled
 - name: eq_taps
@@ -1288,8 +1299,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 512
-    - 288
+    - 1856
+    - 56
     rotation: 0
     state: enabled
 - name: eq_step
@@ -1302,8 +1313,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 624
-    - 288
+    - 1968
+    - 56
     rotation: 0
     state: enabled
 - name: eq_algorithm
@@ -1314,8 +1325,8 @@ blocks:
     step_size: eq_step/(eq_taps*symbol_rms**2)
   states:
     coordinate:
-    - 280
-    - 360
+    - 16
+    - 176
     rotation: 0
     state: enabled
 - name: equalizer
@@ -1329,8 +1340,8 @@ blocks:
     training_start_tag: corr_est
   states:
     coordinate:
-    - 1312
-    - 584
+    - 1512
+    - 792
     rotation: 0
     state: enabled
 - name: pre_eq_link
@@ -1339,8 +1350,8 @@ blocks:
     stream_id: pre_eq_symbols
   states:
     coordinate:
-    - 1160
-    - 684
+    - 1512
+    - 912
     rotation: 0
     state: enabled
 - name: before_eq_input
@@ -1350,7 +1361,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3624
+    - 2888
     rotation: 0
     state: enabled
 - name: before_eq_constellation
@@ -1367,10 +1378,11 @@ blocks:
     ymin: '-2'
     ymax: '2'
     gui_hint: views@0:1,1,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 200
-    - 3624
+    - 168
+    - 2888
     rotation: 0
     state: enabled
 - name: eye_synthesis_taps
@@ -1379,8 +1391,8 @@ blocks:
     value: firdes.root_raised_cosine(sps,sps,1.0,alpha,11*sps)
   states:
     coordinate:
-    - 904
-    - 88
+    - 760
+    - 56
     rotation: 0
     state: enabled
 - name: middle_input
@@ -1390,7 +1402,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3864
+    - 3064
     rotation: 0
     state: enabled
 - name: middle_eye_reconstruction
@@ -1402,8 +1414,8 @@ blocks:
     samp_delay: '0'
   states:
     coordinate:
-    - 180
-    - 3864
+    - 168
+    - 3064
     rotation: 0
     state: enabled
 - name: middle_i
@@ -1412,8 +1424,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 420
-    - 3864
+    - 384
+    - 3120
     rotation: 0
     state: enabled
 - name: middle_i_eye
@@ -1429,10 +1441,11 @@ blocks:
     ylabel: MIDDLE I | reconstructed
     gui_hint: views@2:2,0,1,1
     label1: Middle I | before EQ, reconstructed
+    update_time: plot_update_s
   states:
     coordinate:
-    - 600
-    - 3864
+    - 512
+    - 3144
     rotation: 0
     state: enabled
 - name: middle_q
@@ -1441,8 +1454,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 880
-    - 3864
+    - 384
+    - 3064
     rotation: 0
     state: enabled
 - name: middle_q_eye
@@ -1458,10 +1471,11 @@ blocks:
     ylabel: MIDDLE Q | reconstructed
     gui_hint: views@4:2,0,1,1
     label1: Middle Q | before EQ, reconstructed
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1060
-    - 3864
+    - 512
+    - 3064
     rotation: 0
     state: enabled
 - name: after_input
@@ -1470,8 +1484,8 @@ blocks:
     stream_id: rx_symbols
   states:
     coordinate:
-    - 16
-    - 4044
+    - 688
+    - 3064
     rotation: 0
     state: enabled
 - name: after_eye_reconstruction
@@ -1483,8 +1497,8 @@ blocks:
     samp_delay: '0'
   states:
     coordinate:
-    - 180
-    - 4044
+    - 824
+    - 3064
     rotation: 0
     state: enabled
 - name: after_i
@@ -1493,8 +1507,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 420
-    - 4044
+    - 1040
+    - 3120
     rotation: 0
     state: enabled
 - name: after_i_eye
@@ -1510,10 +1524,11 @@ blocks:
     ylabel: AFTER I | reconstructed
     gui_hint: views@2:2,1,1,1
     label1: After EQ I | reconstructed
+    update_time: plot_update_s
   states:
     coordinate:
-    - 600
-    - 4044
+    - 1168
+    - 3144
     rotation: 0
     state: enabled
 - name: after_q
@@ -1522,8 +1537,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 880
-    - 4044
+    - 1040
+    - 3064
     rotation: 0
     state: enabled
 - name: after_q_eye
@@ -1539,10 +1554,11 @@ blocks:
     ylabel: AFTER Q | reconstructed
     gui_hint: views@4:2,1,1,1
     label1: After EQ Q | reconstructed
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1060
-    - 4044
+    - 1168
+    - 3064
     rotation: 0
     state: enabled
 - name: tx_eye_input
@@ -1551,8 +1567,8 @@ blocks:
     stream_id: tx_iq
   states:
     coordinate:
-    - 16
-    - 4224
+    - 1344
+    - 3064
     rotation: 0
     state: enabled
 - name: tx_eye_i
@@ -1561,8 +1577,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 420
-    - 4224
+    - 1456
+    - 3120
     rotation: 0
     state: enabled
 - name: tx_eye_i_eye
@@ -1578,10 +1594,11 @@ blocks:
     ylabel: TX_EYE I | TX shaped
     gui_hint: views@2:1,0,1,1
     label1: TX I | shaped waveform
+    update_time: plot_update_s
   states:
     coordinate:
-    - 600
-    - 4224
+    - 1584
+    - 3144
     rotation: 0
     state: enabled
 - name: tx_eye_q
@@ -1590,8 +1607,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 880
-    - 4224
+    - 1456
+    - 3064
     rotation: 0
     state: enabled
 - name: tx_eye_q_eye
@@ -1607,10 +1624,11 @@ blocks:
     ylabel: TX_EYE Q | TX shaped
     gui_hint: views@4:1,0,1,1
     label1: TX Q | shaped waveform
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1060
-    - 4224
+    - 1584
+    - 3064
     rotation: 0
     state: enabled
 - name: tx_wave_input
@@ -1620,7 +1638,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 4484
+    - 3328
     rotation: 0
     state: enabled
 - name: tx_waveform
@@ -1632,10 +1650,11 @@ blocks:
     srate: samp_rate
     nconnections: '1'
     gui_hint: views@1:1,0,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 200
-    - 4484
+    - 128
+    - 3328
     rotation: 0
     state: enabled
 - name: evm_meter_history_input
@@ -1644,8 +1663,8 @@ blocks:
     stream_id: evm_history
   states:
     coordinate:
-    - 600
-    - 4484
+    - 312
+    - 3328
     rotation: 0
     state: enabled
 - name: eq_evm_history
@@ -1661,10 +1680,11 @@ blocks:
     ylabel: EVM
     yunit: '%'
     label1: Decision-directed EVM
+    update_time: plot_update_s
   states:
     coordinate:
-    - 800
-    - 4484
+    - 456
+    - 3328
     rotation: 0
     state: enabled
 - name: spectrum_budget
@@ -1679,10 +1699,11 @@ blocks:
     fc: '0'
     bw: samp_rate
     label1: RX
+    update_time: plot_update_s
   states:
     coordinate:
-    - 200
-    - 4664
+    - 680
+    - 1984
     rotation: 0
     state: enabled
 - name: eq_error_trace
@@ -1698,10 +1719,11 @@ blocks:
     ylabel: EVM
     yunit: '%'
     label1: Decision-directed EVM
+    update_time: plot_update_s
   states:
     coordinate:
-    - 200
-    - 4864
+    - 800
+    - 3328
     rotation: 0
     state: enabled
 - name: equalizer_initial_taps
@@ -1712,8 +1734,8 @@ blocks:
     code: self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
   states:
     coordinate:
-    - 752
-    - 360
+    - 488
+    - 176
     rotation: 0
     state: enabled
 - name: eq_delay_symbols
@@ -1722,8 +1744,8 @@ blocks:
     value: (eq_taps-1)//2
   states:
     coordinate:
-    - 416
-    - 288
+    - 1760
+    - 56
     rotation: 0
     state: enabled
 - name: eq_tap_decimator
@@ -1734,8 +1756,8 @@ blocks:
     n: '1000'
   states:
     coordinate:
-    - 780
-    - 4864
+    - 1144
+    - 3328
     rotation: 0
     state: enabled
 - name: eq_tap_magnitudes
@@ -1744,8 +1766,8 @@ blocks:
     vlen: eq_taps
   states:
     coordinate:
-    - 1010
-    - 4864
+    - 1296
+    - 3328
     rotation: 0
     state: enabled
 - name: eq_tap_plot
@@ -1761,10 +1783,11 @@ blocks:
     autoscale: 'True'
     grid: 'True'
     gui_hint: views@5:2,1,1,1
+    update_time: plot_update_s
   states:
     coordinate:
-    - 1210
-    - 4864
+    - 1448
+    - 3328
     rotation: 0
     state: enabled
 - name: spectrum_budget_input
@@ -1773,8 +1796,8 @@ blocks:
     stream_id: rx_iq
   states:
     coordinate:
-    - 16
-    - 4664
+    - 568
+    - 1984
     rotation: 0
     state: enabled
 - name: evm_per_symbol_link
@@ -1783,8 +1806,8 @@ blocks:
     stream_id: evm_per_symbol
   states:
     coordinate:
-    - 160
-    - 1634
+    - 1184
+    - 2256
     rotation: 0
     state: enabled
 - name: eq_error_trace_input
@@ -1793,8 +1816,8 @@ blocks:
     stream_id: evm_per_symbol
   states:
     coordinate:
-    - 16
-    - 4864
+    - 640
+    - 3328
     rotation: 0
     state: enabled
 - name: adaptive_tap_vectors_link
@@ -1803,8 +1826,8 @@ blocks:
     stream_id: adaptive_tap_vectors
   states:
     coordinate:
-    - 1312
-    - 776
+    - 1680
+    - 904
     rotation: 0
     state: enabled
 - name: eq_tap_decimator_input
@@ -1813,8 +1836,8 @@ blocks:
     stream_id: adaptive_tap_vectors
   states:
     coordinate:
-    - 600
-    - 4864
+    - 984
+    - 3328
     rotation: 0
     state: enabled
 - name: section_controls
@@ -1824,8 +1847,8 @@ blocks:
     comment: ''
   states:
     coordinate:
-    - 160
-    - 0
+    - 16
+    - 8
     rotation: 0
     state: enabled
 - name: section_transmitter
@@ -1836,7 +1859,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 504
+    - 528
     rotation: 0
     state: enabled
 - name: section_channel
@@ -1846,8 +1869,8 @@ blocks:
     comment: ''
   states:
     coordinate:
-    - 648
-    - 504
+    - 552
+    - 592
     rotation: 0
     state: enabled
 - name: section_receiver
@@ -1857,8 +1880,8 @@ blocks:
     comment: ''
   states:
     coordinate:
-    - 840
-    - 504
+    - 16
+    - 752
     rotation: 0
     state: enabled
 - name: section_ber
@@ -1869,7 +1892,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 872.0
+    - 1144
     rotation: 0
     state: enabled
 - name: section_rx_diagnostics
@@ -1880,7 +1903,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 1244
+    - 2152
     rotation: 0
     state: enabled
 - name: section_power
@@ -1891,7 +1914,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 2004
+    - 1712
     rotation: 0
     state: enabled
 - name: section_reference
@@ -1902,7 +1925,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3024
+    - 2568
     rotation: 0
     state: enabled
 - name: section_pre_eq
@@ -1913,7 +1936,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3544
+    - 2840
     rotation: 0
     state: enabled
 - name: section_eyes
@@ -1924,7 +1947,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 3784
+    - 3016
     rotation: 0
     state: enabled
 - name: section_extra_plots
@@ -1935,7 +1958,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 4404
+    - 3280
     rotation: 0
     state: enabled
 - name: tx_papr
@@ -1946,8 +1969,8 @@ blocks:
     num_inputs: '2'
   states:
     coordinate:
-    - 980
-    - 2244
+    - 928
+    - 1760
     rotation: 0
     state: enabled
 - name: ber_test_bits
@@ -1960,8 +1983,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1700
-    - 8
+    - 16
+    - 392
     rotation: 0
     state: enabled
 - name: ber_test_blocks
@@ -1970,8 +1993,8 @@ blocks:
     value: max(1, int(ber_test_bits) // 10000)
   states:
     coordinate:
-    - 1700
-    - 192
+    - 128
+    - 392
     rotation: 0
     state: enabled
 - name: ber_error_weight
@@ -1980,8 +2003,8 @@ blocks:
     value: '0.5'
   states:
     coordinate:
-    - 1700
-    - 332
+    - 400
+    - 392
     rotation: 0
     state: enabled
 - name: ber_test_seconds
@@ -1990,8 +2013,8 @@ blocks:
     value: (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s
   states:
     coordinate:
-    - 1700
-    - 402
+    - 256
+    - 392
     rotation: 0
     state: enabled
 - name: bit_errors_link
@@ -2000,8 +2023,8 @@ blocks:
     stream_id: bit_errors
   states:
     coordinate:
-    - 760
-    - 1074
+    - 848
+    - 1248
     rotation: 0
     state: enabled
 - name: bit_errors_to_ber_test
@@ -2010,8 +2033,8 @@ blocks:
     stream_id: bit_errors
   states:
     coordinate:
-    - 980
-    - 2524
+    - 16
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_sum_10k
@@ -2022,8 +2045,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1140
-    - 2524
+    - 144
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_zero
@@ -2034,8 +2057,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1310
-    - 2624
+    - 264
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_unit
@@ -2046,8 +2069,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1480
-    - 2624
+    - 384
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_index
@@ -2059,8 +2082,8 @@ blocks:
     oldstyle: 'True'
   states:
     coordinate:
-    - 1650
-    - 2624
+    - 488
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_done
@@ -2071,8 +2094,8 @@ blocks:
     init: '0'
   states:
     coordinate:
-    - 1820
-    - 2624
+    - 624
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_not_done
@@ -2083,8 +2106,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1990
-    - 2624
+    - 800
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_gate
@@ -2095,8 +2118,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 2160
-    - 2624
+    - 920
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_gated_errors
@@ -2107,8 +2130,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1480
-    - 2524
+    - 1024
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_error_sum
@@ -2120,8 +2143,8 @@ blocks:
     oldstyle: 'True'
   states:
     coordinate:
-    - 1650
-    - 2524
+    - 1160
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_errors
@@ -2132,8 +2155,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1820
-    - 2524
+    - 1296
+    - 1504
     rotation: 0
     state: enabled
 - name: ber_test_window_sum
@@ -2145,8 +2168,8 @@ blocks:
     oldstyle: 'True'
   states:
     coordinate:
-    - 2330
-    - 2624
+    - 1024
+    - 1592
     rotation: 0
     state: enabled
 - name: ber_test_count
@@ -2157,8 +2180,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 2500
-    - 2624
+    - 1160
+    - 1568
     rotation: 0
     state: enabled
 - name: ber_test_ratio
@@ -2169,8 +2192,33 @@ blocks:
     num_inputs: '2'
   states:
     coordinate:
-    - 1990
-    - 2524
+    - 1472
+    - 1504
+    rotation: 0
+    state: enabled
+- name: plot_update_s
+  id: parameter
+  parameters:
+    value: '0.5'
+    type: eng_float
+    label: Plot refresh interval (s)
+    short_id: ''
+    hide: none
+  states:
+    coordinate:
+    - 488
+    - 392
+    rotation: 0
+    state: enabled
+- name: section_ber_test
+  id: note
+  parameters:
+    note: BER TEST (FIXED LENGTH)
+    comment: ''
+  states:
+    coordinate:
+    - 16
+    - 1456
     rotation: 0
     state: enabled
 - name: tx_usrp_address
@@ -2184,7 +2232,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 176
+    - 296
     rotation: 0
     state: enabled
 - name: rx_usrp_address
@@ -2197,8 +2245,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 216
-    - 176
+    - 144
+    - 296
     rotation: 0
     state: enabled
 - name: center_freq_hz
@@ -2211,8 +2259,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 416
-    - 176
+    - 264
+    - 296
     rotation: 0
     state: enabled
 - name: tx_gain_norm
@@ -2230,8 +2278,8 @@ blocks:
     gui_hint: views@3:0,0,1,1
   states:
     coordinate:
-    - 616
-    - 176
+    - 384
+    - 296
     rotation: 0
     state: enabled
 - name: rx_gain_norm
@@ -2249,8 +2297,8 @@ blocks:
     gui_hint: views@3:0,1,1,1
   states:
     coordinate:
-    - 816
-    - 176
+    - 496
+    - 296
     rotation: 0
     state: enabled
 - name: carrier_loop_bw
@@ -2259,8 +2307,8 @@ blocks:
     value: 2*math.pi/800
   states:
     coordinate:
-    - 1016
-    - 176
+    - 608
+    - 296
     rotation: 0
     state: enabled
 - name: data_period_bits
@@ -2269,8 +2317,8 @@ blocks:
     value: 8*len(tx_data)
   states:
     coordinate:
-    - 1216
-    - 176
+    - 848
+    - 296
     rotation: 0
     state: enabled
 - name: settle_s
@@ -2283,8 +2331,8 @@ blocks:
     hide: none
   states:
     coordinate:
-    - 1416
-    - 176
+    - 736
+    - 296
     rotation: 0
     state: enabled
 - name: tx_data
@@ -2293,8 +2341,8 @@ blocks:
     value: numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
   states:
     coordinate:
-    - 1616
-    - 176
+    - 976
+    - 296
     rotation: 0
     state: enabled
 - name: training_symbols
@@ -2304,8 +2352,8 @@ blocks:
       dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
   states:
     coordinate:
-    - 1816
-    - 176
+    - 1176
+    - 296
     rotation: 0
     state: enabled
 - name: preamble_len
@@ -2314,8 +2362,8 @@ blocks:
     value: '128'
   states:
     coordinate:
-    - 2016
-    - 176
+    - 1368
+    - 296
     rotation: 0
     state: enabled
 - name: eq_training_len
@@ -2324,8 +2372,8 @@ blocks:
     value: len(training_symbols)
   states:
     coordinate:
-    - 2216
-    - 176
+    - 1448
+    - 296
     rotation: 0
     state: enabled
 - name: usrp_tx
@@ -2357,8 +2405,8 @@ blocks:
     len_tag_name: '""'
   states:
     coordinate:
-    - 1400
-    - 600
+    - 552
+    - 632
     rotation: 0
     state: enabled
 - name: usrp_rx
@@ -2395,7 +2443,7 @@ blocks:
   states:
     coordinate:
     - 16
-    - 760
+    - 792
     rotation: 0
     state: enabled
 - name: rx_limit_split
@@ -2404,8 +2452,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 840
-    - 694
+    - 352
+    - 792
     rotation: 0
     state: enabled
 - name: rx_limit_i
@@ -2415,8 +2463,8 @@ blocks:
     hi: '3'
   states:
     coordinate:
-    - 1010
-    - 674
+    - 480
+    - 792
     rotation: 0
     state: enabled
 - name: rx_limit_q
@@ -2426,8 +2474,8 @@ blocks:
     hi: '3'
   states:
     coordinate:
-    - 1010
-    - 734
+    - 480
+    - 856
     rotation: 0
     state: enabled
 - name: rx_limit_join
@@ -2436,8 +2484,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 1170
-    - 694
+    - 600
+    - 792
     rotation: 0
     state: enabled
 - name: preamble_detect
@@ -2450,8 +2498,8 @@ blocks:
     threshold_method: digital.THRESHOLD_DYNAMIC
   states:
     coordinate:
-    - 1432
-    - 584
+    - 1120
+    - 792
     rotation: 0
     state: enabled
 - name: carrier_sync
@@ -2462,8 +2510,8 @@ blocks:
     use_snr: 'False'
   states:
     coordinate:
-    - 1212
-    - 584
+    - 912
+    - 792
     rotation: 0
     state: enabled
 - name: evm_table_rate
@@ -2474,8 +2522,8 @@ blocks:
     vlen: '1'
   states:
     coordinate:
-    - 166
-    - 2854
+    - 160
+    - 1984
     rotation: 0
     state: enabled
 - name: probe_tx_dbm
@@ -2484,8 +2532,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 820
-    - 2274
+    - 928
+    - 1904
     rotation: 0
     state: enabled
 - name: probe_tx_peak_dbm
@@ -2494,8 +2542,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 620
-    - 2544
+    - 792
+    - 1816
     rotation: 0
     state: enabled
 - name: probe_tx_papr
@@ -2504,8 +2552,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 1020
-    - 2334
+    - 1080
+    - 1760
     rotation: 0
     state: enabled
 - name: probe_rx_dbm
@@ -2514,8 +2562,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 820
-    - 2404
+    - 1832
+    - 1760
     rotation: 0
     state: enabled
 - name: probe_rx_snr
@@ -2524,8 +2572,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 200
-    - 2944
+    - 432
+    - 1984
     rotation: 0
     state: enabled
 - name: probe_rx_ebno
@@ -2534,8 +2582,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 820
-    - 2944
+    - 432
+    - 2040
     rotation: 0
     state: enabled
 - name: probe_evm_rms
@@ -2544,8 +2592,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 380
-    - 1614
+    - 1344
+    - 2296
     rotation: 0
     state: enabled
 - name: probe_ber_scale
@@ -2554,8 +2602,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 1110
-    - 1094
+    - 1168
+    - 1288
     rotation: 0
     state: enabled
 - name: probe_ber_test_count
@@ -2564,8 +2612,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 2540
-    - 2714
+    - 1296
+    - 1560
     rotation: 0
     state: enabled
 - name: probe_ber_test_errors
@@ -2574,8 +2622,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 1860
-    - 2614
+    - 1472
+    - 1592
     rotation: 0
     state: enabled
 - name: probe_ber_test_ratio
@@ -2584,8 +2632,8 @@ blocks:
     type: float
   states:
     coordinate:
-    - 2030
-    - 2614
+    - 1616
+    - 1504
     rotation: 0
     state: enabled
 - name: link_table
@@ -2619,11 +2667,12 @@ blocks:
       \         text = f\"{level:.3e}\"\n        else:\n            text = \"complete\" if level >= test_bits else\
       \ (\n                \"counting\" if level > 0 else \"waiting for warm-up\")\n        table.item(row, 2).setText(text)\n\
       \nself.link_table = table\nself.link_table_timer = Qt.QTimer()\nself.link_table_timer.timeout.connect(refresh_link_table)\n\
-      self.link_table_timer.start(250)\nself.views_grid_layout_3.addWidget(table, 1, 0, 2, 1)\n"
+      self.link_table_timer.start(int(1000 * self.plot_update_s))\nself.views_grid_layout_3.addWidget(table, 1,\
+      \ 0, 2, 1)\n"
   states:
     coordinate:
-    - 1700
-    - 492
+    - 592
+    - 392
     rotation: 0
     state: enabled
 - name: rf_constellation_input
@@ -2632,8 +2681,8 @@ blocks:
     stream_id: rx_symbols
   states:
     coordinate:
-    - 200
-    - 4804
+    - 864
+    - 1984
     rotation: 0
     state: enabled
 - name: rf_constellation
@@ -2656,7 +2705,7 @@ blocks:
     style1: '0'
     alpha1: '0.4'
     width1: '1'
-    update_time: '0.10'
+    update_time: plot_update_s
     tr_mode: qtgui.TRIG_MODE_FREE
     tr_slope: qtgui.TRIG_SLOPE_POS
     tr_level: '0.0'
@@ -2666,8 +2715,8 @@ blocks:
     axislabels: 'True'
   states:
     coordinate:
-    - 380
-    - 4804
+    - 1000
+    - 1984
     rotation: 0
     state: enabled
 connections:

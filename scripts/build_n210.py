@@ -36,7 +36,7 @@ import math
 import re
 import yaml
 
-from link_budget_tables import spreadsheet
+from link_budget_tables import plot_refresh, spreadsheet
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ["bpsk", "qpsk", "8psk", "4ask", "8ask", "16qam"]
@@ -303,6 +303,7 @@ def build(profile):
     blocks["ber_test_seconds"]["parameters"]["value"] = (
         "(warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s")
     spreadsheet(graph, N210_ROWS)
+    plot_refresh(graph)
     blocks["views"]["parameters"]["label3"] = "RF levels"
     for name, axis in [("eye", "I"), ("eye_quadrature", "Q")]:
         blocks[name]["parameters"]["label1"] = f"RX {axis} | raw N210 RX output"
@@ -319,5 +320,12 @@ def build(profile):
 
 
 if __name__ == "__main__":
+    import subprocess
+    import sys
+
     for profile in PROFILES:
-        print("wrote", build(profile).relative_to(ROOT))
+        target = build(profile)
+        # Lay out the canvas by GRC's real block sizes (positions only).
+        subprocess.run([sys.executable, str(ROOT / "scripts/tidy_layout.py"), str(target)],
+                       check=True, stdout=subprocess.DEVNULL)
+        print("wrote", target.relative_to(ROOT))

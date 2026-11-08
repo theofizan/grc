@@ -45,7 +45,7 @@ def snippets_main_after_init(tb):
 
 class ber_curve_bpsk(gr.top_block, Qt.QWidget):
 
-    def __init__(self, symbol_rate=1e6, eq_taps=11, eq_step=0.01, reference_delay=34, tx_power_dbm=0, path_loss_db=0, min_errors=100, ber_floor_log10=(-7), sim_speed=100):
+    def __init__(self, symbol_rate=1e6, eq_taps=11, eq_step=0.01, reference_delay=34, tx_power_dbm=0, path_loss_db=0, min_errors=100, ber_floor_log10=(-7), plot_update_s=0.5, sim_speed=100):
         gr.top_block.__init__(self, "BPSK BER vs Eb/N0 | stock blocks", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("BPSK BER vs Eb/N0 | stock blocks")
@@ -87,6 +87,7 @@ class ber_curve_bpsk(gr.top_block, Qt.QWidget):
         self.path_loss_db = path_loss_db
         self.min_errors = min_errors
         self.ber_floor_log10 = ber_floor_log10
+        self.plot_update_s = plot_update_s
         self.sim_speed = sim_speed
 
         ##################################################
@@ -267,7 +268,7 @@ class ber_curve_bpsk(gr.top_block, Qt.QWidget):
             [], #indiv. curve names
             None # parent
         )
-        self.ber_curve.set_update_time(0.25)
+        self.ber_curve.set_update_time(plot_update_s)
         self.ber_curve.set_y_axis((-7), 0)
         self.ber_curve.set_x_axis(ebno_db[0], ebno_db[-1])
 
@@ -352,14 +353,14 @@ class ber_curve_bpsk(gr.top_block, Qt.QWidget):
         self.connect((self.pack_rx_5, 0), (self.ber_curve, 11))
         self.connect((self.pack_rx_6, 0), (self.ber_curve, 13))
         self.connect((self.pack_rx_7, 0), (self.ber_curve, 15))
-        self.connect((self.pack_tx, 0), (self.ber_curve, 6))
-        self.connect((self.pack_tx, 0), (self.ber_curve, 14))
-        self.connect((self.pack_tx, 0), (self.ber_curve, 12))
-        self.connect((self.pack_tx, 0), (self.ber_curve, 10))
         self.connect((self.pack_tx, 0), (self.ber_curve, 0))
-        self.connect((self.pack_tx, 0), (self.ber_curve, 8))
+        self.connect((self.pack_tx, 0), (self.ber_curve, 10))
         self.connect((self.pack_tx, 0), (self.ber_curve, 2))
         self.connect((self.pack_tx, 0), (self.ber_curve, 4))
+        self.connect((self.pack_tx, 0), (self.ber_curve, 8))
+        self.connect((self.pack_tx, 0), (self.ber_curve, 6))
+        self.connect((self.pack_tx, 0), (self.ber_curve, 12))
+        self.connect((self.pack_tx, 0), (self.ber_curve, 14))
         self.connect((self.random_bytes, 0), (self.modulator, 0))
         self.connect((self.random_bytes, 0), (self.unpack_tx, 0))
         self.connect((self.rx_level_0, 0), (self.clock_sync_0, 0))
@@ -468,6 +469,12 @@ class ber_curve_bpsk(gr.top_block, Qt.QWidget):
 
     def set_ber_floor_log10(self, ber_floor_log10):
         self.ber_floor_log10 = ber_floor_log10
+
+    def get_plot_update_s(self):
+        return self.plot_update_s
+
+    def set_plot_update_s(self, plot_update_s):
+        self.plot_update_s = plot_update_s
 
     def get_sim_speed(self):
         return self.sim_speed
@@ -684,6 +691,9 @@ def argument_parser():
         "--ber-floor-log10", dest="ber_floor_log10", type=eng_float, default=eng_notation.num_to_str(float((-7))),
         help="Set Stop a point below BER 10^x [default=%(default)r]")
     parser.add_argument(
+        "--plot-update-s", dest="plot_update_s", type=eng_float, default=eng_notation.num_to_str(float(0.5)),
+        help="Set Plot refresh interval (s) [default=%(default)r]")
+    parser.add_argument(
         "--sim-speed", dest="sim_speed", type=eng_float, default=eng_notation.num_to_str(float(100)),
         help="Set Simulation speed limit (x real time) [default=%(default)r]")
     return parser
@@ -695,7 +705,7 @@ def main(top_block_cls=ber_curve_bpsk, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(symbol_rate=options.symbol_rate, eq_taps=options.eq_taps, eq_step=options.eq_step, reference_delay=options.reference_delay, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, min_errors=options.min_errors, ber_floor_log10=options.ber_floor_log10, sim_speed=options.sim_speed)
+    tb = top_block_cls(symbol_rate=options.symbol_rate, eq_taps=options.eq_taps, eq_step=options.eq_step, reference_delay=options.reference_delay, tx_power_dbm=options.tx_power_dbm, path_loss_db=options.path_loss_db, min_errors=options.min_errors, ber_floor_log10=options.ber_floor_log10, plot_update_s=options.plot_update_s, sim_speed=options.sim_speed)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()
