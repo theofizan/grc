@@ -1,0 +1,37 @@
+{
+  "label": "loopback_20dB_pad",
+  "modulation": "8ask",
+  "simulated": false,
+  "time": "2026-11-08T15:27:55",
+  "compared_bits": 1000000,
+  "bit_errors": 0,
+  "ber": 0.0,
+  "ber_95ci": [
+    0.0,
+    3.688872650206488e-06
+  ],
+  "losses_of_sync": 0,
+  "acquisition_s": 0.117,
+  "rx_adc_level_dbfs": -19.44862174987793,
+  "mer_db": 31.4002742767334,
+  "tx_sample_peak_dbfs": -7.531609058380127,
+  "elapsed_s": 1.5,
+  "estimated_s": 0.6,
+  "settings": {
+    "modulation": "8ask",
+    "bits": 1000000.0,
+    "label": "loopback_20dB_pad",
+    "tx_address": "addr=192.168.10.2",
+    "rx_address": "addr=192.168.10.2",
+    "freq": 915000000.0,
+    "tx_gain": 0.3,
+    "rx_gain": 0.3,
+    "tx_level_dbfs": -15,
+    "gui": false,
+    "simulate": false,
+    "esno_db": 12.0,
+    "bit_rate_bps": 3000000.0,
+    "data_block_bits": 262128,
+    "acquisition_bits_discarded": 350000
+  }
+}

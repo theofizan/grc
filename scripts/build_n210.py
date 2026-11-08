@@ -134,8 +134,11 @@ def build(profile):
     controls = [
         ("tx_usrp_address", "parameter", dict(value="addr=192.168.10.2", type="str",
          label="TX N210 device address", short_id="", hide="none")),
-        ("rx_usrp_address", "parameter", dict(value="addr=192.168.10.3", type="str",
-         label="RX N210 device address", short_id="", hide="none")),
+        # Same radio as TX by default (one-N210 loopback through an attenuator).
+        # With a second N210, set this to its address, e.g. addr=192.168.10.3.
+        ("rx_usrp_address", "parameter", dict(value="addr=192.168.10.2", type="str",
+         label="RX N210 device address (same as TX for loopback)", short_id="",
+         hide="none")),
         ("center_freq_hz", "parameter", dict(value="915e6", type="eng_float",
          label="RF center frequency (Hz)", short_id="", hide="none")),
         ("tx_gain_norm", "variable_qtgui_range", dict(value="0.5", start="0", stop="1",
@@ -149,15 +152,23 @@ def build(profile):
         ("carrier_loop_bw", "variable",
          dict(value=f"2*math.pi/{COSTAS_BW_DIVISOR[profile]}")),
         ("data_period_bits", "variable", dict(value="8*len(tx_data)")),
+        # On real radios acquisition (first true preamble) usually takes
+        # 0.1-0.3 s but was seen up to 0.8 s; the GRC BER readouts wait this
+        # long before counting. run_n210_ber.py syncs on the data instead.
+        ("settle_s", "parameter", dict(value="1.0", type="eng_float",
+         label="Settling time before BER counting (s)", short_id="", hide="none")),
         # Fixed known data: the same DATA_BYTES random bytes every period.
+        # Kept as NumPy arrays (not lists): GRC prints every variable's value in
+        # its Variable Editor, and a list of ~100k symbols is megabytes of text
+        # that freezes the GTK window. NumPy prints large arrays summarized.
         ("tx_data", "variable", dict(
-            value=f"list(numpy.random.RandomState(42).randint(0, 256, {DATA_BYTES}))")),
+            value=f"numpy.random.RandomState(42).randint(0, 256, {DATA_BYTES}).astype(numpy.uint8)")),
         # Known TX symbols for one data block (data_period_bits/k symbols).
         ("training_symbols", "variable", dict(value=(
-            "list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack(["
+            "numpy.asarray(const.points())[numpy.packbits(numpy.hstack(["
             "numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), "
             "numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8))"
-            ".reshape(-1, k)]), axis=1).ravel()])"))),
+            ".reshape(-1, k)]), axis=1).ravel()]"))),
         ("preamble_len", "variable", dict(value="128")),
     ]
     for index, (name, kind, parameters) in enumerate(controls):
@@ -195,6 +206,13 @@ def build(profile):
     wire("usrp_rx", "rx_level")
     wire("usrp_rx", "rx_iq_link")
 
+    # Real radios: the receiver hears silence until the transmitter starts, so
+    # the AGC gain climbs and the first real samples arrive several times too
+    # large. With the simulation's 1.5 maximum rate deviation that burst can
+    # leave the timing loop stuck far off frequency (BER 0.5 on a clean N210
+    # loopback). Two N210 clocks differ by a few ppm, so 0.05 is still ample.
+    blocks["clock_sync"]["parameters"]["max_dev"] = "0.05"
+
     # AGC -> timing -> Costas -> preamble detector -> trained EQ.
     unwire("clock_sync", "rx_scale")
     x, y = blocks["clock_sync"]["states"]["coordinate"]
@@ -230,7 +248,8 @@ def build(profile):
     for name in ("skip_rx", "skip_tx"):
         # One block fills the RX-vs-RX delay line; one more lets the AGC,
         # Costas loop and first equalizer training settle before counting.
-        blocks[name]["parameters"]["num_items"] = "warmup_bits+2*data_period_bits"
+        blocks[name]["parameters"]["num_items"] = (
+            "warmup_bits+2*data_period_bits+int(settle_s*bit_rate)")
     blocks["ber_scale"]["parameters"]["const"] = "0.5/ber_window"
     blocks["ber_display"]["parameters"].update(
         name="BER | RX vs RX one data period earlier, /2 (preamble-trained)")
@@ -254,7 +273,7 @@ def build(profile):
     # Self-referenced error count: each real bit error appears twice.
     blocks["ber_error_weight"]["parameters"]["value"] = "0.5"
     blocks["ber_test_seconds"]["parameters"]["value"] = (
-        "(warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate")
+        "(warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s")
     spreadsheet(graph, N210_ROWS)
     blocks["views"]["parameters"]["label3"] = "RF levels"
     for name, axis in [("eye", "I"), ("eye_quadrature", "Q")]:

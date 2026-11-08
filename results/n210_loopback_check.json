@@ -16,7 +16,7 @@
       "ber_windows": 34,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 24.449081420898438,
+      "mer_db_settled": 24.4495210647583,
       "passed": true
     },
     {
@@ -26,7 +26,7 @@
       "ber_windows": 34,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 24.527109146118164,
+      "mer_db_settled": 24.52499485015869,
       "passed": true
     },
     {
@@ -36,7 +36,7 @@
       "ber_windows": 34,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 24.599098205566406,
+      "mer_db_settled": 24.599943161010742,
       "passed": true
     },
     {
@@ -46,7 +46,7 @@
       "ber_windows": 34,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 24.553264617919922,
+      "mer_db_settled": 24.55191135406494,
       "passed": true
     },
     {
@@ -56,7 +56,7 @@
       "ber_windows": 34,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 24.638893127441406,
+      "mer_db_settled": 24.639050483703613,
       "passed": true
     },
     {
@@ -66,7 +66,7 @@
       "ber_windows": 35,
       "displayed_ber": 0.0,
       "ber_vs_true_tx": 0.0,
-      "mer_db_settled": 23.68528175354004,
+      "mer_db_settled": 23.6986083984375,
       "passed": true
     }
   ]

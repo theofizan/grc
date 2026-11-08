@@ -127,7 +127,7 @@ def snippets_main_after_init(tb):
 
 class n210_8psk(gr.top_block, Qt.QWidget):
 
-    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, ber_test_bits=1000000, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.3', center_freq_hz=915e6):
+    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, ber_test_bits=1000000, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
         gr.top_block.__init__(self, "8-PSK over the air | two USRP N210s", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("8-PSK over the air | two USRP N210s")
@@ -170,13 +170,14 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.tx_usrp_address = tx_usrp_address
         self.rx_usrp_address = rx_usrp_address
         self.center_freq_hz = center_freq_hz
+        self.settle_s = settle_s
 
         ##################################################
         # Variables
         ##################################################
         self.const = const = digital.constellation_8psk().base()
         self.const.set_npwr(1.0)
-        self.tx_data = tx_data = list(numpy.random.RandomState(42).randint(0, 256, 32766))
+        self.tx_data = tx_data = numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
         self.k = k = const.bits_per_symbol()
         self.warmup_bits = warmup_bits = 4096
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
@@ -188,7 +189,7 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.alpha = alpha = 0.35
         self.tx_gain_norm = tx_gain_norm = 0.5
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
-        self.training_symbols = training_symbols = list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()])
+        self.training_symbols = training_symbols = numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
         self.timing_bw = timing_bw = 0.0628
         self.samp_rate = samp_rate = symbol_rate*sps
         self.rx_gain_norm = rx_gain_norm = 0.5
@@ -200,7 +201,7 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/200
         self.ber_window = ber_window = 10000
-        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate
+        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s
         self.ber_error_weight = ber_error_weight = 0.5
 
         ##################################################
@@ -749,8 +750,8 @@ class n210_8psk(gr.top_block, Qt.QWidget):
             self.views_grid_layout_1.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_1.setColumnStretch(c, 1)
-        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
-        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
+        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits+int(settle_s*bit_rate)))
+        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits+int(settle_s*bit_rate)))
         self.rx_snr = blocks.nlog10_ff((-20), 1, 40)
         self.rx_scale = blocks.multiply_const_cc(symbol_rms)
         self.rx_power_sum = blocks.integrate_ff(4096, 1)
@@ -1285,7 +1286,7 @@ class n210_8psk(gr.top_block, Qt.QWidget):
             self.views_grid_layout_5.setColumnStretch(c, 1)
         self.delay = blocks.delay(gr.sizeof_char*1, data_period_bits)
         self.decoder = digital.constellation_decoder_cb(const)
-        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 1.5, 1)
+        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 0.05, 1)
         self.carrier_sync = digital.costas_loop_cc(carrier_loop_bw, 8, False)
         self.ber_test_zero = blocks.multiply_const_ff(0)
         self.ber_test_window_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
@@ -1573,8 +1574,8 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
+        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
@@ -1732,6 +1733,13 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_center_freq(self.center_freq_hz, 0)
         self.usrp_rx.set_center_freq(self.center_freq_hz, 0)
 
+    def get_settle_s(self):
+        return self.settle_s
+
+    def set_settle_s(self, settle_s):
+        self.settle_s = settle_s
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
+
     def get_const(self):
         return self.const
 
@@ -1746,7 +1754,7 @@ class n210_8psk(gr.top_block, Qt.QWidget):
         self.tx_data = tx_data
         self.random_bytes.set_data(self.tx_data, [])
         self.set_data_period_bits(8*len(self.tx_data))
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_k(self):
         return self.k
@@ -1754,14 +1762,14 @@ class n210_8psk(gr.top_block, Qt.QWidget):
     def set_k(self, k):
         self.k = k
         self.set_bit_rate(self.symbol_rate*self.k)
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_warmup_bits(self):
         return self.warmup_bits
 
     def set_warmup_bits(self, warmup_bits):
         self.warmup_bits = warmup_bits
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
     def get_symbol_rms(self):
         return self.symbol_rms
@@ -1803,8 +1811,8 @@ class n210_8psk(gr.top_block, Qt.QWidget):
     def set_data_period_bits(self, data_period_bits):
         self.data_period_bits = data_period_bits
         self.delay.set_dly(int(self.data_period_bits))
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_bit_rate(self):
         return self.bit_rate
@@ -1812,14 +1820,14 @@ class n210_8psk(gr.top_block, Qt.QWidget):
     def set_bit_rate(self, bit_rate):
         self.bit_rate = bit_rate
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
     def get_ber_test_blocks(self):
         return self.ber_test_blocks
 
     def set_ber_test_blocks(self, ber_test_blocks):
         self.ber_test_blocks = ber_test_blocks
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
         self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
 
@@ -1980,11 +1988,14 @@ def argument_parser():
         "--tx-usrp-address", dest="tx_usrp_address", type=str, default='addr=192.168.10.2',
         help="Set TX N210 device address [default=%(default)r]")
     parser.add_argument(
-        "--rx-usrp-address", dest="rx_usrp_address", type=str, default='addr=192.168.10.3',
-        help="Set RX N210 device address [default=%(default)r]")
+        "--rx-usrp-address", dest="rx_usrp_address", type=str, default='addr=192.168.10.2',
+        help="Set RX N210 device address (same as TX for loopback) [default=%(default)r]")
     parser.add_argument(
         "--center-freq-hz", dest="center_freq_hz", type=eng_float, default=eng_notation.num_to_str(float(915e6)),
         help="Set RF center frequency (Hz) [default=%(default)r]")
+    parser.add_argument(
+        "--settle-s", dest="settle_s", type=eng_float, default=eng_notation.num_to_str(float(1.0)),
+        help="Set Settling time before BER counting (s) [default=%(default)r]")
     return parser
 
 
@@ -1994,7 +2005,7 @@ def main(top_block_cls=n210_8psk, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, ber_test_bits=options.ber_test_bits, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz)
+    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, ber_test_bits=options.ber_test_bits, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()

@@ -917,7 +917,7 @@ blocks:
     filter_size: nfilts
     init_phase: '16'
     loop_bw: timing_bw
-    max_dev: '1.5'
+    max_dev: '0.05'
     maxoutbuf: '0'
     minoutbuf: '0'
     osps: '1'
@@ -2951,7 +2951,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_items: warmup_bits+2*data_period_bits
+    num_items: warmup_bits+2*data_period_bits+int(settle_s*bit_rate)
     type: byte
     vlen: '1'
   states:
@@ -2971,7 +2971,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_items: warmup_bits+2*data_period_bits
+    num_items: warmup_bits+2*data_period_bits+int(settle_s*bit_rate)
     type: byte
     vlen: '1'
   states:
@@ -4447,7 +4447,7 @@ blocks:
 - name: ber_test_seconds
   id: variable
   parameters:
-    value: (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate
+    value: (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s
   states:
     coordinate:
     - 1700
@@ -4650,9 +4650,9 @@ blocks:
 - name: rx_usrp_address
   id: parameter
   parameters:
-    value: addr=192.168.10.3
+    value: addr=192.168.10.2
     type: str
-    label: RX N210 device address
+    label: RX N210 device address (same as TX for loopback)
     short_id: ''
     hide: none
   states:
@@ -4733,24 +4733,38 @@ blocks:
     - 176
     rotation: 0
     state: enabled
-- name: tx_data
-  id: variable
+- name: settle_s
+  id: parameter
   parameters:
-    value: list(numpy.random.RandomState(42).randint(0, 256, 32766))
+    value: '1.0'
+    type: eng_float
+    label: Settling time before BER counting (s)
+    short_id: ''
+    hide: none
   states:
     coordinate:
     - 1416
     - 176
     rotation: 0
     state: enabled
-- name: training_symbols
+- name: tx_data
   id: variable
   parameters:
-    value: list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k),
-      dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()])
+    value: numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
   states:
     coordinate:
     - 1616
+    - 176
+    rotation: 0
+    state: enabled
+- name: training_symbols
+  id: variable
+  parameters:
+    value: numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k),
+      dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
+  states:
+    coordinate:
+    - 1816
     - 176
     rotation: 0
     state: enabled
@@ -4760,7 +4774,7 @@ blocks:
     value: '128'
   states:
     coordinate:
-    - 1816
+    - 2016
     - 176
     rotation: 0
     state: enabled

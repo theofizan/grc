@@ -10,7 +10,8 @@ dashboard if --gui), discards the acquisition period (AGC, Costas loop, and
 the first full equalizer training), then compares the next --bits received
 bits with the actual transmitted data. Bits are scored in chunks that are
 each re-aligned to the known data, so a USRP overflow/underflow (dropped
-samples) only affects the chunk it occurs in; re-alignments are reported.
+samples) only affects the chunk it occurs in. Counting starts at sync (see
+score()); the acquisition time and any later losses of sync are reported.
 
 Results go to results/n210_runs/<time>_<modulation>_<label>.json with the
 error count, BER, exact 95% Clopper-Pearson interval, RX ADC level, MER, and
@@ -34,7 +35,7 @@ from scipy.stats import beta
 ROOT = Path(__file__).resolve().parents[1]
 GENERATED = ROOT / "grc/generated"
 CHUNK_BITS = 50_000
-ACQUISITION_PERIODS = 2  # data blocks discarded while loops and training settle
+ACQUISITION_PERIODS = 3  # data blocks allowed for acquisition before the test bits
 
 
 def clopper_pearson(errors, n, confidence=0.95):
@@ -44,24 +45,41 @@ def clopper_pearson(errors, n, confidence=0.95):
     return low, high
 
 
-def score(rx_bits, tx_block_bits):
-    """Count errors chunk by chunk, re-aligning each chunk to the known data."""
+def score(rx_bits, tx_block_bits, test_bits):
+    """Sync first, then count, like a lab BER tester.
+
+    Every 50,000-bit chunk is aligned to the known data block by
+    cross-correlation. Sync is declared at the first of three consecutive
+    chunks that line up end to end with under 1% errors; everything before
+    that is receiver acquisition and is discarded. From the sync point on,
+    every chunk is counted, and any later jump in alignment (a loss of sync,
+    for example after dropped USRP samples) is reported, not hidden.
+    """
     period = tx_block_bits.size
     reference = 2.0 * np.concatenate([tx_block_bits, tx_block_bits]) - 1
     reference_fft = np.fft.rfft(reference)
-    errors, compared, lags = 0, 0, []
-    for start in range(0, rx_bits.size - 4096, CHUNK_BITS):
+    chunks = []
+    for start in range(0, rx_bits.size - CHUNK_BITS + 1, CHUNK_BITS):
         chunk = rx_bits[start:start + CHUNK_BITS]
         probe = 2.0 * chunk[:4096] - 1
         correlation = np.fft.irfft(reference_fft * np.conj(np.fft.rfft(probe, reference.size)),
                                    reference.size)
         lag = int(np.argmax(correlation[:period]))
         expected = np.resize(np.roll(tx_block_bits, -lag), chunk.size)
-        errors += int(np.count_nonzero(chunk != expected))
-        compared += chunk.size
-        lags.append(lag)
-    shifts = sum(1 for a, b in zip(lags, lags[1:]) if (b - a - CHUNK_BITS) % period)
-    return errors, compared, shifts
+        chunks.append((lag, int(np.count_nonzero(chunk != expected))))
+
+    def contiguous(i):
+        return (chunks[i + 1][0] - chunks[i][0] - CHUNK_BITS) % period == 0
+
+    sync = next((i for i in range(len(chunks) - 3)
+                 if all(chunks[j][1] < 0.01 * CHUNK_BITS for j in range(i, i + 3))
+                 and contiguous(i) and contiguous(i + 1)), None)
+    if sync is None:
+        return None
+    counted = chunks[sync:sync + test_bits // CHUNK_BITS]
+    errors = sum(e for _, e in counted)
+    losses = sum(1 for i in range(sync, sync + len(counted) - 1) if not contiguous(i))
+    return errors, len(counted) * CHUNK_BITS, losses, sync * CHUNK_BITS
 
 
 def main():
@@ -72,7 +90,8 @@ def main():
     parser.add_argument("--bits", type=float, default=1e6, help="compared bits (default 1e6)")
     parser.add_argument("--label", default="antenna", help="name saved with the result")
     parser.add_argument("--tx-address", default="addr=192.168.10.2")
-    parser.add_argument("--rx-address", default="addr=192.168.10.3")
+    parser.add_argument("--rx-address", default="addr=192.168.10.2",
+                        help="same as --tx-address for one-radio loopback")
     parser.add_argument("--freq", type=float, default=915e6, help="RF center frequency (Hz)")
     parser.add_argument("--tx-gain", type=float, default=0.5, help="normalized 0-1")
     parser.add_argument("--rx-gain", type=float, default=0.5, help="normalized 0-1")
@@ -112,8 +131,8 @@ def main():
     bit_rate = float(lab_for_rates.bit_rate)
     period_bits = int(lab_for_rates.data_period_bits)
     tx_block = np.unpackbits(np.asarray(lab_for_rates.tx_data, dtype=np.uint8))
-    skip_bits = ACQUISITION_PERIODS * period_bits
-    test_bits = int(args.bits)
+    skip_bits = ACQUISITION_PERIODS * period_bits  # expected acquisition (max)
+    test_bits = max(1, int(args.bits) // CHUNK_BITS) * CHUNK_BITS
     total_bits = skip_bits + test_bits + CHUNK_BITS
     estimate = total_bits / bit_rate
     print(f"{args.modulation.upper()}: {test_bits:,} test bits at {bit_rate / 1e6:g} Mbit/s, "
@@ -145,26 +164,36 @@ def main():
     started = time.time()
     lab.start()
     last_report, last_count, last_change = 0, -1, time.time()
-    while len(bits.data()) < total_bits:
+    target = total_bits
+    max_acquisition_bits = int(5 * bit_rate) + 3 * period_bits  # give up after ~5 s
+    while True:
         app.processEvents()
         time.sleep(0.05)
         elapsed = time.time() - started
+        count = len(bits.data())
         if elapsed - last_report >= 2:
             last_report = elapsed
-            done = max(0, len(bits.data()) - skip_bits)
-            print(f"  {elapsed:6.1f} s  {min(done, test_bits):,} / {test_bits:,} test bits",
-                  flush=True)
-        count = len(bits.data())
+            print(f"  {elapsed:6.1f} s  {count:,} bits received", flush=True)
         if count != last_count:
             last_count, last_change = count, time.time()
         if args.simulate and time.time() - last_change > 5:
-            raise SystemExit(f"Simulated playback ended at {count:,} of {total_bits:,} bits")
-        if elapsed > 10 * estimate + 120:
-            raise SystemExit("Stopped: far slower than the estimate (check RX signal/overflows)")
+            raise SystemExit(f"Simulated playback ended at {count:,} bits")
+        if count < target:
+            continue
+        # Enough bits for the planned test: check sync and the counted length.
+        scored = score(np.asarray(bits.data(), dtype=np.uint8), tx_block, test_bits)
+        if scored is not None and scored[1] >= test_bits:
+            break
+        acquired = count - test_bits if scored is None else scored[3]
+        if acquired > max_acquisition_bits:
+            lab.stop()
+            lab.wait()
+            raise SystemExit("No sync within about 5 s: the received bits never lined up with "
+                             "the known data. Check the RF connection, gains and frequency.")
+        target = count + period_bits  # acquisition took longer; keep receiving
     lab.stop()
     lab.wait()
-    received = np.asarray(bits.data(), dtype=np.uint8)[skip_bits:skip_bits + test_bits]
-    errors, compared, shifts = score(received, tx_block)
+    errors, compared, shifts, acquisition_bits = scored
     low, high = clopper_pearson(errors, compared)
 
     def settled_median(sink):
@@ -175,12 +204,13 @@ def main():
         label=args.label, modulation=args.modulation, simulated=args.simulate,
         time=datetime.datetime.now().isoformat(timespec="seconds"),
         compared_bits=compared, bit_errors=errors, ber=errors / compared,
-        ber_95ci=[low, high], realignments=shifts,
+        ber_95ci=[low, high], losses_of_sync=shifts,
+        acquisition_s=round(acquisition_bits / bit_rate, 3),
         rx_adc_level_dbfs=settled_median(rx_level), mer_db=settled_median(mer),
         tx_sample_peak_dbfs=float(np.max(tx_peak.data())) if tx_peak.data() else None,
         elapsed_s=round(time.time() - started, 1), estimated_s=round(estimate, 1),
         settings=dict(vars(args), bit_rate_bps=bit_rate, data_block_bits=period_bits,
-                      acquisition_bits_discarded=skip_bits),
+                      acquisition_bits_discarded=acquisition_bits),
     )
     folder = ROOT / "results/n210_runs"
     folder.mkdir(parents=True, exist_ok=True)
@@ -189,7 +219,8 @@ def main():
     path.write_text(json.dumps(result, indent=2) + "\n")
     print(f"BER {result['ber']:.3g}  ({errors} errors in {compared:,} bits; "
           f"95% CI {low:.2g} to {high:.2g})  RX ADC {result['rx_adc_level_dbfs']:.1f} dBFS  "
-          f"MER {result['mer_db']:.1f} dB  re-alignments {shifts}")
+          f"MER {result['mer_db']:.1f} dB  sync after {result['acquisition_s']} s, "
+          f"losses of sync {shifts}")
     print("saved", path.relative_to(ROOT))
 
 

@@ -62,6 +62,7 @@ def build(profile, sink_block, source_block, **parameters):
     module = importlib.import_module(f"n210_{profile}")
     module.uhd.usrp_sink = lambda *a, **k: StandIn(sink_block, True)
     module.uhd.usrp_source = lambda *a, **k: StandIn(source_block, False)
+    parameters.setdefault("settle_s", 0.0)  # short recordings: no extra settling
     lab = getattr(module, f"n210_{profile}")(**parameters)
     return lab
 

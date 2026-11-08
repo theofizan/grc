@@ -301,7 +301,9 @@ Data: [ber_sweep.csv](results/ber_sweep/ber_sweep.csv), [ideal_reference.csv](re
 
 ## Two USRP N210s: over-the-air BER
 
-`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. One computer drives both radios: a UHD USRP Sink on the **TX N210** (TX/RX port) and a UHD USRP Source on the **RX N210** (RX2 port). Set both device addresses, the RF frequency and the normalized TX/RX gains at the top of the flowchart.
+`python scripts/build_n210.py` writes `grc/n210_<modulation>.grc` from each saved simulation without changing it. One computer drives the radios: a UHD USRP Sink on the **TX N210** (TX/RX port) and a UHD USRP Source on the **RX N210** (RX2 port). Set the device addresses, the RF frequency and the normalized TX/RX gains at the top of the flowchart.
+
+Both addresses default to `addr=192.168.10.2`. That is a **one-radio loopback**: TX/RX port → attenuator → RX2 port on the same N210. With a second N210, set its address in *RX N210 device address* (every N210 ships as 192.168.10.2, so one must be changed first). The computer's Ethernet port needs a fixed address on the same subnet, e.g. 192.168.10.1 / 255.255.255.0.
 
 What changes from the simulation, in RF terms:
 - **TX level is in dBFS** (0 dBFS = DAC full scale). The default −15 dBFS RMS keeps sampled peaks between −7 and −11 dBFS, below clipping. Conducted dBm depends on the daughterboard and TX gain; the N210 is not power-calibrated.
@@ -311,19 +313,26 @@ What changes from the simulation, in RF terms:
 - **Known data:** differential coding is off. The TX repeats a fixed block of 32,766 random bytes, which is a whole number of symbols for every format.
   - A stock Correlation Estimator finds the first 128 symbols of each block and tags them.
   - The equalizer then trains on the block's known symbols. That fixes the absolute carrier phase, so a Costas loop locked to a rotated state still gives correct bits.
-- **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD warns that odd decimation adds slight CIC passband droop.
+- **Timing loop limit:** the polyphase clock sync's maximum rate deviation is 0.05, not the simulation's 1.5.
+  - On a real radio the receiver hears silence until the transmitter starts, so the AGC gain climbs, and the first real samples arrive several times too large.
+  - With 1.5, that burst left the timing loop stuck far off frequency (BER 0.5 on a clean loopback).
+  - Two N210 clocks differ by only a few ppm, so 0.05 is still ample.
+- **Settling time** (`settle_s`, default 1 s): the GRC BER readouts wait this long before counting, because acquisition on hardware usually takes 0.1–0.3 s but has been seen at 0.8 s.
+- **Sample rate:** 4 Msamples/s is decimation 25 from the N210's 100 MHz clock. UHD warns that odd decimation adds slight CIC passband droop. The receiver's equalizer absorbs it.
+- **Large data kept as NumPy arrays:** GRC prints every variable's value in its Variable Editor. The known data block as a Python list was megabytes of text and froze the GRC window when the flowchart was opened.
 
 ### Scripted BER test with a saved record
 
 ```bash
-python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.3 --freq 915e6 --tx-gain 0.5 --rx-gain 0.5
+python scripts/run_n210_ber.py --modulation qpsk --bits 1e6 --label patch_A --tx-address addr=192.168.10.2 --rx-address addr=192.168.10.2 --freq 915e6 --tx-gain 0.3 --rx-gain 0.3
 ```
 
 What the runner does:
-1. Prints its time estimate. A run is acquisition (two data blocks) plus the test bits at the gross bit rate: about 0.8 s for 10⁶ QPSK bits, 7.6 s for 10⁷.
-2. Runs the flowchart (add `--gui` to watch the dashboard) and compares exactly that many received bits with the **actual transmitted data**.
-3. Scores in 50,000-bit chunks that are each re-aligned, so a USRP overflow only affects its own chunk. Re-alignments are reported.
-4. Saves `results/n210_runs/<time>_<modulation>_<label>.json` with:
+1. Prints its time estimate: acquisition plus the test bits at the gross bit rate.
+2. Runs the flowchart (add `--gui` to watch the dashboard).
+3. **Syncs, then counts**, like a lab BER tester. Received bits are aligned to the known data in 50,000-bit chunks. Sync is declared at the first three consecutive chunks that line up end to end with under 1% errors. From there, exactly the requested number of bits is compared with the **actual transmitted data**.
+4. Reports the acquisition time and any later losses of sync (for example after dropped USRP samples). If acquisition runs long, it keeps receiving, and gives up after about 5 s without sync.
+5. Saves `results/n210_runs/<time>_<modulation>_<label>.json` with:
    - error count, BER and the exact 95% confidence interval
    - RX ADC level and MER
    - every RF setting
@@ -346,6 +355,21 @@ How it works, all with stock blocks:
 - On the N210 flowcharts, errors are counted against the RX bits one data block earlier. Each real error shows up twice there, so the count is halved.
 
 For a saved record of each antenna run (95% confidence interval, RX level, MER, settings), use `run_n210_ber.py` above. It compares directly against the transmitted data.
+
+### Hardware loopback results (one N210, UBX, 20 dB pad)
+
+A USRP N210 r4 with a UBX daughterboard, TX/RX port → 20 dB attenuator → RX2 port, at 915 MHz. TX level −15 dBFS RMS, TX and RX gain 0.3 normalized (about 9.5 dB). Each run compared 1,000,000 bits after sync with the actual transmitted data ([run files](results/n210_runs/)):
+
+| Format | Bits | Errors | BER (95% upper bound) | RX ADC (dBFS) | MER (dB) | Sync after (s) |
+| --- | ---: | ---: | --- | ---: | ---: | ---: |
+| BPSK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.5 | 31.7 | 0.3 |
+| QPSK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.6 | 33.4 | 0.15 |
+| 8-PSK | 1,000,000 | 2 | 2.0e-06 (≤ 7.2e-06) | -19.6 | 34.2 | 0.1 |
+| 4-ASK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.6 | 31.0 | 0.15 |
+| 8-ASK | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.4 | 31.4 | 0.117 |
+| 16-QAM | 1,000,000 | 0 | 0 (≤ 3.7e-06) | -19.5 | 28.1 | 0.087 |
+
+The cable path is far above the noise (MER about 28–34 dB), so these runs confirm the receiver works end to end on real hardware. They are not a sensitivity measurement. For BER versus received level, lower the TX gain or add attenuation, and watch the ADC level and MER.
 
 ### Validation without hardware
 

@@ -33,6 +33,9 @@ import sip
 import threading
 
 
+def snipfcn_equalizer_initial_taps(self):
+    self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
+
 def snipfcn_square_plot_panels(self):
     # Plot layout is a resizable 2x2 grid, not a square-canvas constraint.
     for index in range(self.views.count()):
@@ -51,9 +54,6 @@ def snipfcn_square_plot_panels(self):
     self.views.setMinimumSize(0, 0)
     self.views.setSizePolicy(Qt.QSizePolicy.Ignored, Qt.QSizePolicy.Ignored)
     self.resize(1180, 900)
-
-def snipfcn_equalizer_initial_taps(self):
-    self.equalizer.set_taps([0j]*((self.eq_taps-1)//2)+[1+0j]+[0j]*(self.eq_taps//2))
 
 def snipfcn_link_table(self):
     # Link budget and BER test as a spreadsheet-style table (display only).
@@ -122,12 +122,12 @@ def snipfcn_link_table(self):
 
 def snippets_main_after_init(tb):
     snipfcn_link_table(tb)
-    snipfcn_square_plot_panels(tb)
     snipfcn_equalizer_initial_taps(tb)
+    snipfcn_square_plot_panels(tb)
 
 class n210_4ask(gr.top_block, Qt.QWidget):
 
-    def __init__(self, symbol_rate=1e6, tx_level_dbfs=(-15), evm_guide_percent=5, eq_taps=11, eq_step=0.01, ber_test_bits=1000000, tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.3', center_freq_hz=915e6):
+    def __init__(self, ber_test_bits=1000000, eq_step=0.01, eq_taps=11, evm_guide_percent=5, symbol_rate=1e6, tx_level_dbfs=(-15), tx_usrp_address='addr=192.168.10.2', rx_usrp_address='addr=192.168.10.2', center_freq_hz=915e6, settle_s=1.0):
         gr.top_block.__init__(self, "4-ASK over the air | two USRP N210s", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("4-ASK over the air | two USRP N210s")
@@ -161,22 +161,23 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         ##################################################
         # Parameters
         ##################################################
+        self.ber_test_bits = ber_test_bits
+        self.eq_step = eq_step
+        self.eq_taps = eq_taps
+        self.evm_guide_percent = evm_guide_percent
         self.symbol_rate = symbol_rate
         self.tx_level_dbfs = tx_level_dbfs
-        self.evm_guide_percent = evm_guide_percent
-        self.eq_taps = eq_taps
-        self.eq_step = eq_step
-        self.ber_test_bits = ber_test_bits
         self.tx_usrp_address = tx_usrp_address
         self.rx_usrp_address = rx_usrp_address
         self.center_freq_hz = center_freq_hz
+        self.settle_s = settle_s
 
         ##################################################
         # Variables
         ##################################################
         self.const = const = digital.constellation_rect([-3, -1, 1, 3], [0, 1, 2, 3],
         1, 4, 1, 2, 1).base()
-        self.tx_data = tx_data = list(numpy.random.RandomState(42).randint(0, 256, 32766))
+        self.tx_data = tx_data = numpy.random.RandomState(42).randint(0, 256, 32766).astype(numpy.uint8)
         self.k = k = const.bits_per_symbol()
         self.warmup_bits = warmup_bits = 4096
         self.symbol_rms = symbol_rms = (sum(abs(p)**2 for p in const.points())/len(const.points()))**0.5
@@ -188,7 +189,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.alpha = alpha = 0.35
         self.tx_gain_norm = tx_gain_norm = 0.5
         self.tx_amplitude = tx_amplitude = 10**(tx_level_dbfs/20.0)
-        self.training_symbols = training_symbols = list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()])
+        self.training_symbols = training_symbols = numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((data_period_bits // k, 8-k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(tx_data, dtype=numpy.uint8)).reshape(-1, k)]), axis=1).ravel()]
         self.timing_bw = timing_bw = 0.0628
         self.samp_rate = samp_rate = symbol_rate*sps
         self.rx_gain_norm = rx_gain_norm = 0.5
@@ -200,7 +201,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.eq_algorithm = eq_algorithm = digital.adaptive_algorithm_lms( const, eq_step/(eq_taps*symbol_rms**2)).base()
         self.carrier_loop_bw = carrier_loop_bw = 2*math.pi/800
         self.ber_window = ber_window = 10000
-        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate
+        self.ber_test_seconds = ber_test_seconds = (warmup_bits + 3*data_period_bits + 10000*ber_test_blocks) / bit_rate + settle_s
         self.ber_error_weight = ber_error_weight = 0.5
 
         ##################################################
@@ -749,8 +750,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_1.setRowStretch(r, 1)
         for c in range(0, 1):
             self.views_grid_layout_1.setColumnStretch(c, 1)
-        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
-        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits))
+        self.skip_tx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits+int(settle_s*bit_rate)))
+        self.skip_rx = blocks.skiphead(gr.sizeof_char*1, (warmup_bits+2*data_period_bits+int(settle_s*bit_rate)))
         self.rx_snr = blocks.nlog10_ff((-20), 1, 40)
         self.rx_scale = blocks.multiply_const_cc(symbol_rms)
         self.rx_power_sum = blocks.integrate_ff(4096, 1)
@@ -1285,7 +1286,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
             self.views_grid_layout_5.setColumnStretch(c, 1)
         self.delay = blocks.delay(gr.sizeof_char*1, data_period_bits)
         self.decoder = digital.constellation_decoder_cb(const)
-        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 1.5, 1)
+        self.clock_sync = digital.pfb_clock_sync_ccf(sps, timing_bw, rrc_taps, nfilts, 16, 0.05, 1)
         self.carrier_sync = digital.costas_loop_cc(carrier_loop_bw, 2, False)
         self.ber_test_zero = blocks.multiply_const_ff(0)
         self.ber_test_window_sum = filter.iir_filter_ffd([1.0], [0.0, 1.0], True)
@@ -1573,8 +1574,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.connect((self.carrier_sync, 0), (self.preamble_detect, 0))
         self.connect((self.clock_sync, 0), (self.carrier_sync, 0))
         self.connect((self.clock_sync, 1), (self.timing_error, 0))
-        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.clock_sync, 2), (self.unused_timing_states, 0))
+        self.connect((self.clock_sync, 3), (self.unused_timing_states, 1))
         self.connect((self.decoder, 0), (self.unpack_rx, 0))
         self.connect((self.delay, 0), (self.skip_tx, 0))
         self.connect((self.eq_tap_decimator, 0), (self.eq_tap_magnitudes, 0))
@@ -1665,32 +1666,18 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
         event.accept()
 
-    def get_symbol_rate(self):
-        return self.symbol_rate
+    def get_ber_test_bits(self):
+        return self.ber_test_bits
 
-    def set_symbol_rate(self, symbol_rate):
-        self.symbol_rate = symbol_rate
-        self.set_samp_rate(self.symbol_rate*self.sps)
-        self.set_bit_rate(self.symbol_rate*self.k)
-        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
-        self.evm_history.set_samp_rate(self.symbol_rate)
-        self.timing_error.set_samp_rate(self.symbol_rate)
-        self.eq_evm_history.set_samp_rate(self.symbol_rate)
-        self.eq_error_trace.set_samp_rate(self.symbol_rate)
+    def set_ber_test_bits(self, ber_test_bits):
+        self.ber_test_bits = ber_test_bits
+        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
 
-    def get_tx_level_dbfs(self):
-        return self.tx_level_dbfs
+    def get_eq_step(self):
+        return self.eq_step
 
-    def set_tx_level_dbfs(self, tx_level_dbfs):
-        self.tx_level_dbfs = tx_level_dbfs
-        self.set_tx_amplitude(10**(self.tx_level_dbfs/20.0))
-
-    def get_evm_guide_percent(self):
-        return self.evm_guide_percent
-
-    def set_evm_guide_percent(self, evm_guide_percent):
-        self.evm_guide_percent = evm_guide_percent
-        self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
+    def set_eq_step(self, eq_step):
+        self.eq_step = eq_step
 
     def get_eq_taps(self):
         return self.eq_taps
@@ -1699,18 +1686,32 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.eq_taps = eq_taps
         self.set_eq_delay_symbols((self.eq_taps-1)//2)
 
-    def get_eq_step(self):
-        return self.eq_step
+    def get_evm_guide_percent(self):
+        return self.evm_guide_percent
 
-    def set_eq_step(self, eq_step):
-        self.eq_step = eq_step
+    def set_evm_guide_percent(self, evm_guide_percent):
+        self.evm_guide_percent = evm_guide_percent
+        self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
 
-    def get_ber_test_bits(self):
-        return self.ber_test_bits
+    def get_symbol_rate(self):
+        return self.symbol_rate
 
-    def set_ber_test_bits(self, ber_test_bits):
-        self.ber_test_bits = ber_test_bits
-        self.set_ber_test_blocks(max(1, int(self.ber_test_bits) // 10000))
+    def set_symbol_rate(self, symbol_rate):
+        self.symbol_rate = symbol_rate
+        self.set_bit_rate(self.symbol_rate*self.k)
+        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
+        self.set_samp_rate(self.symbol_rate*self.sps)
+        self.eq_error_trace.set_samp_rate(self.symbol_rate)
+        self.eq_evm_history.set_samp_rate(self.symbol_rate)
+        self.evm_history.set_samp_rate(self.symbol_rate)
+        self.timing_error.set_samp_rate(self.symbol_rate)
+
+    def get_tx_level_dbfs(self):
+        return self.tx_level_dbfs
+
+    def set_tx_level_dbfs(self, tx_level_dbfs):
+        self.tx_level_dbfs = tx_level_dbfs
+        self.set_tx_amplitude(10**(self.tx_level_dbfs/20.0))
 
     def get_tx_usrp_address(self):
         return self.tx_usrp_address
@@ -1732,6 +1733,13 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.usrp_tx.set_center_freq(self.center_freq_hz, 0)
         self.usrp_rx.set_center_freq(self.center_freq_hz, 0)
 
+    def get_settle_s(self):
+        return self.settle_s
+
+    def set_settle_s(self, settle_s):
+        self.settle_s = settle_s
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
+
     def get_const(self):
         return self.const
 
@@ -1746,7 +1754,7 @@ class n210_4ask(gr.top_block, Qt.QWidget):
         self.tx_data = tx_data
         self.random_bytes.set_data(self.tx_data, [])
         self.set_data_period_bits(8*len(self.tx_data))
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_k(self):
         return self.k
@@ -1754,38 +1762,38 @@ class n210_4ask(gr.top_block, Qt.QWidget):
     def set_k(self, k):
         self.k = k
         self.set_bit_rate(self.symbol_rate*self.k)
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_warmup_bits(self):
         return self.warmup_bits
 
     def set_warmup_bits(self, warmup_bits):
         self.warmup_bits = warmup_bits
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
 
     def get_symbol_rms(self):
         return self.symbol_rms
 
     def set_symbol_rms(self, symbol_rms):
         self.symbol_rms = symbol_rms
-        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
-        self.rx_scale.set_k(self.symbol_rms)
         self.evm_circles.set_data([p+self.symbol_rms*self.evm_guide_percent/100*complex(math.cos(t),math.sin(t)) for p in const.points() for t in numpy.linspace(0,2*math.pi,64,endpoint=False)], [])
+        self.rx_scale.set_k(self.symbol_rms)
+        self.tx_power.set_k(self.tx_amplitude/self.symbol_rms)
 
     def get_sps(self):
         return self.sps
 
     def set_sps(self, sps):
         self.sps = sps
-        self.set_samp_rate(self.symbol_rate*self.sps)
-        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
-        self.eye.set_samp_per_symbol(self.sps)
-        self.eye_quadrature.set_samp_per_symbol(self.sps)
         self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
-        self.middle_i_eye.set_samp_per_symbol(self.sps)
-        self.middle_q_eye.set_samp_per_symbol(self.sps)
+        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
+        self.set_samp_rate(self.symbol_rate*self.sps)
         self.after_i_eye.set_samp_per_symbol(self.sps)
         self.after_q_eye.set_samp_per_symbol(self.sps)
+        self.eye.set_samp_per_symbol(self.sps)
+        self.eye_quadrature.set_samp_per_symbol(self.sps)
+        self.middle_i_eye.set_samp_per_symbol(self.sps)
+        self.middle_q_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_i_eye.set_samp_per_symbol(self.sps)
         self.tx_eye_q_eye.set_samp_per_symbol(self.sps)
         self.evm_table_rate.set_n((4096//self.sps))
@@ -1802,24 +1810,24 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_data_period_bits(self, data_period_bits):
         self.data_period_bits = data_period_bits
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.delay.set_dly(int(self.data_period_bits))
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
-        self.set_training_symbols(list(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()]))
+        self.set_training_symbols(numpy.asarray(const.points())[numpy.packbits(numpy.hstack([numpy.zeros((self.data_period_bits // self.k, 8-self.k), dtype=numpy.uint8), numpy.unpackbits(numpy.array(self.tx_data, dtype=numpy.uint8)).reshape(-1, self.k)]), axis=1).ravel()])
 
     def get_bit_rate(self):
         return self.bit_rate
 
     def set_bit_rate(self, bit_rate):
         self.bit_rate = bit_rate
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
 
     def get_ber_test_blocks(self):
         return self.ber_test_blocks
 
     def set_ber_test_blocks(self, ber_test_blocks):
         self.ber_test_blocks = ber_test_blocks
-        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate)
+        self.set_ber_test_seconds((self.warmup_bits + 3*self.data_period_bits + 10000*self.ber_test_blocks) / self.bit_rate + self.settle_s)
         self.ber_test_done.set_hi((self.ber_test_blocks + 0.5))
         self.ber_test_done.set_lo((self.ber_test_blocks + 0.5))
 
@@ -1828,9 +1836,9 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_alpha(self, alpha):
         self.alpha = alpha
-        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
-        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
         self.set_eye_synthesis_taps(firdes.root_raised_cosine(self.sps,self.sps,1.0,self.alpha,11*self.sps))
+        self.set_rrc_bandwidth(self.symbol_rate*(1+self.alpha))
+        self.set_rrc_taps(firdes.root_raised_cosine(self.nfilts, self.nfilts*self.sps, 1.0, self.alpha, 11*self.sps*self.nfilts))
 
     def get_tx_gain_norm(self):
         return self.tx_gain_norm
@@ -1864,18 +1872,18 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.spectrum.set_frequency_range(0, self.samp_rate)
-        self.waveform.set_samp_rate(self.samp_rate)
+        self.after_i_eye.set_samp_rate(self.samp_rate)
+        self.after_q_eye.set_samp_rate(self.samp_rate)
         self.eye.set_samp_rate(self.samp_rate)
         self.eye_quadrature.set_samp_rate(self.samp_rate)
         self.middle_i_eye.set_samp_rate(self.samp_rate)
         self.middle_q_eye.set_samp_rate(self.samp_rate)
-        self.after_i_eye.set_samp_rate(self.samp_rate)
-        self.after_q_eye.set_samp_rate(self.samp_rate)
+        self.spectrum.set_frequency_range(0, self.samp_rate)
+        self.spectrum_budget.set_frequency_range(0, self.samp_rate)
         self.tx_eye_i_eye.set_samp_rate(self.samp_rate)
         self.tx_eye_q_eye.set_samp_rate(self.samp_rate)
         self.tx_waveform.set_samp_rate(self.samp_rate)
-        self.spectrum_budget.set_frequency_range(0, self.samp_rate)
+        self.waveform.set_samp_rate(self.samp_rate)
         self.usrp_tx.set_samp_rate(self.samp_rate)
         self.usrp_rx.set_samp_rate(self.samp_rate)
 
@@ -1910,8 +1918,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_eye_synthesis_taps(self, eye_synthesis_taps):
         self.eye_synthesis_taps = eye_synthesis_taps
-        self.middle_eye_reconstruction.set_taps(self.eye_synthesis_taps)
         self.after_eye_reconstruction.set_taps(self.eye_synthesis_taps)
+        self.middle_eye_reconstruction.set_taps(self.eye_synthesis_taps)
 
     def get_eq_delay_symbols(self):
         return self.eq_delay_symbols
@@ -1938,8 +1946,8 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 
     def set_ber_window(self, ber_window):
         self.ber_window = ber_window
-        self.ber_scale.set_k((0.5/self.ber_window))
         self.ber_history.set_samp_rate(self.bit_rate/self.ber_window)
+        self.ber_scale.set_k((0.5/self.ber_window))
 
     def get_ber_test_seconds(self):
         return self.ber_test_seconds
@@ -1959,32 +1967,35 @@ class n210_4ask(gr.top_block, Qt.QWidget):
 def argument_parser():
     parser = ArgumentParser()
     parser.add_argument(
+        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
+        help="Set BER test length (compared bits) [default=%(default)r]")
+    parser.add_argument(
+        "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
+        help="Set NLMS adaptation step [default=%(default)r]")
+    parser.add_argument(
+        "--eq-taps", dest="eq_taps", type=intx, default=11,
+        help="Set Adaptive equalizer taps [default=%(default)r]")
+    parser.add_argument(
+        "--evm-guide-percent", dest="evm_guide_percent", type=eng_float, default=eng_notation.num_to_str(float(5)),
+        help="Set Constellation guide radius (% RMS) [default=%(default)r]")
+    parser.add_argument(
         "--symbol-rate", dest="symbol_rate", type=eng_float, default=eng_notation.num_to_str(float(1e6)),
         help="Set Symbol rate (symbols/s) [default=%(default)r]")
     parser.add_argument(
         "--tx-level-dbfs", dest="tx_level_dbfs", type=eng_float, default=eng_notation.num_to_str(float((-15))),
         help="Set TX digital RMS level (dBFS, keep peaks < 0) [default=%(default)r]")
     parser.add_argument(
-        "--evm-guide-percent", dest="evm_guide_percent", type=eng_float, default=eng_notation.num_to_str(float(5)),
-        help="Set Constellation guide radius (% RMS) [default=%(default)r]")
-    parser.add_argument(
-        "--eq-taps", dest="eq_taps", type=intx, default=11,
-        help="Set Adaptive equalizer taps [default=%(default)r]")
-    parser.add_argument(
-        "--eq-step", dest="eq_step", type=eng_float, default=eng_notation.num_to_str(float(0.01)),
-        help="Set NLMS adaptation step [default=%(default)r]")
-    parser.add_argument(
-        "--ber-test-bits", dest="ber_test_bits", type=intx, default=1000000,
-        help="Set BER test length (compared bits) [default=%(default)r]")
-    parser.add_argument(
         "--tx-usrp-address", dest="tx_usrp_address", type=str, default='addr=192.168.10.2',
         help="Set TX N210 device address [default=%(default)r]")
     parser.add_argument(
-        "--rx-usrp-address", dest="rx_usrp_address", type=str, default='addr=192.168.10.3',
-        help="Set RX N210 device address [default=%(default)r]")
+        "--rx-usrp-address", dest="rx_usrp_address", type=str, default='addr=192.168.10.2',
+        help="Set RX N210 device address (same as TX for loopback) [default=%(default)r]")
     parser.add_argument(
         "--center-freq-hz", dest="center_freq_hz", type=eng_float, default=eng_notation.num_to_str(float(915e6)),
         help="Set RF center frequency (Hz) [default=%(default)r]")
+    parser.add_argument(
+        "--settle-s", dest="settle_s", type=eng_float, default=eng_notation.num_to_str(float(1.0)),
+        help="Set Settling time before BER counting (s) [default=%(default)r]")
     return parser
 
 
@@ -1994,7 +2005,7 @@ def main(top_block_cls=n210_4ask, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, evm_guide_percent=options.evm_guide_percent, eq_taps=options.eq_taps, eq_step=options.eq_step, ber_test_bits=options.ber_test_bits, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz)
+    tb = top_block_cls(ber_test_bits=options.ber_test_bits, eq_step=options.eq_step, eq_taps=options.eq_taps, evm_guide_percent=options.evm_guide_percent, symbol_rate=options.symbol_rate, tx_level_dbfs=options.tx_level_dbfs, tx_usrp_address=options.tx_usrp_address, rx_usrp_address=options.rx_usrp_address, center_freq_hz=options.center_freq_hz, settle_s=options.settle_s)
     snippets_main_after_init(tb)
     tb.start()
     tb.flowgraph_started.set()
